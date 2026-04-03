@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>NeuroHell - Weapon Preview</title>
+<link rel="icon" type="image/x-icon" href="assets/images/favicon/favicon.ico">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#060609; color:#fff; font-family:monospace; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+h1 { color:#ff4400; padding:7px 16px; font-size:11px; letter-spacing:3px; border-bottom:1px solid #181828; flex-shrink:0; }
+#main { display:flex; flex:1; overflow:hidden; }
+#sidebar { width:190px; background:#0b0b16; padding:8px; display:flex; flex-direction:column; gap:3px; border-right:1px solid #181828; overflow-y:auto; }
+.section { color:#444; font-size:9px; margin:8px 3px 2px; letter-spacing:2px; }
+button { background:#0e0e1e; border:1px solid #1e1e3e; color:#556; padding:6px 8px; cursor:pointer; font-family:monospace; font-size:10px; text-align:left; width:100%; transition:all .12s; }
+button:hover { border-color:#ff4400; color:#ff8800; }
+button.active { background:#181830; color:#ff4400; border-color:#ff4400; }
+button.anim-btn.active { color:#ffaa00; border-color:#ff8800; }
+button:disabled { opacity:.25; cursor:default; }
+button:disabled:hover { border-color:#1e1e3e; color:#556; }
+#canvas-wrap { flex:1; position:relative; }
+canvas#c { display:block; width:100%; height:100%; }
+
+#scope-overlay { display:none; position:absolute; inset:0; pointer-events:none; z-index:10; }
+#scope-overlay.on { display:block; }
+#scope-vignette { position:absolute; inset:0; }
+canvas#scope-cvs { position:absolute; inset:0; width:100%; height:100%; }
+#scope-zoom { position:absolute; top:13px; right:18px; color:#00ddbb; font-size:10px; letter-spacing:2px; opacity:.75; }
+
+#mode-lbl { position:absolute; top:10px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.55); padding:3px 14px; font-size:10px; color:#ff4400; letter-spacing:2px; border:1px solid #2a2a2a; pointer-events:none; }
+#crosshair { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:rgba(255,255,255,.35); font-size:20px; pointer-events:none; }
+#hint { position:absolute; bottom:38px; left:50%; transform:translateX(-50%); font-size:9px; color:#333; letter-spacing:1px; pointer-events:none; }
+#info { position:absolute; bottom:0; left:0; right:0; padding:5px 14px; background:rgba(0,0,0,.7); font-size:10px; color:#444; display:flex; gap:16px; flex-wrap:wrap; border-top:1px solid #181828; z-index:5; }
+.iv { color:#ff6600; }
+
+#hit-flash { position:absolute; inset:0; background:rgba(255,100,0,0); pointer-events:none; transition:background .08s; z-index:15; }
+
+/* ── Barres de vie des démons ────────────────────────────────── */
+.hp-label { display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; }
+.hp-name  { font-family:monospace; font-size:9px; color:#ff6622; letter-spacing:1px; text-shadow:0 0 6px #ff3300; white-space:nowrap; }
+.hp-bar-outer { width:52px; height:5px; background:#1a0a0a; border:1px solid #441111; border-radius:2px; overflow:hidden; }
+.hp-bar-inner { height:100%; width:100%; background:linear-gradient(90deg,#ff2200,#ff6600); border-radius:2px; transition:width .12s; }
+
+.tag { font-size:8px; padding:1px 4px; border-radius:2px; margin-left:4px; }
+.tag.x2     { background:#1a1a44; color:#6677ff; border:1px solid #2a2a55; }
+.tag.r      { background:#2a1414; color:#ff6644; border:1px solid #442222; }
+.tag.l      { background:#142a14; color:#44ff88; border:1px solid #224422; }
+.tag.sniper { background:#142a28; color:#00ddbb; border:1px solid #224444; }
+</style>
+</head>
+<body>
+<h1>⬡ NEUROHELL - WEAPON PREVIEW</h1>
+<div id="main">
+ <div id="sidebar">
+
+  <div class="section">ARMES</div>
+  <button class="wpn active"
+    data-file="assets/weapons/weapon_irongazlet.glb"
+    data-id="irongazlet" data-name="Irongazlet"
+    data-hands="both"
+    data-plasma="#ff6600" data-sniper="false"
+    data-fire="Plasma orange - continu (clic enfoncé)">
+    ✊ Irongazlet <span class="tag x2">×2</span>
+  </button>
+  <button class="wpn"
+    data-file="assets/weapons/weapon_plasmapistol_standard.glb"
+    data-id="plasma_standard" data-name="Plasma Standard"
+    data-hands="right"
+    data-plasma="#3377ff" data-sniper="false"
+    data-fire="Plasma bleu - auto coup après coup">
+    🔫 Plasma Standard <span class="tag r">R</span>
+  </button>
+  <button class="wpn"
+    data-file="assets/weapons/weapon_plasmapistol_elite.glb"
+    data-id="plasma_elite" data-name="Plasma Elite"
+    data-hands="right"
+    data-plasma="#1144ff" data-sniper="false"
+    data-fire="Plasma bleu - auto (cadence+)">
+    🔫 Plasma Elite <span class="tag r">R</span>
+  </button>
+  <button class="wpn"
+    data-file="assets/weapons/weapon_tealsniper.glb"
+    data-id="teal_sniper" data-name="Teal Sniper"
+    data-hands="right"
+    data-plasma="#00ddbb" data-sniper="true"
+    data-fire="Plasma cyan - 1 coup / clic | Clic droit = lunette">
+    🎯 Teal Sniper <span class="tag sniper">2M</span>
+  </button>
+  <button class="wpn"
+    data-file="assets/weapons/weapon_voidrifle.glb"
+    data-id="void_rifle" data-name="Void Rifle"
+    data-hands="right"
+    data-plasma="#aa00ff" data-sniper="false"
+    data-fire="Plasma violet - rafale ×3">
+    ⚡ Void Rifle <span class="tag r">R</span>
+  </button>
+
+  <div class="section">ANIMATIONS</div>
+  <div id="anim-btns"></div>
+
+  <div class="section">VUE</div>
+  <button id="btn-fp" class="active">👁 Première personne</button>
+  <button id="btn-3d">🔄 3D libre</button>
+
+  <div class="section">MIROIR</div>
+  <button id="btn-left">◀ Main gauche</button>
+  <button id="btn-right">▶ Main droite</button>
+  <button id="btn-both" class="active">⬌ Les deux</button>
+
+  <div class="section">DEBUG</div>
+  <div id="debug" style="font-size:9px;color:#334;padding:4px;line-height:1.8"></div>
+ </div>
+
+ <div id="canvas-wrap">
+  <canvas id="c"></canvas>
+
+  <div id="scope-overlay">
+   <canvas id="scope-cvs"></canvas>
+   <div id="scope-vignette"></div>
+   <div id="scope-zoom">× 8.0</div>
+  </div>
+
+  <div id="mode-lbl">VUE PREMIÈRE PERSONNE</div>
+  <div id="crosshair">+</div>
+  <div id="hint">CLIC pour capturer la souris | LMB tirer | RMB lunette (sniper)</div>
+  <div id="hit-flash"></div>
+
+  <div id="info">
+   <div>Arme : <span class="iv" id="st-name">Irongazlet</span></div>
+   <div>Tris : <span class="iv" id="st-tris">-</span></div>
+   <div>Bones : <span class="iv" id="st-bones">-</span></div>
+   <div>Anim : <span class="iv" id="st-anim">-</span></div>
+   <div>Tir : <span class="iv" id="st-fire">-</span></div>
+   <div>Bolts : <span class="iv" id="st-bolts">0</span></div>
+  </div>
+ </div>
+</div>
+
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { clone as skeletonClone } from 'three/addons/utils/SkeletonUtils.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { PlasmaSystem, WEAPON_CONFIGS } from './plasma_system.js';
+import { GauntletController } from './gauntlet_controller.js';
+
+const wrap = document.getElementById('canvas-wrap');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+// ── CSS2D pour les barres de vie ─────────────────────────────────────────────
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.left = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+wrap.appendChild(labelRenderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(65, 1, 0.001, 300);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enabled = false;
+
+function resize() {
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  renderer.setSize(W, H, false);
+  labelRenderer.setSize(W, H);
+  camera.aspect = W / H;
+  camera.updateProjectionMatrix();
+  if (scopeOn) drawScope();
+}
+new ResizeObserver(resize).observe(wrap);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x060609);
+scene.fog = new THREE.FogExp2(0x060609, 0.04);
+scene.add(camera); // requis pour que camera.add(model) soit rendu
+
+// Lumière dédiée aux armes — suit la caméra, éclaire toujours les modèles en espace caméra
+const weaponLight = new THREE.PointLight(0xffeedd, 4, 2.5);
+weaponLight.position.set(0, 0.15, -0.1);
+camera.add(weaponLight);
+const weaponFill = new THREE.PointLight(0x334466, 2, 2);
+weaponFill.position.set(0, -0.1, -0.3);
+camera.add(weaponFill);
+
+const ambLight = new THREE.AmbientLight(0x223355, 1.5);
+scene.add(ambLight);
+
+const keyLight = new THREE.DirectionalLight(0xffe0cc, 3.5);
+keyLight.position.set(2, 4, 3);
+keyLight.castShadow = true;
+scene.add(keyLight);
+
+const rimLight = new THREE.DirectionalLight(0x3311aa, 2);
+rimLight.position.set(-3, 1, -3);
+scene.add(rimLight);
+
+const groundMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(40, 40),
+  new THREE.MeshStandardMaterial({ color: 0x0a0a12, roughness: 0.95, metalness: 0.1 })
+);
+groundMesh.rotation.x = -Math.PI / 2;
+groundMesh.receiveShadow = true;
+scene.add(groundMesh);
+
+const targetGroup = new THREE.Group();
+scene.add(targetGroup);
+const targets = []; // meshes des démons (pour collision plasma)
+
+// ── Définitions des démons ───────────────────────────────────────────────────
+// coll : dimensions du collider invisible (w=largeur X, h=hauteur Y, d=profondeur Z,
+//        zOff=décalage Z vers le joueur pour couvrir une gueule avancée)
+// Valeurs par défaut si absent : w=0.65, h=1.5, d=0.5, zOff=0
+const DEMON_DEFS = [
+  { file:'demon_mawgrub.glb',     name:'Mawgrub',     hpMax:80,  coll:{ w:1.1, h:1.5, d:1.0, zOff:0.25 } },
+  { file:'demon_pyrarachnid.glb', name:'Pyrarachnid', hpMax:60,  coll:{ w:1.3, h:0.55, d:1.1 } },
+  { file:'demon_ravager.glb',     name:'Ravager',     hpMax:120 },
+  { file:'demon_spectre.glb',     name:'Spectre',     hpMax:45  },
+  { file:'demon_taurex.glb',      name:'Taurex',      hpMax:150 },
+  { file:'demon_voidborn.glb',    name:'Voidborn',    hpMax:70,  baseY:0.8, floatAmp:0.10, floatFreq:0.65 },
+];
+const demonInstances = []; // { root, mixer, hp, hpMax, hpBarInner, labelObj, position, dead, respawnTimer }
+
+function makeDemonHPBar(name) {
+  const wrap = document.createElement('div');
+  wrap.className = 'hp-label';
+  const nameEl = document.createElement('div');
+  nameEl.className = 'hp-name';
+  nameEl.textContent = name;
+  const outer = document.createElement('div');
+  outer.className = 'hp-bar-outer';
+  const inner = document.createElement('div');
+  inner.className = 'hp-bar-inner';
+  outer.appendChild(inner);
+  wrap.appendChild(nameEl);
+  wrap.appendChild(outer);
+  return { el: wrap, inner };
+}
+
+async function loadDemons() {
+  const spacing = 1.8;
+  const totalW  = spacing * (DEMON_DEFS.length - 1);
+  const startX  = -totalW / 2;
+
+  for (let i = 0; i < DEMON_DEFS.length; i++) {
+    const def = DEMON_DEFS[i];
+    const posX = startX + i * spacing;
+    const pos  = new THREE.Vector3(posX, 0, -5);
+
+    let gltf;
+    try {
+      gltf = await new Promise((res, rej) =>
+        loader.load('assets/demons/' + def.file, res, undefined, rej)
+      );
+    } catch (e) {
+      console.warn('[Demons] impossible de charger', def.file, e);
+      continue;
+    }
+
+    const root = skeletonClone(gltf.scene);
+
+    // Normaliser la hauteur à ~1.5 unités.
+    // IMPORTANT : updateMatrixWorld(true) AVANT Box3, sinon les nœuds enfants
+    // (ex. scale=0.01 pour les exports cm Blender) ont des matrices stales
+    // et Box3 renvoie des bornes 100× trop petites.
+    root.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(root);
+    const h   = box.getSize(new THREE.Vector3()).y;
+    const sc  = h > 0.001 ? 1.5 / h : 1;
+    root.scale.multiplyScalar(sc);   // préserve le scale interne GLB
+
+    // Repositionner sur le sol.
+    // On pose à y=0 : les modèles Blender ont leur origine aux pieds par convention.
+    // Calculer -box2.min.y est non-fiable (le bind pose peut avoir des membres
+    // étendus sous l'origine, ce qui ferait flotter le modèle en Idle).
+    root.updateMatrixWorld(true);
+    const baseY = def.baseY ?? 0;
+    root.position.set(posX, baseY, -5);
+    root.traverse(c => { if (c.isMesh || c.isSkinnedMesh) { c.castShadow = true; c.frustumCulled = false; } });
+
+    targetGroup.add(root);
+
+    // Collider boîte invisible — taille normalisée par démon.
+    // On évite Box3.setFromObject(SkinnedMesh) qui renvoie des bornes erronées
+    // sur les modèles exportés en cm (bind pose ≠ pose animée, node scale ignoré).
+    const COLL_H = 1.5;
+    const cw = def.coll?.w    ?? 0.65;
+    const ch = def.coll?.h    ?? COLL_H;
+    const cd = def.coll?.d    ?? 0.5;
+    const czOff = def.coll?.zOff ?? 0;
+    const collider = new THREE.Mesh(
+      new THREE.BoxGeometry(cw, ch, cd),
+      new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })
+    );
+    const colliderBaseY = baseY + ch / 2;
+    collider.position.set(posX, colliderBaseY, -5 + czOff);
+    collider._demonRoot = root;
+    scene.add(collider);
+    targets.push(collider);
+
+    // Animation Idle (ou première dispo)
+    const mixer = new THREE.AnimationMixer(root);
+    const idle  = gltf.animations.find(a => /idle|wait|stand/i.test(a.name))
+                  ?? gltf.animations[0];
+    if (idle) { mixer.clipAction(idle).setLoop(THREE.LoopRepeat, Infinity).play(); }
+
+    // Voidborn : joue Fly en parallèle d'Idle (Fly ne touche que les os des ailes)
+    if (def.name === 'Voidborn') {
+      const fly = gltf.animations.find(a => /fly/i.test(a.name));
+      if (fly) {
+        mixer.clipAction(fly).setLoop(THREE.LoopRepeat, Infinity).play();
+      } else {
+        console.warn('[Voidborn] animation "Fly" absente dans le GLB');
+      }
+    }
+
+    // Barre de vie (CSS2DObject flottant au-dessus de la tête)
+    // Position en local root : hauteur normalisée 1.5 + 0.25 de marge
+    const { el: hpEl, inner: hpBarInner } = makeDemonHPBar(def.name);
+    const label = new CSS2DObject(hpEl);
+    label.position.set(0, ch + 0.25, 0);
+    root.add(label);
+
+    demonInstances.push({
+      root, mixer, pos, collider,
+      hp: def.hpMax, hpMax: def.hpMax,
+      hpBarInner, label,
+      dead: false, respawnTimer: 0,
+      baseY, colliderBaseY,
+      floatAmp:   def.floatAmp  ?? 0,
+      floatFreq:  def.floatFreq ?? 1,
+      floatPhase: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+new EXRLoader().load(
+  'assets/images/hdri/hdri_inferno2/hdr.exr',
+  (tex) => {
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = tex;
+    scene.background  = tex;
+    ambLight.intensity = 0.4;
+  },
+  undefined,
+  () => console.warn('[HDRI] hdr.exr non trouvé - eclairage de base actif')
+);
+
+const plasma = new PlasmaSystem(scene, {
+  poolSize: 80,
+  targets,   // référence partagée — se remplit au fur et à mesure que les démons chargent
+  onHit: (info) => {
+    // Flash écran
+    const flash = document.getElementById('hit-flash');
+    const hex = currentCfg?.plasma ?? '#ff6600';
+    flash.style.background = hex + '22';
+    setTimeout(() => flash.style.background = 'rgba(255,100,0,0)', 120);
+
+    // Trouver quel démon a été touché via le collider
+    const hitObj = info.target;
+    const demon = demonInstances.find(d =>
+      !d.dead && d.collider === hitObj
+    );
+    if (demon) {
+      demon.hp = Math.max(0, demon.hp - info.damage);
+      demon.hpBarInner.style.width = (demon.hp / demon.hpMax * 100).toFixed(1) + '%';
+      // Couleur de la barre selon HP restants
+      const ratio = demon.hp / demon.hpMax;
+      demon.hpBarInner.style.background = ratio > 0.5
+        ? 'linear-gradient(90deg,#ff2200,#ff6600)'
+        : ratio > 0.25 ? 'linear-gradient(90deg,#ff6600,#ffaa00)' : '#ff0000';
+
+      if (demon.hp <= 0) killDemon(demon);
+    }
+  },
+});
+
+function killDemon(demon) {
+  demon.dead = true;
+  demon.root.visible = false;
+  demon.label.element.style.display = 'none';
+  // Retirer le collider de la liste de collision
+  const idx = targets.indexOf(demon.collider);
+  if (idx !== -1) targets.splice(idx, 1);
+  demon.respawnTimer = 5;
+}
+
+function respawnDemon(demon) {
+  demon.hp     = demon.hpMax;
+  demon.dead   = false;
+  demon.root.visible = true;
+  demon.label.element.style.display = '';
+  demon.hpBarInner.style.width      = '100%';
+  demon.hpBarInner.style.background = 'linear-gradient(90deg,#ff2200,#ff6600)';
+  if (!targets.includes(demon.collider)) targets.push(demon.collider);
+}
+
+const loader = new GLTFLoader();
+const gltfCache = {};
+
+let modelLeft = null, modelRight = null;
+let mixerLeft = null, mixerRight = null;
+let currentClips = [];
+let currentAnim = null;
+let fpMode = true;
+let mirrorMode = 'both';
+let currentCfg = null;
+let currentFile = 'assets/weapons/weapon_irongazlet.glb';
+let scopeOn = false;
+let mouseDown = false;
+
+let fpYaw = 0;
+let fpPitch = 0;
+const LOOK_SENS = 0.0022;
+const MAX_PITCH = Math.PI * 0.48;
+
+const gauntlet = new GauntletController(plasma, {
+  punchRate: 0.38,
+  onPunch: () => {
+    const flash = document.getElementById('hit-flash');
+    flash.style.background = 'rgba(255,180,0,0.12)';
+    setTimeout(() => flash.style.background = 'rgba(255,100,0,0)', 100);
+    dbg('PUNCH !');
+  },
+});
+
+const clock = new THREE.Clock();
+window.__nh = { gauntlet, plasma, get mixerL() { return mixerLeft; }, get mixerR() { return mixerRight; }, get demons() { return demonInstances; }, get targets() { return targets; } };
+
+const scopeOverlay = document.getElementById('scope-overlay');
+const scopeCvs = document.getElementById('scope-cvs');
+
+function drawScope() {
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  scopeCvs.width = W;
+  scopeCvs.height = H;
+  const ctx = scopeCvs.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  const cx = W / 2, cy = H / 2;
+  const R = Math.min(W, H) * 0.295;
+  const teal = '#00ddbb', dimT = 'rgba(0,221,187,0.28)';
+
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.strokeStyle = teal; ctx.lineWidth = 1.6; ctx.stroke();
+
+  ctx.strokeStyle = dimT; ctx.lineWidth = 0.7;
+  ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+
+  ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = teal; ctx.fill();
+
+  const sp = R / 5;
+  for (let i = -4; i <= 4; i++) {
+    if (i === 0) continue;
+    const r2 = Math.abs(i) === 4 ? 2.2 : 1.4;
+    const c2 = Math.abs(i) === 4 ? teal : dimT;
+    ctx.beginPath(); ctx.arc(cx + i * sp, cy, r2, 0, Math.PI * 2); ctx.fillStyle = c2; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy + i * sp, r2, 0, Math.PI * 2); ctx.fillStyle = c2; ctx.fill();
+  }
+
+  const vign = document.getElementById('scope-vignette');
+  const pct = (R / Math.min(W, H) * 100).toFixed(1);
+  vign.style.background = `radial-gradient(circle at center, transparent ${(+pct - 2).toFixed(1)}%, rgba(0,0,0,.92) ${(+pct + 10).toFixed(1)}%, #000 ${(+pct + 24).toFixed(1)}%)`;
+}
+
+function setScopeOn(on) {
+  scopeOn = on;
+  scopeOverlay.classList.toggle('on', on);
+  document.getElementById('crosshair').style.display = on ? 'none' : 'block';
+  document.getElementById('scope-zoom').style.display = on ? 'block' : 'none';
+  camera.fov = on ? 7 : 65;
+  camera.updateProjectionMatrix();
+  if (on) drawScope();
+}
+
+async function loadGLB(file) {
+  if (gltfCache[file]) return gltfCache[file];
+  return new Promise((resolve, reject) => {
+    loader.load(file, gltf => {
+      let tris = 0, bones = 0;
+      gltf.scene.traverse(c => {
+        if (c.isMesh) {
+          c.castShadow = true;
+          c.receiveShadow = true;
+          if (c.geometry.index) tris += c.geometry.index.count / 3;
+        }
+        if (c.isBone) bones++;
+      });
+      gltfCache[file] = { gltf, tris: Math.round(tris), bones };
+      resolve(gltfCache[file]);
+    }, undefined, reject);
+  });
+}
+
+const NORM_SIZE = 0.45;
+
+const WEAPON_POSES = {
+  irongazlet: {
+    scaleMul: 0.78,
+    fp: {
+      pos: new THREE.Vector3(0.00, -0.12, 0.0),
+      rot: new THREE.Euler(THREE.MathUtils.degToRad(35), 0, 0), // modèle retourné dans Blender — plus de Math.PI
+    },
+    world: {
+      pos: new THREE.Vector3(0, 0, 0),
+      rot: new THREE.Euler(0, 0, 0),
+    }
+  },
+
+  plasma_standard: {
+    scaleMul: 1.00,
+    fp: {
+      pos: new THREE.Vector3(0.12, -0.10, 0.05),
+      rot: new THREE.Euler(THREE.MathUtils.degToRad(-8), Math.PI, 0),
+    },
+    world: {
+      pos: new THREE.Vector3(0, 0, 0),
+      rot: new THREE.Euler(0, Math.PI, 0),
+    }
+  },
+
+  plasma_elite: {
+    scaleMul: 1.08,
+    fp: {
+      pos: new THREE.Vector3(0.12, -0.095, 0.06),
+      rot: new THREE.Euler(THREE.MathUtils.degToRad(-6), Math.PI, 0),
+    },
+    world: {
+      pos: new THREE.Vector3(0, 0, 0),
+      rot: new THREE.Euler(0, Math.PI, 0),
+    }
+  },
+
+  teal_sniper: {
+    scaleMul: 1.28,
+    fp: {
+      pos: new THREE.Vector3(0.17, -0.07, 0.08),
+      rot: new THREE.Euler(THREE.MathUtils.degToRad(-4), 0, 0),
+    },
+    world: {
+      pos: new THREE.Vector3(0, 0, 0),
+      rot: new THREE.Euler(0, 0, 0),
+    }
+  },
+
+  void_rifle: {
+    scaleMul: 1.15,
+    fp: {
+      pos: new THREE.Vector3(0.12, -0.09, 0.08),
+      rot: new THREE.Euler(THREE.MathUtils.degToRad(-5), Math.PI, 0),
+    },
+    world: {
+      pos: new THREE.Vector3(0, 0, 0),
+      rot: new THREE.Euler(0, Math.PI, 0),
+    }
+  },
+};
+
+const MUZZLE_RULES = {
+  irongazlet: {
+    yFactor: 0.85,
+    zSide: 'min',
+    zPush: -0.015,
+    xOffset: 0.00,
+  },
+  plasma_standard: {
+    yFactor: 0.85,
+    zSide: 'min',
+    zPush: -0.020,
+    xOffset: 0.00,
+  },
+  plasma_elite: {
+    yFactor: 0.85,
+    zSide: 'max',
+    zPush: 0.020,
+    xOffset: 0.00,
+  },
+  teal_sniper: {
+    yFactor: 0.85,
+    zSide: 'min',
+    zPush: -0.030,
+    xOffset: 0.00,
+  },
+  void_rifle: {
+    yFactor: 0.85,
+    zSide: 'max',
+    zPush: 0.025,
+    xOffset: 0.00,
+  },
+};
+
+/**
+ * Retourne la position MONDE du point de tir d'une arme.
+ *
+ * Priorité 1 — Empty Blender nommé "Muzzle" dans le GLB :
+ *   Si l'exporteur Blender a inclus un objet vide nommé "Muzzle" au bout
+ *   du canon, on récupère directement sa position monde via getWorldPosition().
+ *
+ * Priorité 2 — Estimation par bounding box (fallback automatique) :
+ *   Si le node "Muzzle" est absent, on calcule le point en bout de canon
+ *   à partir des règles MUZZLE_RULES (yFactor / zSide / zPush / xOffset).
+ *
+ * @param  {object}        inst      Instance d'arme (src, pivot, model, mixer)
+ * @param  {string}        weaponId  Identifiant de l'arme (clé de MUZZLE_RULES)
+ * @returns {THREE.Vector3}          Position monde du point de tir
+ */
+function getMuzzleWorldPos(inst, weaponId) {
+  if (!inst?.src) {
+    // Fallback ultime : légèrement devant la caméra
+    const pos = new THREE.Vector3();
+    camera.getWorldPosition(pos);
+    camera.getWorldDirection(_tmp1).multiplyScalar(0.3);
+    return pos.add(_tmp1);
+  }
+
+  // ── Priorité 1 : Empty "Muzzle" exporté depuis Blender ──────────────────
+  const muzzleNode = inst.src.getObjectByName('Muzzle');
+  if (!getMuzzleWorldPos._logged) getMuzzleWorldPos._logged = new Set();
+  if (!getMuzzleWorldPos._logged.has(weaponId)) {
+    getMuzzleWorldPos._logged.add(weaponId);
+    console.log('[Muzzle]', weaponId, muzzleNode ? '✓ node GLB trouvé' : '✗ absent → fallback bbox');
+  }
+  if (muzzleNode) {
+    return muzzleNode.getWorldPosition(new THREE.Vector3());
+  }
+
+  // ── Priorité 2 : estimation par bounding box ────────────────────────────
+  const rule = MUZZLE_RULES[weaponId] || {
+    yFactor: 0.85,
+    zSide: 'min',
+    zPush: -0.02,
+    xOffset: 0.00,
+  };
+
+  const box    = new THREE.Box3().setFromObject(inst.src);
+  const size   = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+
+  const y     = box.min.y + size.y * rule.yFactor;
+  const zBase = rule.zSide === 'max' ? box.max.z : box.min.z;
+  const z     = zBase + rule.zPush;
+  const x     = center.x + rule.xOffset;
+
+  const localPos = new THREE.Vector3(x, y, z);
+  return inst.pivot.localToWorld(localPos); // retourne la même instance modifiée
+}
+
+// Vecteur temporaire (évite les allocations dans la hot path)
+const _tmp1 = new THREE.Vector3();
+
+/**
+ * Retourne les positions monde des deux points de tir des Irongazlets.
+ *
+ * Priorité 1 — Empty "Muzzle" dans le GLB :
+ *   Si le GLB du gant contient un Empty nommé "Muzzle" (même nom sur les deux
+ *   instances gauche/droite), on utilise directement sa position monde.
+ *
+ * Priorité 2 — Estimation par bounding box (fallback automatique).
+ *
+ * @returns {THREE.Vector3[]}  Tableau de 0, 1 ou 2 positions monde
+ */
+function getDualGauntletMuzzles() {
+  const out    = [];
+  const camFwd = new THREE.Vector3();
+  camera.getWorldDirection(camFwd);
+
+  [modelLeft, modelRight].forEach(inst => {
+    if (!inst?.src) return;
+
+    // Pour les gants, le node "Muzzle" et le fallback bbox se retrouvent derrière
+    // la caméra car la rotation FP Y=180° inverse l'axe Z.
+    // On utilise la position monde du pivot (≈ centre du gant) + camFwd * offset
+    // pour garantir un spawn toujours devant la caméra.
+    const pivotWorld = new THREE.Vector3();
+    inst.pivot.getWorldPosition(pivotWorld);
+    pivotWorld.addScaledVector(camFwd, 0.18);
+    out.push(pivotWorld);
+  });
+
+  return out;
+}
+
+function getFireOriginAndDir() {
+  const aimPoint = getAimPoint();
+  // Origine = node Muzzle (bout du canon)
+  const inst   = getActiveWeaponInstance();
+  const origin = getMuzzleWorldPos(inst, currentCfg?.id);
+  // Direction = Muzzle → point visé par le crosshair
+  // (fonctionne maintenant que le modèle est retourné dans Blender, Y=0° en code)
+  const dir = aimPoint.clone().sub(origin).normalize();
+  return { origin, dir };
+}
+
+function getWeaponPose(id) {
+  return WEAPON_POSES[id] || {
+    scaleMul: 1,
+    fp: { pos: new THREE.Vector3(), rot: new THREE.Euler(0, Math.PI, 0) },
+    world: { pos: new THREE.Vector3(), rot: new THREE.Euler(0, Math.PI, 0) },
+  };
+}
+
+function getNormScale(gltf, weaponId) {
+  const tmp = gltf.scene.clone();
+  const box = new THREE.Box3().setFromObject(tmp);
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const base = maxDim > 0.0001 ? NORM_SIZE / maxDim : 1;
+  const pose = getWeaponPose(weaponId);
+  return base * (pose.scaleMul || 1);
+}
+
+function buildInstance(gltf, mirrored, normScale, weaponId, fpView) {
+  const src = skeletonClone(gltf.scene);
+  const root = new THREE.Group();
+  const pivot = new THREE.Group();
+  root.add(pivot);
+  pivot.add(src);
+
+  src.scale.setScalar(normScale);
+
+  // Désactiver le frustum culling sur tous les meshes :
+  // les SkinnedMesh ont des bounding spheres incorrectes avant le premier update de squelette,
+  // ce qui provoque un culling prématuré (modèle invisible même dans le frustum).
+  src.traverse(c => { if (c.isMesh || c.isSkinnedMesh) c.frustumCulled = false; });
+
+  const pose = getWeaponPose(weaponId);
+  const p = fpView ? pose.fp : pose.world;
+  pivot.position.copy(p.pos);
+  pivot.rotation.copy(p.rot);
+
+  if (mirrored) {
+    pivot.scale.x = -1;
+    pivot.traverse(c => {
+      if (c.isMesh && c.material) {
+        const fix = m => {
+          const m2 = m.clone();
+          m2.side = THREE.DoubleSide;
+          return m2;
+        };
+        c.material = Array.isArray(c.material) ? c.material.map(fix) : fix(c.material);
+      }
+    });
+  }
+
+  return {
+    model: root,
+    src,
+    pivot,
+    mixer: new THREE.AnimationMixer(src)
+  };
+}
+
+function clearModels() {
+  if (modelLeft)  { camera.remove(modelLeft.model);  scene.remove(modelLeft.model);  modelLeft  = null; }
+  if (modelRight) { camera.remove(modelRight.model); scene.remove(modelRight.model); modelRight = null; }
+  mixerLeft = mixerRight = null;
+}
+
+function placeModels(data) {
+  clearModels();
+  const { gltf } = data;
+  const normScale = getNormScale(gltf, currentCfg?.id);
+
+  const tmp = gltf.scene.clone();
+  tmp.scale.setScalar(normScale);
+  const box = new THREE.Box3().setFromObject(tmp);
+  const size = box.getSize(new THREE.Vector3());
+  const ctr = box.getCenter(new THREE.Vector3());
+
+  if (fpMode) {
+    const xL  = mirrorMode === 'both' ?  0.28 : 0;
+    const xR  = mirrorMode === 'both' ? -0.28 : 0;
+    const yFP = -0.18 - ctr.y;
+    const zFP = -0.70;
+
+
+    if (mirrorMode === 'left' || mirrorMode === 'both') {
+      const inst = buildInstance(gltf, false, normScale, currentCfg?.id, true);
+      inst.model.position.set(xL, yFP, zFP);
+      camera.add(inst.model);
+      modelLeft = inst;
+      mixerLeft = inst.mixer;
+    }
+
+    if (mirrorMode === 'right' || mirrorMode === 'both') {
+      const inst = buildInstance(gltf, true, normScale, currentCfg?.id, true);
+      inst.model.position.set(xR, yFP, zFP);
+      camera.add(inst.model);
+      modelRight = inst;
+      mixerRight = inst.mixer;
+    }
+
+
+  } else {
+    const yOff = -box.min.y;
+    const sep = size.x * 0.6;
+
+    if (mirrorMode === 'left' || mirrorMode === 'both') {
+      const inst = buildInstance(gltf, false, normScale, currentCfg?.id, false);
+      inst.model.position.set(mirrorMode === 'both' ? -sep : -ctr.x, yOff, -ctr.z);
+      scene.add(inst.model);
+      modelLeft = inst;
+      mixerLeft = inst.mixer;
+    }
+
+    if (mirrorMode === 'right' || mirrorMode === 'both') {
+      const inst = buildInstance(gltf, true, normScale, currentCfg?.id, false);
+      inst.model.position.set(mirrorMode === 'both' ? sep : ctr.x, yOff, -ctr.z);
+      scene.add(inst.model);
+      modelRight = inst;
+      mixerRight = inst.mixer;
+    }
+  }
+
+  if (currentCfg?.id === 'irongazlet') {
+    gauntlet.init(mixerLeft, mixerRight, currentClips);
+    document.querySelectorAll('.anim-btn').forEach(b => b.disabled = true);
+    updateHint();
+    updateGauntletState();
+    // Debug : liste tous les nodes du GLB pour vérifier le nom du Muzzle
+    const dbgNames = [];
+    modelLeft?.src?.traverse(o => { if (o.name) dbgNames.push(o.name); });
+    const hasMuzzle = dbgNames.some(n => n === 'Muzzle');
+    console.log('[Gauntlet GLB nodes]', dbgNames.join(', '));
+    console.log('[Gauntlet Muzzle]', hasMuzzle ? '✓ trouvé' : '✗ absent — vérifie le nom exact dans Blender');
+  } else if (currentAnim) {
+    playAnim(currentAnim, false);
+  }
+}
+
+function positionCamera() {
+  if (fpMode) {
+    controls.enabled = false;
+    camera.position.set(0, 1.6, 0);
+    camera.rotation.order = 'YXZ';
+    camera.rotation.set(fpPitch, fpYaw, 0);
+    document.getElementById('mode-lbl').textContent = scopeOn ? 'VUE SNIPER - LUNETTE ×8' : 'VUE PREMIÈRE PERSONNE';
+  } else {
+    controls.enabled = true;
+    setScopeOn(false);
+    camera.fov = 65;
+    camera.updateProjectionMatrix();
+    const d = NORM_SIZE * 2.2;
+    camera.position.set(d * 0.6, d * 0.5, d);
+    controls.target.set(0, NORM_SIZE * 0.35, 0);
+    controls.update();
+    document.getElementById('mode-lbl').textContent = 'VUE 3D LIBRE';
+  }
+}
+
+// Raycaster réutilisable — évite une allocation par frame
+const _aimRaycaster = new THREE.Raycaster();
+const AIM_MAX_DIST  = 60;
+
+/**
+ * Retourne le point 3D visé par le centre de l'écran.
+ * Si un target est touché → son point d'intersection, sinon point à AIM_MAX_DIST.
+ */
+function getAimPoint() {
+  const camPos = new THREE.Vector3();
+  const camDir = new THREE.Vector3();
+  camera.getWorldPosition(camPos);
+  camera.getWorldDirection(camDir);
+  _aimRaycaster.set(camPos, camDir);
+  const hits = _aimRaycaster.intersectObjects(targets, false);
+  return hits.length > 0
+    ? hits[0].point.clone()
+    : camPos.clone().addScaledVector(camDir, AIM_MAX_DIST);
+}
+
+function getActiveWeaponInstance() {
+  if (mirrorMode === 'left')  return modelLeft;
+  if (mirrorMode === 'right') return modelRight;
+  return modelRight || modelLeft; // 'both' → main droite par défaut
+}
+
+function playAnim(name, updateLabel = true) {
+  currentAnim = name;
+  if (updateLabel) document.getElementById('st-anim').textContent = name.replace(/^[^|]*\|/, '');
+
+  [mixerLeft, mixerRight].forEach(m => {
+    if (!m) return;
+    m.stopAllAction();
+    const clip = THREE.AnimationClip.findByName(currentClips, name);
+    if (clip) {
+      const a = m.clipAction(clip);
+      a.reset();
+      a.setLoop(THREE.LoopRepeat, Infinity);
+      a.play();
+    }
+  });
+}
+
+async function showWeapon(file, cfg) {
+  setScopeOn(false);
+  currentCfg = cfg;
+  currentAnim = null;
+
+  document.getElementById('st-name').textContent = cfg.name;
+  document.getElementById('st-anim').textContent = '-';
+  document.getElementById('st-fire').textContent = cfg.fire;
+  document.getElementById('st-fire').style.color = cfg.plasma;
+
+  mirrorMode = cfg.hands;
+  ['left', 'right', 'both'].forEach(x => {
+    const b = document.getElementById('btn-' + x);
+    b.classList.toggle('active', x === cfg.hands);
+    b.disabled = (cfg.sniper && x !== 'left');
+  });
+
+  plasma.setWeapon(cfg.id);
+
+  const data = await loadGLB(file);
+  currentClips = data.gltf.animations;
+
+  document.getElementById('st-tris').textContent = data.tris.toLocaleString();
+  document.getElementById('st-bones').textContent = data.bones || '-';
+
+  const animDiv = document.getElementById('anim-btns');
+  animDiv.innerHTML = '';
+  const isGauntlet = cfg.id === 'irongazlet';
+
+  if (currentClips.length === 0) {
+    animDiv.innerHTML = '<div style="color:#333;font-size:9px;padding:4px 2px">Pas d\'animation</div>';
+  } else if (isGauntlet) {
+    animDiv.innerHTML = '<div style="color:#556;font-size:9px;padding:4px 2px">Géré par machine à états<br>LMB=punch RMB=plasma</div>';
+  } else {
+    currentClips.forEach(clip => {
+      const b = document.createElement('button');
+      b.className = 'anim-btn';
+      b.textContent = '▶ ' + clip.name.replace(/^[^|]*\|/, '');
+      b.onclick = () => {
+        document.querySelectorAll('.anim-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        playAnim(clip.name);
+      };
+      animDiv.appendChild(b);
+    });
+  }
+
+  updateHint();
+  placeModels(data);
+  positionCamera();
+}
+
+document.querySelectorAll('.wpn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.wpn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFile = btn.dataset.file;
+    showWeapon(currentFile, {
+      id: btn.dataset.id,
+      name: btn.dataset.name,
+      hands: btn.dataset.hands,
+      fire: btn.dataset.fire,
+      plasma: btn.dataset.plasma,
+      sniper: btn.dataset.sniper === 'true',
+    });
+  });
+});
+
+document.getElementById('btn-fp').onclick = () => {
+  fpMode = true;
+  document.getElementById('btn-fp').classList.add('active');
+  document.getElementById('btn-3d').classList.remove('active');
+  if (gltfCache[currentFile]) {
+    placeModels(gltfCache[currentFile]);
+    positionCamera();
+  }
+};
+
+document.getElementById('btn-3d').onclick = () => {
+  fpMode = false;
+  document.getElementById('btn-3d').classList.add('active');
+  document.getElementById('btn-fp').classList.remove('active');
+  if (gltfCache[currentFile]) {
+    placeModels(gltfCache[currentFile]);
+    positionCamera();
+  }
+};
+
+['left','right','both'].forEach(m => {
+  document.getElementById('btn-' + m).onclick = () => {
+    if (document.getElementById('btn-' + m).disabled) return;
+    mirrorMode = m;
+    ['left','right','both'].forEach(x => document.getElementById('btn-' + x).classList.remove('active'));
+    document.getElementById('btn-' + m).classList.add('active');
+    if (gltfCache[currentFile]) placeModels(gltfCache[currentFile]);
+  };
+});
+
+canvas.addEventListener('click', () => {
+  if (fpMode && document.pointerLockElement !== canvas) {
+    canvas.requestPointerLock();
+  }
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!fpMode) return;
+  if (document.pointerLockElement !== canvas) return;
+
+  fpYaw -= e.movementX * LOOK_SENS;
+  fpPitch -= e.movementY * LOOK_SENS;
+  fpPitch = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, fpPitch));
+
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = fpYaw;
+  camera.rotation.x = fpPitch;
+});
+
+canvas.addEventListener('mousedown', e => {
+  e.preventDefault();
+  if (!fpMode) return;
+
+  if (document.pointerLockElement !== canvas) {
+    canvas.requestPointerLock();
+  }
+
+  const isGauntlet = currentCfg?.id === 'irongazlet';
+
+  if (isGauntlet) {
+    if (e.button === 0) gauntlet.onLMBDown();
+    if (e.button === 2) gauntlet.onRMBDown();
+  } else {
+    if (e.button === 2) {
+      if (currentCfg?.sniper) setScopeOn(!scopeOn);
+      return;
+    }
+
+    if (e.button !== 0) return;
+    mouseDown = true;
+    const cfg = WEAPON_CONFIGS[currentCfg?.id];
+    if (!cfg) return;
+
+    if (!cfg.continuousFire) {
+      const { origin, dir } = getFireOriginAndDir();
+      plasma.fireAt(origin, dir);
+    }
+  }
+});
+
+canvas.addEventListener('mouseup', e => {
+  const isGauntlet = currentCfg?.id === 'irongazlet';
+  if (isGauntlet) {
+    if (e.button === 0) gauntlet.onLMBUp();
+    if (e.button === 2) gauntlet.onRMBUp();
+  } else {
+    mouseDown = false;
+    plasma.stopFiring();
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  const isGauntlet = currentCfg?.id === 'irongazlet';
+  if (isGauntlet) {
+    gauntlet.onLMBUp();
+    gauntlet.onRMBUp();
+  } else {
+    mouseDown = false;
+    plasma.stopFiring();
+  }
+});
+
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// Molette = cycle d'armes
+canvas.addEventListener('wheel', e => {
+  if (!fpMode) return;
+  e.preventDefault();
+  const btns = [...document.querySelectorAll('.wpn')];
+  const idx  = btns.findIndex(b => b.classList.contains('active'));
+  const next = (idx + (e.deltaY > 0 ? 1 : -1) + btns.length) % btns.length;
+  btns.forEach(b => b.classList.remove('active'));
+  btns[next].classList.add('active');
+  const b = btns[next];
+  currentFile = b.dataset.file;
+  showWeapon(currentFile, {
+    id:    b.dataset.id,
+    name:  b.dataset.name,
+    hands: b.dataset.hands,
+    fire:  b.dataset.fire,
+    plasma: b.dataset.plasma,
+    sniper: b.dataset.sniper === 'true',
+  });
+}, { passive: false });
+
+function dbg(msg) {
+  document.getElementById('debug').textContent = msg;
+}
+
+function updateHint() {
+  const h = document.getElementById('hint');
+  if (currentCfg?.id === 'irongazlet') {
+    h.textContent = 'CLIC pour capturer la souris | LMB = punch | RMB = plasma orange';
+  } else if (currentCfg?.sniper) {
+    h.textContent = 'CLIC pour capturer la souris | LMB tirer | RMB lunette ×8';
+  } else {
+    h.textContent = 'CLIC pour capturer la souris | CLIC GAUCHE tirer';
+  }
+}
+
+const GAUNTLET_STATE_LABELS = {
+  OPENED: '✋ Ouverte',
+  CLOSING: '✊ Fermeture...',
+  CLOSED_PLASMA: '🔥 PLASMA',
+  CLOSED_PUNCH: '👊 PUNCH',
+  OPENING: '✋ Ouverture...',
+};
+
+function updateGauntletState() {
+  const el = document.getElementById('st-anim');
+  if (currentCfg?.id === 'irongazlet') {
+    const label = GAUNTLET_STATE_LABELS[gauntlet.state] ?? gauntlet.state;
+    el.textContent = label;
+    el.style.color = gauntlet.isFiring ? '#ff6600'
+                   : gauntlet.isPunching ? '#ffcc00'
+                   : '#556';
+  }
+}
+
+let frameCount = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = Math.min(clock.getDelta(), 0.05);
+  frameCount++;
+
+  if (controls.enabled) controls.update();
+  if (mixerLeft) mixerLeft.update(delta);
+  if (mixerRight) mixerRight.update(delta);
+
+  if (currentCfg?.id === 'irongazlet' && fpMode) {
+    const fistPositions = getDualGauntletMuzzles();
+
+    // Direction = avant caméra (évite l'inversion due à l'origine Muzzle mal orientée)
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+
+    plasma.setWeapon('irongazlet');
+    gauntlet.update(delta, fistPositions, dir);
+
+    if (frameCount % 6 === 0) updateGauntletState();
+
+  } else if (mouseDown && fpMode) {
+    const cfg = WEAPON_CONFIGS[currentCfg?.id];
+    if (cfg?.continuousFire && plasma.canFire) {
+      const { origin, dir } = getFireOriginAndDir();
+      plasma.fireAt(origin, dir);
+    }
+  }
+
+  // Bob caméra — simule respiration + léger tangage humain (FP uniquement)
+  if (fpMode) {
+    const t = clock.elapsedTime;
+    camera.position.y = 1.6 + Math.sin(t * 1.35) * 0.009;
+    camera.position.x = Math.sin(t * 0.70) * 0.003;
+  }
+
+  // Mise à jour des démons (animation + respawn)
+  for (const d of demonInstances) {
+    if (!d.dead) {
+      d.mixer.update(delta);
+      // Flottement sinusoïdal (Voidborn et futurs démons volants)
+      if (d.floatAmp > 0) {
+        d.floatPhase += delta;
+        const yOff = Math.sin(d.floatPhase * d.floatFreq) * d.floatAmp;
+        d.root.position.y     = d.baseY + yOff;
+        d.collider.position.y = d.colliderBaseY + yOff;
+      }
+    } else {
+      d.respawnTimer -= delta;
+      if (d.respawnTimer <= 0) respawnDemon(d);
+    }
+  }
+
+  plasma.update(delta, targets);
+
+  if (frameCount % 10 === 0) {
+    document.getElementById('st-bolts').textContent = plasma.activeCount;
+  }
+
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+}
+
+animate();
+resize();
+loadDemons(); // charge les 6 démons en asynchrone
+
+showWeapon('assets/weapons/weapon_irongazlet.glb', {
+  id: 'irongazlet',
+  name: 'Irongazlet',
+  hands: 'both',
+  fire: 'Plasma orange - continu (clic enfoncé)',
+  plasma: '#ff6600',
+  sniper: false,
+});
+</script>
+</body>
+</html>

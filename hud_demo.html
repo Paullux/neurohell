@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>NeuroHell — HUD Demo</title>
+<link rel="icon" type="image/x-icon" href="assets/images/favicon/favicon.ico">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  @font-face {
+    font-family: 'Orbitron';
+    src: url('assets/font/Orbitron/Orbitron-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+  }
+  @font-face {
+    font-family: 'Exo2';
+    src: url('assets/font/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a14;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Exo2', sans-serif;
+  }
+
+  /* ============================================================
+     MULTI-RESOLUTION : design base 1920×1080
+     JS applique transform: scale() pour s'adapter à tout écran
+     ============================================================ */
+  #hud-root {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  #hud {
+    position: absolute;
+    width: 1920px;
+    height: 1080px;
+    top: 0;
+    left: 0;
+    transform-origin: top left;
+  }
+
+  /* ============================================================
+     TOP LEFT — PORTRAIT + BIOMÉTRICS
+     ============================================================ */
+  #portrait-panel {
+    position: absolute;
+    top: 28px;
+    left: 28px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  #portrait-frame {
+    width: 128px;
+    height: 128px;
+    border: 2px solid #00e5ff;
+    background: #000;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow:
+      0 0 0 1px rgba(0,229,255,0.15),
+      0 0 16px rgba(0,229,255,0.35),
+      inset 0 0 12px rgba(0,0,0,0.7);
+    position: relative;
+  }
+
+  /* Coin décoratif */
+  #portrait-frame::before,
+  #portrait-frame::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: #00e5ff;
+    border-style: solid;
+    opacity: 0.8;
+  }
+  #portrait-frame::before { top: -2px; left: -2px; border-width: 2px 0 0 2px; }
+  #portrait-frame::after  { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; }
+
+  #portrait-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  #biometrics {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-top: 6px;
+  }
+
+  .bio-line {
+    font-family: 'Exo2', sans-serif;
+    font-size: 15px;
+    color: #00e5ff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .bio-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .bio-separator {
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(to right, rgba(0,229,255,0.5), transparent);
+    margin: 2px 0;
+  }
+
+  .bio-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    color: #00e5ff;
+    opacity: 0.5;
+    letter-spacing: 3px;
+    margin-top: 4px;
+  }
+
+  /* Heartbeat SVG animé */
+  .hb-line {
+    stroke-dasharray: 80;
+    stroke-dashoffset: 80;
+    animation: hb-draw 1.2s ease-in-out infinite;
+  }
+  @keyframes hb-draw {
+    0%   { stroke-dashoffset: 80; opacity: 1; }
+    60%  { stroke-dashoffset: 0;  opacity: 1; }
+    100% { stroke-dashoffset: -80; opacity: 0; }
+  }
+
+  /* ============================================================
+     TOP RIGHT — MINIMAP + QUÊTE
+     ============================================================ */
+  #map-panel {
+    position: absolute;
+    top: 28px;
+    right: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 14px;
+  }
+
+  #minimap-wrap {
+    position: relative;
+    width: 210px;
+    height: 170px;
+  }
+
+  #minimap-wrap svg {
+    filter: drop-shadow(0 0 8px rgba(0,229,255,0.4));
+  }
+
+  #minimap-canvas {
+    position: absolute;
+    inset: 0;
+    width: 210px;
+    height: 170px;
+    border: 1px solid rgba(0,229,255,0.18);
+    background: radial-gradient(circle at center, rgba(0,20,45,0.35), rgba(0,0,0,0.15));
+    box-shadow:
+      inset 0 0 16px rgba(0,229,255,0.08),
+      0 0 10px rgba(0,229,255,0.18);
+    overflow: hidden;
+  }
+
+  #minimap-canvas canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  
+  #minimap-mount {
+    position: absolute;
+    inset: 0;
+    width: 210px;
+    height: 170px;
+    overflow: hidden;
+  }
+
+  #minimap-mount canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Icône croisée cross décoratives */
+  .cross-deco {
+    position: absolute;
+    color: rgba(0,229,255,0.6);
+    font-size: 20px;
+    font-family: 'Orbitron', sans-serif;
+    line-height: 1;
+  }
+  .cross-deco.tl { top: -14px; left: -14px; }
+  .cross-deco.tr { top: -14px; right: -14px; }
+
+  #quest-panel {
+    text-align: right;
+    max-width: 340px;
+  }
+
+  #quest-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    color: #f0c040;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(240,192,64,0.7);
+  }
+
+  .quest-obj {
+    font-family: 'Exo2', sans-serif;
+    font-size: 13px;
+    color: #c8c8d8;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .quest-diamond {
+    color: #f0c040;
+    font-size: 9px;
+    margin-top: 3px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 4px rgba(240,192,64,0.8));
+  }
+
+  /* ============================================================
+     BOTTOM BAR
+     ============================================================ */
+  #bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 130px;
+    background: linear-gradient(
+      to top,
+      rgba(0,4,18,0.97) 0%,
+      rgba(0,4,18,0.85) 60%,
+      transparent 100%
+    );
+    border-top: 1px solid rgba(0,229,255,0.18);
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    gap: 14px;
+  }
+
+  /* --- HEALTH --- */
+  #health-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 155px;
+  }
+
+  #health-icon-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #health-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .h-seg-row {
+    display: flex;
+    gap: 3px;
+  }
+
+  .h-seg {
+    width: 14px;
+    height: 14px;
+    background: rgba(0,229,255,0.18);
+    border: 1px solid rgba(0,229,255,0.3);
+    transition: all 0.4s ease;
+  }
+
+  .h-seg.lit {
+    background: #00e5ff;
+    border-color: #00e5ff;
+    box-shadow: 0 0 6px rgba(0,229,255,0.7);
+  }
+
+  .h-seg.lit.warn {
+    background: #ffaa00;
+    border-color: #ffaa00;
+    box-shadow: 0 0 6px rgba(255,170,0,0.7);
+  }
+
+  .h-seg.lit.danger {
+    background: #ff3333;
+    border-color: #ff3333;
+    box-shadow: 0 0 6px rgba(255,50,50,0.7);
+  }
+
+  #health-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    color: #00e5ff;
+    line-height: 1;
+    text-shadow: 0 0 14px rgba(0,229,255,0.7);
+    transition: color 0.4s ease, text-shadow 0.4s ease;
+  }
+
+  #health-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    color: #00e5ff;
+    letter-spacing: 4px;
+    opacity: 0.55;
+  }
+
+  /* Séparateur vertical */
+  .v-sep {
+    width: 1px;
+    height: 80px;
+    background: linear-gradient(to bottom, transparent, rgba(0,229,255,0.3), transparent);
+    flex-shrink: 0;
+  }
+
+  /* --- WEAPON SLOTS --- */
+  #weapon-slots {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .weapon-slot {
+    width: 126px;
+    height: 100px;
+    border: 1px solid rgba(0,229,255,0.22);
+    background: rgba(0,8,28,0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 6px 7px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+    pointer-events: all;
+    user-select: none;
+  }
+
+  .weapon-slot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,229,255,0.03) 0%, transparent 100%);
+  }
+
+  .weapon-slot:hover {
+    border-color: rgba(0,229,255,0.55);
+    transform: translateY(-2px);
+  }
+
+  .weapon-slot:active { transform: translateY(0); }
+
+  .weapon-slot.active {
+    border: 2px solid #ffffff;
+    background: rgba(0,20,55,0.95);
+    box-shadow:
+      0 0 20px rgba(255,255,255,0.1),
+      inset 0 0 24px rgba(0,229,255,0.08);
+  }
+
+  .slot-name {
+    font-family: 'Exo2', sans-serif;
+    font-size: 10px;
+    color: rgba(180,200,240,0.65);
+    text-align: center;
+    position: absolute;
+    top: 7px;
+    left: 4px;
+    right: 4px;
+    z-index: 10;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.3px;
+  }
+
+  .weapon-slot.active .slot-name {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .weapon-icon {
+    width: 72px;
+    height: 42px;
+    object-fit: contain;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+    transition: transform 0.2s, filter 0.2s;
+    image-rendering: auto;
+  }
+
+  .weapon-slot.active .weapon-icon {
+    transform: scale(1.1);
+  }
+
+  .slot-ammo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .slot-key {
+    font-family: 'Exo2', sans-serif;
+    font-size: 9px;
+    position: absolute;
+    bottom: 5px;
+    right: 7px;
+    color: rgba(255,255,255,0.25);
+    font-weight: 300;
+  }
+
+  /* Petit indicateur "x" de quantité */
+  .slot-qty {
+    font-family: 'Exo2', sans-serif;
+    font-size: 8px;
+    position: absolute;
+    bottom: 5px;
+    left: 7px;
+    color: rgba(255,255,255,0.2);
+  }
+
+  /* --- POWER / ARMOR (ECharts) --- */
+  #energy-block {
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  #echarts-gauge {
+    width: 180px;
+    height: 110px;
+  }
+
+  #energy-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    color: #00ff80;
+    letter-spacing: 2px;
+    opacity: 0.75;
+    text-align: center;
+    margin-top: -6px;
+  }
+
+  /* ============================================================
+     WEAPON GLOW — drop-shadow sur les textures réelles
+     ============================================================ */
+  .glow-orange {
+    filter: drop-shadow(0 0 8px rgba(255,120,0,0.9))
+            drop-shadow(0 0 16px rgba(255,80,0,0.5));
+  }
+  .glow-blue {
+    filter: drop-shadow(0 0 8px rgba(60,160,255,0.9))
+            drop-shadow(0 0 16px rgba(0,90,255,0.5));
+  }
+  .glow-blue-elite {
+    filter: drop-shadow(0 0 10px rgba(120,210,255,1))
+            drop-shadow(0 0 20px rgba(0,170,255,0.65));
+  }
+  .glow-cyan {
+    filter: drop-shadow(0 0 8px rgba(0,255,200,0.9))
+            drop-shadow(0 0 16px rgba(0,200,180,0.5));
+  }
+  .glow-purple {
+    filter: drop-shadow(0 0 8px rgba(180,80,255,0.9))
+            drop-shadow(0 0 16px rgba(130,0,220,0.5));
+  }
+
+  /* Slot actif : glow boosté */
+  .weapon-slot.active .glow-orange   { filter: drop-shadow(0 0 12px rgba(255,120,0,1))   drop-shadow(0 0 24px rgba(255,80,0,0.7)); }
+  .weapon-slot.active .glow-blue     { filter: drop-shadow(0 0 12px rgba(60,160,255,1))  drop-shadow(0 0 24px rgba(0,90,255,0.7)); }
+  .weapon-slot.active .glow-blue-elite { filter: drop-shadow(0 0 14px rgba(120,210,255,1)) drop-shadow(0 0 28px rgba(0,170,255,0.8)); }
+  .weapon-slot.active .glow-cyan     { filter: drop-shadow(0 0 12px rgba(0,255,200,1))   drop-shadow(0 0 24px rgba(0,200,180,0.7)); }
+  .weapon-slot.active .glow-purple   { filter: drop-shadow(0 0 12px rgba(180,80,255,1))  drop-shadow(0 0 24px rgba(130,0,220,0.7)); }
+
+  /* ============================================================
+     AMMO COLORS
+     ============================================================ */
+  .c-orange { color: #ff8c00; }
+  .c-blue   { color: #5096ff; }
+  .c-white  { color: #ffffff; }
+  .c-cyan   { color: #00ffd4; }
+  .c-purple { color: #b050ff; }
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HUD ROOT
+     ============================================================ -->
+<div id="hud-root">
+  <div id="hud">
+
+    <!-- TOP LEFT: PORTRAIT + BIOMETRICS -->
+    <div id="portrait-panel">
+      <div id="portrait-frame">
+        <img id="portrait-img" src="assets/images/face/portrait_hp100.gif" alt="portrait">
+      </div>
+      <div id="biometrics">
+        <div class="bio-line">
+          HR:&nbsp;<span class="bio-value" id="hr-value">135</span>&nbsp;bpm
+          <svg width="38" height="18" viewBox="0 0 38 18" fill="none">
+            <polyline class="hb-line"
+              points="0,9 5,9 7,2 9,16 11,9 15,9 17,5 19,13 21,9 38,9"
+              stroke="#00e5ff" stroke-width="1.5" fill="none"
+              stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="bio-line">SYS:&nbsp;<span class="bio-value" style="color:#00ff80">ONLINE</span></div>
+        <div class="bio-line">PWR:&nbsp;<span class="bio-value" id="pwr-value">98</span>&nbsp;%</div>
+        <div class="bio-separator"></div>
+        <div class="bio-label">SYSTÈMES &amp; BIOMÉTRICS</div>
+      </div>
+    </div>
+
+    <!-- TOP RIGHT: MINIMAP + QUÊTE -->
+    <div id="map-panel">
+      <div id="minimap-wrap">
+        <div class="cross-deco tl">✛</div>
+        <div class="cross-deco tr">✛</div>
+        <div id="minimap-mount"></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div id="bottom-bar">
+
+      <!-- HEALTH -->
+      <div id="health-block">
+        <div id="health-icon-bar">
+          <!-- Icône segments 2×5 -->
+          <div id="health-icon">
+            <div class="h-seg-row">
+              <div class="h-seg lit" id="hs9"></div>
+              <div class="h-seg lit" id="hs10"></div>
+            </div>
+            <div class="h-seg-row">
+              <div class="h-seg lit" id="hs7"></div>
+              <div class="h-seg lit" id="hs8"></div>
+            </div>
+            <div class="h-seg-row">
+              <div class="h-seg lit" id="hs5"></div>
+              <div class="h-seg lit" id="hs6"></div>
+            </div>
+            <div class="h-seg-row">
+              <div class="h-seg lit" id="hs3"></div>
+              <div class="h-seg lit" id="hs4"></div>
+            </div>
+            <div class="h-seg-row">
+              <div class="h-seg lit" id="hs1"></div>
+              <div class="h-seg lit" id="hs2"></div>
+            </div>
+          </div>
+          <div id="health-value">100%</div>
+        </div>
+        <div id="health-label">HEALTH</div>
+      </div>
+
+      <div class="v-sep"></div>
+
+      <!-- WEAPON SLOTS -->
+      <div id="weapon-slots">
+        <div class="weapon-slot" data-slot="1">
+          <span class="slot-name">Iron Gazlet</span>
+          <img class="weapon-icon glow-orange" src="assets/images/plasma_types/plasma_irongazlet.jpg" alt="Iron Gazlet">
+          <span class="slot-ammo c-orange">300</span>
+          <span class="slot-qty">∞</span>
+          <span class="slot-key">1</span>
+        </div>
+        <div class="weapon-slot" data-slot="2">
+          <span class="slot-name">Plasma Pistol Std</span>
+          <img class="weapon-icon glow-blue" src="assets/images/plasma_types/plasma_plasmapistol_standard.jpg" alt="Plasma Pistol Standard">
+          <span class="slot-ammo c-blue">50</span>
+          <span class="slot-qty">×3</span>
+          <span class="slot-key">2</span>
+        </div>
+        <div class="weapon-slot active" data-slot="3">
+          <span class="slot-name">Plasma Pistol Elite</span>
+          <img class="weapon-icon glow-blue-elite" src="assets/images/plasma_types/plasma_plasmapistol_elite.jpg" alt="Plasma Pistol Elite">
+          <span class="slot-ammo c-white">35</span>
+          <span class="slot-qty">×2</span>
+          <span class="slot-key">3</span>
+        </div>
+        <div class="weapon-slot" data-slot="4">
+          <span class="slot-name">Teal Sniper</span>
+          <img class="weapon-icon glow-cyan" src="assets/images/plasma_types/plasma_tealsniper.jpg" alt="Teal Sniper">
+          <span class="slot-ammo c-cyan">120</span>
+          <span class="slot-qty">×1</span>
+          <span class="slot-key">4</span>
+        </div>
+        <div class="weapon-slot" data-slot="5">
+          <span class="slot-name">Void Rifle</span>
+          <img class="weapon-icon glow-purple" src="assets/images/plasma_types/plasma_voidrifle.jpg" alt="Void Rifle">
+          <span class="slot-ammo c-purple">90</span>
+          <span class="slot-qty">×2</span>
+          <span class="slot-key">5</span>
+        </div>
+      </div>
+
+      <div class="v-sep"></div>
+
+      <!-- POWER / ARMOR (ECharts gauge) -->
+      <div id="energy-block">
+        <div id="echarts-gauge"></div>
+        <div id="energy-label">POWER / ARMOR</div>
+      </div>
+
+    </div><!-- /bottom-bar -->
+
+  </div><!-- /hud -->
+</div><!-- /hud-root -->
+
+
+<script>
+/* ============================================================
+   MULTI-RESOLUTION : scale HUD 1920×1080 → viewport
+   ============================================================ */
+function scaleHUD() {
+  const hud = document.getElementById('hud');
+  const sx = window.innerWidth  / 1920;
+  const sy = window.innerHeight / 1080;
+  const s  = Math.min(sx, sy);
+
+  // Centre le HUD si ratio != 16/9
+  const ox = (window.innerWidth  - 1920 * s) / 2;
+  const oy = (window.innerHeight - 1080 * s) / 2;
+
+  hud.style.transform = `translate(${ox}px, ${oy}px) scale(${s})`;
+}
+window.addEventListener('resize', scaleHUD);
+scaleHUD();
+
+/* ============================================================
+   PORTRAIT MAP HP → GIF
+   NOTE : portrait_hp0090.gif a un zéro en trop — à renommer en portrait_hp090.gif
+   ============================================================ */
+const PORTRAIT = {
+  100: 'portrait_hp100.gif',
+  90:  'portrait_hp090.gif',
+  80:  'portrait_hp080.gif',
+  70:  'portrait_hp070.gif',
+  60:  'portrait_hp060.gif',
+  50:  'portrait_hp050.gif',
+  40:  'portrait_hp040.gif',
+  30:  'portrait_hp030.gif',
+  20:  'portrait_hp020.gif',
+  10:  'portrait_hp010.gif',
+  0:   'portrait_hp000.gif',
+};
+
+/* ============================================================
+   HEALTH
+   ============================================================ */
+function setHealth(hp) {
+  document.getElementById('health-value').textContent = hp + '%';
+
+  // Couleur valeur
+  const hv = document.getElementById('health-value');
+  if (hp <= 20) {
+    hv.style.color = '#ff3333';
+    hv.style.textShadow = '0 0 14px rgba(255,50,50,0.8)';
+  } else if (hp <= 50) {
+    hv.style.color = '#ffaa00';
+    hv.style.textShadow = '0 0 14px rgba(255,170,0,0.7)';
+  } else {
+    hv.style.color = '#00e5ff';
+    hv.style.textShadow = '0 0 14px rgba(0,229,255,0.7)';
+  }
+
+  // Portrait GIF
+  const bracket = Math.floor(hp / 10) * 10;
+  const gif = PORTRAIT[bracket] ?? PORTRAIT[0];
+  document.getElementById('portrait-img').src = 'assets/images/face/' + gif;
+
+  // Segments health (10 segments = 10% chacun)
+  const filled = Math.ceil(hp / 10);
+  for (let i = 1; i <= 10; i++) {
+    const seg = document.getElementById('hs' + i);
+    if (!seg) continue;
+    if (i <= filled) {
+      seg.classList.add('lit');
+      if (hp <= 20) {
+        seg.classList.add('danger'); seg.classList.remove('warn');
+      } else if (hp <= 50) {
+        seg.classList.add('warn');   seg.classList.remove('danger');
+      } else {
+        seg.classList.remove('warn', 'danger');
+      }
+    } else {
+      seg.classList.remove('lit', 'warn', 'danger');
+    }
+  }
+
+  // HR biométrics (monte quand HP baisse)
+  document.getElementById('hr-value').textContent = Math.round(72 + (100 - hp) * 1.1);
+  // Puissance baisse légèrement
+  document.getElementById('pwr-value').textContent = Math.round(98 - (100 - hp) * 0.25);
+}
+
+/* ============================================================
+   ECHARTS — POWER / ARMOR GAUGE
+   ============================================================ */
+const gaugeChart = echarts.init(document.getElementById('echarts-gauge'), null, {
+  renderer: 'canvas',
+  useDirtyRect: true,
+});
+
+function gaugeColor(val) {
+  if (val <= 20) return { fill: '#ff3333', shadow: 'rgba(255,50,50,0.7)',  label: '#ff3333' };
+  if (val <= 50) return { fill: '#ffaa00', shadow: 'rgba(255,170,0,0.7)',  label: '#ffaa00' };
+  return                 { fill: '#00ff80', shadow: 'rgba(0,255,128,0.65)', label: '#00e5ff' };
+}
+
+function buildGaugeOption(val) {
+  const c = gaugeColor(val);
+  return {
+    backgroundColor: 'transparent',
+    series: [{
+      type: 'gauge',
+      startAngle: 210,
+      endAngle: -30,
+      min: 0,
+      max: 100,
+      radius: '88%',
+      center: ['50%', '72%'],
+
+      // Arc de progression
+      progress: {
+        show: true,
+        width: 10,
+        roundCap: true,
+        itemStyle: {
+          color: c.fill,
+          shadowBlur: 18,
+          shadowColor: c.shadow,
+        }
+      },
+
+      // Arc de fond
+      axisLine: {
+        roundCap: true,
+        lineStyle: {
+          width: 10,
+          color: [[1, 'rgba(0,255,128,0.07)']],
+        }
+      },
+
+      // Graduations fines (style tech)
+      axisTick: {
+        show: true,
+        splitNumber: 5,
+        distance: -16,
+        length: 5,
+        lineStyle: { color: 'rgba(0,229,255,0.25)', width: 1 }
+      },
+      splitLine: {
+        show: true,
+        distance: -20,
+        length: 10,
+        lineStyle: { color: 'rgba(0,229,255,0.4)', width: 1.5 }
+      },
+      axisLabel: { show: false },
+
+      // Pas d'aiguille
+      pointer: { show: false },
+      anchor:  { show: false },
+
+      // Titre centré (icône)
+      title: {
+        show: true,
+        offsetCenter: [0, '-18%'],
+        fontSize: 20,
+        color: c.fill,
+      },
+
+      // Valeur numérique
+      detail: {
+        show: true,
+        valueAnimation: true,
+        formatter: '{value}%',
+        offsetCenter: [0, '22%'],
+        fontSize: 16,
+        fontWeight: 700,
+        fontFamily: 'Orbitron',
+        color: c.label,
+      },
+
+      data: [{ value: val, name: '⬡' }]
+    }]
+  };
+}
+
+// Init
+gaugeChart.setOption(buildGaugeOption(100));
+
+// Resize avec le HUD
+window.addEventListener('resize', () => gaugeChart.resize());
+
+function setEnergy(val) {
+  gaugeChart.setOption(buildGaugeOption(val));
+}
+
+/* ============================================================
+   WEAPON SELECTION
+   ============================================================ */
+document.querySelectorAll('.weapon-slot').forEach(slot => {
+  slot.addEventListener('click', () => {
+    document.querySelectorAll('.weapon-slot').forEach(s => s.classList.remove('active'));
+    slot.classList.add('active');
+  });
+});
+
+// Touches clavier 1-5
+document.addEventListener('keydown', e => {
+  const n = parseInt(e.key);
+  if (n >= 1 && n <= 5) {
+    document.querySelectorAll('.weapon-slot').forEach(s => s.classList.remove('active'));
+    document.querySelector(`[data-slot="${n}"]`)?.classList.add('active');
+  }
+});
+</script>
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/examples/jsm/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
+<script type="module">
+  console.log('MODULE MINIMAP START');
+
+  import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+  import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+  import { Minimap } from './minimap.js';
+
+  console.log('IMPORTS OK');
+
+  const mount = document.getElementById('minimap-mount');
+  console.log('MOUNT =', mount);
+
+  const loader = new GLTFLoader();
+  loader.load(
+    './assets/levels/neurohell_level_1.glb',
+    (gltf) => {
+      console.log('GLB LOADED OK', gltf);
+
+      const minimap = new Minimap(gltf.scene, mount, {
+        width: 210,
+        height: 170,
+        fogOfWar: false,
+        rotateMarker: true,
+      });
+
+      console.log('MINIMAP CREATED', minimap);
+
+      minimap.revealAll();
+
+      function animate() {
+        requestAnimationFrame(animate);
+        minimap.updatePlayer(new THREE.Vector3(0, 0, 0), 0);
+        minimap.render();
+      }
+
+      animate();
+    },
+    (progress) => {
+      console.log('GLB PROGRESS', progress.loaded, '/', progress.total);
+    },
+    (err) => {
+      console.error('GLB LOAD ERROR', err);
+    }
+  );
+</script>
+</body>
+</html>

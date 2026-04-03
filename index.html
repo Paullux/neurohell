@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroHell</title>
+  <link rel="icon" type="image/x-icon" href="./assets/images/favicon/favicon.ico">
+  <style>
+    @font-face {
+      font-family: 'OrbitronLocal';
+      src: url('./assets/font/Orbitron/Orbitron-VariableFont_wght.ttf') format('truetype');
+      font-weight: 400 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Exo2Local';
+      src: url('./assets/font/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #090909;
+      --panel: rgba(8, 8, 8, 0.84);
+      --panel-2: rgba(18, 18, 18, 0.88);
+      --border: rgba(255, 120, 120, 0.28);
+      --text: #f2f2f2;
+      --muted: #c7c7c7;
+      --accent: #ff4d4d;
+      --accent-2: #ff9b4a;
+      --shadow: rgba(0, 0, 0, 0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Exo2Local', Arial, sans-serif;
+    }
+
+    body {
+      background-image:
+        linear-gradient(rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.78)),
+        url('./assets/images/textures/gothic_metal/albedo.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 92, 92, 0.08), transparent 30%),
+        radial-gradient(circle at 80% 15%, rgba(255, 166, 77, 0.06), transparent 22%),
+        radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.03), transparent 35%);
+      mix-blend-mode: screen;
+      z-index: 0;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    header {
+      padding: 28px 20px 18px;
+      text-align: center;
+    }
+
+    .title {
+      margin: 0;
+      font-family: 'OrbitronLocal', Arial, sans-serif;
+      font-size: clamp(2.4rem, 7vw, 5.8rem);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow:
+        0 0 10px rgba(255, 77, 77, 0.35),
+        0 0 30px rgba(255, 77, 77, 0.18),
+        0 8px 30px rgba(0, 0, 0, 0.9);
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto 24px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 18px 60px var(--shadow);
+      backdrop-filter: blur(4px);
+    }
+
+    .menu {
+      padding: 18px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .menu h2,
+    .content h2 {
+      margin: 0 0 16px;
+      font-family: 'OrbitronLocal', Arial, sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #ffd7d7;
+    }
+
+    .menu-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .menu-button,
+    .preview-link,
+    .action-button {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+      text-decoration: none;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-button:hover,
+    .preview-link:hover,
+    .action-button:hover {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 124, 124, 0.45);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .menu-button.active {
+      background: linear-gradient(90deg, rgba(120, 0, 0, 0.45), rgba(255, 77, 77, 0.12));
+      border-color: rgba(255, 111, 111, 0.55);
+      padding-left: 48px;
+      padding-right: 48px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .menu-button.active::before,
+    .menu-button.active::after {
+      content: '💀';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      filter: drop-shadow(0 0 6px rgba(255, 77, 77, 0.5));
+    }
+
+    .menu-button.active::before {
+      left: 14px;
+    }
+
+    .menu-button.active::after {
+      right: 14px;
+    }
+
+    .preview-box {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 10px;
+    }
+
+    .content {
+      padding: 22px;
+      min-height: 640px;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero {
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero-card {
+      padding: 22px;
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015)),
+        rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .hero-card h3 {
+      margin: 0 0 10px;
+      font-family: 'OrbitronLocal', Arial, sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .hero-card p,
+    .story p,
+    .story li {
+      color: #e8e8e8;
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .story h3 {
+      margin: 28px 0 10px;
+      font-family: 'OrbitronLocal', Arial, sans-serif;
+      font-size: 1.05rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffd7d7;
+    }
+
+    .story ul {
+      margin: 10px 0 0;
+      padding-left: 22px;
+    }
+
+    .launch-box {
+      display: grid;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .action-button.primary {
+      background: linear-gradient(90deg, rgba(160, 0, 0, 0.78), rgba(255, 85, 85, 0.24));
+      border-color: rgba(255, 112, 112, 0.62);
+      text-align: center;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .action-button.primary:hover {
+      background: linear-gradient(90deg, rgba(190, 0, 0, 0.82), rgba(255, 110, 110, 0.28));
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.96);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .intro-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    footer {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 0.9rem;
+      padding: 0 20px 22px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .menu {
+        position: static;
+      }
+
+      .content {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="noise"></div>
+
+  <div class="shell">
+    <header>
+      <h1 class="title">NeuroHell</h1>
+      <p class="subtitle">Dark sci-fi horror - prototype en développement</p>
+    </header>
+
+    <main>
+      <aside class="panel menu">
+        <h2>Menu principal</h2>
+        <div class="menu-list">
+          <button class="menu-button active" data-target="play">Lancer le jeu</button>
+          <button class="menu-button" data-target="story">Histoire du jeu</button>
+          <button class="menu-button" data-target="preview">Menu preview</button>
+        </div>
+
+        <div class="preview-box">
+          <h2>Accès rapide</h2>
+          <a class="preview-link" href="./demons_preview.html">Demons preview</a>
+          <a class="preview-link" href="./hud_demo.html">HUD demo</a>
+          <a class="preview-link" href="./weapon_preview.html">Weapon preview</a>
+        </div>
+      </aside>
+
+      <section class="panel content">
+        <div class="screen active" id="screen-play">
+          <h2>Lancer le jeu</h2>
+          <div class="hero">
+            <div class="hero-card launch-box">
+              <h3>Entrée en enfer</h3>
+              <p>
+                Lance l'intro cinématique, puis enchaîne directement sur le premier niveau.
+              </p>
+              <button class="action-button primary" id="startGameButton">Commencer</button>
+              <p class="small-note">
+                L'intro utilisée est <code>./assets/videos/NeuroHell-Intro.mp4</code>, puis redirection automatique vers
+                <code>./games_level_1.html</code>.
+              </p>
+            </div>
+
+            <div class="hero-card">
+              <h3>Univers</h3>
+              <p>
+                Un enfer biomécanique où le métal gothique, la chair, la mémoire et la culpabilité se mélangent.
+                Le menu utilise la texture <code>gothic_metal/albedo.jpg</code> comme fond.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" id="screen-story">
+          <h2>Histoire du jeu</h2>
+          <div class="story">
+            <h3>Vue d'ensemble</h3>
+            <p>
+              NeuroHell est un univers de dark sci-fi horror où le temps s'est effondré.
+              Le passé, le présent et le futur coexistent dans une seule dimension infernale.
+            </p>
+            <p>
+              Des entités démoniaques anciennes côtoient les restes d'une technologie humaine avancée.
+              L'environnement lui-même semble vivant, instable et hostile.
+            </p>
+            <p>Ce n'est pas simplement l'enfer. C'est un système.</p>
+
+            <h3>Le protagoniste</h3>
+            <p>
+              C'était un soldat du XXIe siècle. Formé à obéir. Conditionné à tuer.
+            </p>
+            <p>
+              Mais un jour, il a franchi une ligne. Pas à la guerre. Pas sous les ordres.
+              Un acte personnel. Un meurtre.
+            </p>
+            <p>
+              Lorsqu'il meurt, il ne trouve pas la paix. Il se réveille en enfer.
+            </p>
+
+            <h3>Le monde : NeuroHell</h3>
+            <p>
+              L'enfer n'est pas seulement fait de feu éternel et de torture.
+              C'est une réalité fracturée où :
+            </p>
+            <ul>
+              <li>le temps n'a plus de direction,</li>
+              <li>la technologie et les structures anciennes coexistent,</li>
+              <li>les éléments biologiques et mécaniques fusionnent,</li>
+              <li>la mémoire façonne l'environnement.</li>
+            </ul>
+            <p>On peut y trouver :</p>
+            <ul>
+              <li>des armes à plasma enfouies dans des ruines,</li>
+              <li>des cathédrales gothiques soudées à des machines industrielles,</li>
+              <li>des structures organiques proches de nerfs et de chair,</li>
+              <li>des entités qui paraissent à la fois artificielles et immémoriales.</li>
+            </ul>
+            <p>L'enfer s'adapte. L'enfer observe.</p>
+
+            <h3>Concept central</h3>
+            <p>
+              NeuroHell se comporte comme un système qui met la conscience à l'épreuve.
+            </p>
+            <p>Chaque zone représente :</p>
+            <ul>
+              <li>un souvenir,</li>
+              <li>un traumatisme,</li>
+              <li>un échec moral.</li>
+            </ul>
+            <p>Chaque ennemi est :</p>
+            <ul>
+              <li>une distorsion des actes passés,</li>
+              <li>une manifestation de la culpabilité,</li>
+              <li>un fragment d'identité.</li>
+            </ul>
+
+            <h3>Le but</h3>
+            <p>
+              Une rumeur circule parmi les damnés : certaines âmes peuvent encore s'élever.
+              Pas vers le paradis. Mais vers le purgatoire.
+            </p>
+            <p>
+              Une dernière évaluation. Une ultime chance de rédemption.
+              Pour y parvenir, il faut traverser l'enfer tout entier.
+            </p>
+
+            <h3>La motivation</h3>
+            <p>
+              Il se souvient d'elle. Sa voix. Sa présence. Ce qu'il a perdu.
+            </p>
+            <p>
+              Il croit que son âme existe peut-être encore au-delà de l'enfer.
+              Cette croyance devient son seul point d'ancrage.
+            </p>
+
+            <h3>Progression</h3>
+            <p>À mesure qu'il avance :</p>
+            <ul>
+              <li>les environnements deviennent plus personnels,</li>
+              <li>les ennemis deviennent plus humains,</li>
+              <li>la frontière entre réalité et mémoire s'efface.</li>
+            </ul>
+            <p>
+              Le système réagit à lui. Pas au hasard. Avec précision.
+            </p>
+
+            <h3>Twist possible</h3>
+            <p>
+              L'enfer ne l'emprisonne peut-être pas. Il l'évalue.
+            </p>
+            <p>
+              Et la vérité qu'il redoute :
+              elle n'est peut-être pas au purgatoire.
+              Elle fait peut-être déjà partie de l'enfer.
+            </p>
+
+            <h3>Tonalité et atmosphère</h3>
+            <ul>
+              <li>dark sci-fi horror,</li>
+              <li>poids psychologique et émotionnel,</li>
+              <li>combat brutal mais porteur de sens,</li>
+              <li>isolement et introspection,</li>
+              <li>contraste visuel entre feu, métal, chair et vide.</li>
+            </ul>
+
+            <h3>Inspirations</h3>
+            <ul>
+              <li>DOOM pour l'intensité et le combat,</li>
+              <li>Dark Souls pour le world design et le récit environnemental,</li>
+              <li>l'horreur biomécanique à la Giger,</li>
+              <li>les récits psychologiques autour de la culpabilité, de la mémoire et de l'identité.</li>
+            </ul>
+
+            <h3>Mots-clés</h3>
+            <p>
+              enfer, purgatoire, rédemption, biomécanique, sci-fi horror, mémoire, culpabilité, temps fracturé, système
+              infernal
+            </p>
+          </div>
+        </div>
+
+        <div class="screen" id="screen-preview">
+          <h2>Menu preview</h2>
+          <div class="hero">
+            <div class="hero-card">
+              <h3>Pages de travail</h3>
+              <p>
+                Tu peux utiliser ces pages pour vérifier rapidement les assets et l'état du prototype.
+              </p>
+            </div>
+            <a class="preview-link" href="./demons_preview.html">Ouvrir demons_preview.html</a>
+            <a class="preview-link" href="./hud_demo.html">Ouvrir hud_demo.html</a>
+            <a class="preview-link" href="./weapon_preview.html">Ouvrir weapon_preview.html</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      NeuroHell - prototype en cours
+    </footer>
+  </div>
+
+  <div class="overlay" id="videoOverlay" aria-hidden="true">
+    <video id="introVideo" class="intro-video" src="./assets/videos/NeuroHell-Intro.mp4" preload="auto"
+      playsinline></video>
+  </div>
+
+  <script>
+    const buttons = document.querySelectorAll('.menu-button');
+    const screens = document.querySelectorAll('.screen');
+    const startGameButton = document.getElementById('startGameButton');
+    const overlay = document.getElementById('videoOverlay');
+    const introVideo = document.getElementById('introVideo');
+
+    function showScreen(target) {
+      buttons.forEach(button => {
+        button.classList.toggle('active', button.dataset.target === target);
+      });
+
+      screens.forEach(screen => {
+        screen.classList.toggle('active', screen.id === `screen-${target}`);
+      });
+    }
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => showScreen(button.dataset.target));
+    });
+
+    function goToLevelOne() {
+      window.location.href = './games_level_1.html';
+    }
+
+    function launchIntroThenGame() {
+      overlay.classList.add('active');
+      overlay.setAttribute('aria-hidden', 'false');
+      introVideo.currentTime = 0;
+
+      const playPromise = introVideo.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          // si le navigateur bloque l'autoplay, un clic utilisateur a déjà eu lieu ici,
+          // donc on réessaie simplement
+          introVideo.play().catch(() => goToLevelOne());
+        });
+      }
+    }
+
+    startGameButton.addEventListener('click', launchIntroThenGame);
+
+    introVideo.addEventListener('ended', goToLevelOne);
+
+    introVideo.addEventListener('error', () => {
+      goToLevelOne();
+    });
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        introVideo.pause();
+        overlay.classList.remove('active');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+    });
+  </script>
+</body>
+
+</html>

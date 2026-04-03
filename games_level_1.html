@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <title>NeuroHell — Level 1</title>
+  <link rel="icon" type="image/x-icon" href="assets/images/favicon/favicon.ico">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'Orbitron';
+      src: url('assets/font/Orbitron/Orbitron-VariableFont_wght.ttf') format('truetype');
+      font-weight: 100 900;
+    }
+
+    @font-face {
+      font-family: 'Exo2';
+      src: url('assets/font/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
+      font-weight: 100 900;
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #060609;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Exo2', sans-serif;
+    }
+
+    #canvas-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background: #060609;
+    }
+
+    canvas#c {
+      display: block;
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+
+    #hud-root {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    #hud {
+      position: absolute;
+      width: 1920px;
+      height: 1080px;
+      top: 0;
+      left: 0;
+      transform-origin: top left;
+    }
+
+    /* HUD Top Left */
+    #portrait-panel {
+      position: absolute;
+      top: 28px;
+      left: 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    #portrait-frame {
+      width: 128px;
+      height: 128px;
+      border: 2px solid #00e5ff;
+      background: #000;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.15), 0 0 16px rgba(0, 229, 255, 0.35), inset 0 0 12px rgba(0, 0, 0, 0.7);
+      position: relative;
+    }
+
+    #portrait-frame::before,
+    #portrait-frame::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-color: #00e5ff;
+      border-style: solid;
+      opacity: 0.8;
+    }
+
+    #portrait-frame::before {
+      top: -2px;
+      left: -2px;
+      border-width: 2px 0 0 2px;
+    }
+
+    #portrait-frame::after {
+      bottom: -2px;
+      right: -2px;
+      border-width: 0 2px 2px 0;
+    }
+
+    #portrait-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #biometrics {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding-top: 6px;
+    }
+
+    .bio-line {
+      font-family: 'Exo2', sans-serif;
+      font-size: 15px;
+      color: #00e5ff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .bio-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .bio-separator {
+      width: 120px;
+      height: 1px;
+      background: linear-gradient(to right, rgba(0, 229, 255, 0.5), transparent);
+      margin: 2px 0;
+    }
+
+    .bio-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      color: #00e5ff;
+      opacity: 0.5;
+      letter-spacing: 3px;
+      margin-top: 4px;
+    }
+
+    .hb-line {
+      stroke-dasharray: 80;
+      stroke-dashoffset: 80;
+      animation: hb-draw 1.2s ease-in-out infinite;
+    }
+
+    @keyframes hb-draw {
+      0% {
+        stroke-dashoffset: 80;
+        opacity: 1;
+      }
+
+      60% {
+        stroke-dashoffset: 0;
+        opacity: 1;
+      }
+
+      100% {
+        stroke-dashoffset: -80;
+        opacity: 0;
+      }
+    }
+
+    /* HUD Top Right */
+    #map-panel {
+      position: absolute;
+      top: 28px;
+      right: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 14px;
+    }
+
+    #minimap-wrap {
+      position: relative;
+      width: 210px;
+      height: 170px;
+    }
+
+    #minimap-wrap svg {
+      filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.4));
+    }
+
+    #minimap-mount {
+      position: absolute;
+      inset: 0;
+      width: 210px;
+      height: 170px;
+      overflow: hidden;
+      background: radial-gradient(circle at center, rgba(0, 20, 45, 0.35), rgba(0, 0, 0, 0.15));
+      border: 1px solid rgba(0, 229, 255, 0.18);
+      box-shadow: inset 0 0 16px rgba(0, 229, 255, 0.08), 0 0 10px rgba(0, 229, 255, 0.18);
+    }
+
+    .cross-deco {
+      position: absolute;
+      color: rgba(0, 229, 255, 0.6);
+      font-size: 20px;
+      font-family: 'Orbitron', sans-serif;
+      line-height: 1;
+    }
+
+    .cross-deco.tl {
+      top: -14px;
+      left: -14px;
+    }
+
+    .cross-deco.tr {
+      top: -14px;
+      right: -14px;
+    }
+
+    /* HUD Bottom Bar */
+    #bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 130px;
+      background: linear-gradient(to top, rgba(0, 4, 18, 0.97) 0%, rgba(0, 4, 18, 0.85) 60%, transparent 100%);
+      border-top: 1px solid rgba(0, 229, 255, 0.18);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 14px;
+    }
+
+    #health-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 155px;
+    }
+
+    #health-icon-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #health-icon {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .h-seg-row {
+      display: flex;
+      gap: 3px;
+    }
+
+    .h-seg {
+      width: 14px;
+      height: 14px;
+      background: rgba(0, 229, 255, 0.18);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      transition: all 0.4s ease;
+    }
+
+    .h-seg.lit {
+      background: #00e5ff;
+      border-color: #00e5ff;
+      box-shadow: 0 0 6px rgba(0, 229, 255, 0.7);
+    }
+
+    .h-seg.lit.warn {
+      background: #ffaa00;
+      border-color: #ffaa00;
+      box-shadow: 0 0 6px rgba(255, 170, 0, 0.7);
+    }
+
+    .h-seg.lit.danger {
+      background: #ff3333;
+      border-color: #ff3333;
+      box-shadow: 0 0 6px rgba(255, 50, 50, 0.7);
+    }
+
+    #health-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: #00e5ff;
+      line-height: 1;
+      text-shadow: 0 0 14px rgba(0, 229, 255, 0.7);
+      transition: color 0.4s ease, text-shadow 0.4s ease;
+    }
+
+    #health-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      color: #00e5ff;
+      letter-spacing: 4px;
+      opacity: 0.55;
+    }
+
+    .v-sep {
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, rgba(0, 229, 255, 0.3), transparent);
+      flex-shrink: 0;
+    }
+
+    /* Weapon Slots */
+    #weapon-slots {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .weapon-slot {
+      width: 126px;
+      height: 100px;
+      border: 1px solid rgba(0, 229, 255, 0.22);
+      background: rgba(0, 8, 28, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 6px 7px;
+      transition: border-color 0.2s, background 0.2s, transform 0.1s;
+      position: relative;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .weapon-slot::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0, 229, 255, 0.03) 0%, transparent 100%);
+    }
+
+    .weapon-slot.active {
+      border: 2px solid #ffffff;
+      background: rgba(0, 20, 55, 0.95);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1), inset 0 0 24px rgba(0, 229, 255, 0.08);
+    }
+
+    .slot-name {
+      font-family: 'Exo2', sans-serif;
+      font-size: 10px;
+      color: rgba(180, 200, 240, 0.65);
+      text-align: center;
+      position: absolute;
+      top: 7px;
+      left: 4px;
+      right: 4px;
+      z-index: 10;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.3px;
+    }
+
+    .weapon-slot.active .slot-name {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .weapon-icon {
+      width: 72px;
+      height: 42px;
+      object-fit: contain;
+      margin-bottom: 2px;
+      flex-shrink: 0;
+      transition: transform 0.2s, filter 0.2s;
+      image-rendering: auto;
+    }
+
+    .weapon-slot.active .weapon-icon {
+      transform: scale(1.1);
+    }
+
+    .slot-ammo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+
+    .slot-key {
+      font-family: 'Exo2', sans-serif;
+      font-size: 9px;
+      position: absolute;
+      bottom: 5px;
+      right: 7px;
+      color: rgba(255, 255, 255, 0.25);
+      font-weight: 300;
+    }
+
+    .slot-qty {
+      font-family: 'Exo2', sans-serif;
+      font-size: 8px;
+      position: absolute;
+      bottom: 5px;
+      left: 7px;
+      color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Power Block */
+    #energy-block {
+      min-width: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    #echarts-gauge {
+      width: 180px;
+      height: 110px;
+    }
+
+    #energy-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      color: #00ff80;
+      letter-spacing: 2px;
+      opacity: 0.75;
+      text-align: center;
+      margin-top: -6px;
+    }
+
+    /* Glows */
+    .glow-orange {
+      filter: drop-shadow(0 0 8px rgba(255, 120, 0, 0.9)) drop-shadow(0 0 16px rgba(255, 80, 0, 0.5));
+    }
+
+    .glow-blue {
+      filter: drop-shadow(0 0 8px rgba(60, 160, 255, 0.9)) drop-shadow(0 0 16px rgba(0, 90, 255, 0.5));
+    }
+
+    .glow-blue-elite {
+      filter: drop-shadow(0 0 8px rgba(20, 80, 255, 0.9)) drop-shadow(0 0 16px rgba(10, 30, 220, 0.6));
+    }
+
+    .glow-cyan {
+      filter: drop-shadow(0 0 8px rgba(0, 255, 200, 0.9)) drop-shadow(0 0 16px rgba(0, 200, 180, 0.5));
+    }
+
+    .glow-purple {
+      filter: drop-shadow(0 0 8px rgba(180, 80, 255, 0.9)) drop-shadow(0 0 16px rgba(130, 0, 220, 0.5));
+    }
+
+    .weapon-slot.active .glow-orange {
+      filter: drop-shadow(0 0 12px rgba(255, 120, 0, 1)) drop-shadow(0 0 24px rgba(255, 80, 0, 0.7));
+    }
+
+    .weapon-slot.active .glow-blue {
+      filter: drop-shadow(0 0 12px rgba(60, 160, 255, 1)) drop-shadow(0 0 24px rgba(0, 90, 255, 0.7));
+    }
+
+    .weapon-slot.active .glow-blue-elite {
+      filter: drop-shadow(0 0 12px rgba(20, 80, 255, 1)) drop-shadow(0 0 24px rgba(10, 30, 220, 0.8));
+    }
+
+    .weapon-slot.active .glow-cyan {
+      filter: drop-shadow(0 0 12px rgba(0, 255, 200, 1)) drop-shadow(0 0 24px rgba(0, 200, 180, 0.7));
+    }
+
+    .weapon-slot.active .glow-purple {
+      filter: drop-shadow(0 0 12px rgba(180, 80, 255, 1)) drop-shadow(0 0 24px rgba(130, 0, 220, 0.7));
+    }
+
+    .c-orange {
+      color: #ff8c00;
+    }
+
+    .c-blue {
+      color: #5096ff;
+    }
+
+    .c-white {
+      color: #ffffff;
+    }
+
+    .c-cyan {
+      color: #00ffd4;
+    }
+
+    .c-purple {
+      color: #b050ff;
+    }
+
+    /* Center Crosshair & Overlays */
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 24px;
+      pointer-events: none;
+      z-index: 5;
+      font-family: monospace;
+    }
+
+    #scope-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9;
+    }
+
+    #scope-overlay.on {
+      display: block;
+    }
+
+    #scope-vignette {
+      position: absolute;
+      inset: 0;
+    }
+
+    canvas#scope-cvs {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #scope-zoom {
+      position: absolute;
+      top: 13px;
+      right: 18px;
+      color: #00ddbb;
+      font-size: 14px;
+      letter-spacing: 2px;
+      opacity: 0.8;
+      font-family: 'Orbitron', monospace;
+    }
+
+    #hit-flash {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 100, 0, 0);
+      pointer-events: none;
+      transition: background 0.08s;
+      z-index: 15;
+    }
+
+    /* Demon Health Bars (CSS2D) */
+    .hp-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      pointer-events: none;
+    }
+
+    .hp-name {
+      font-family: monospace;
+      font-size: 9px;
+      color: #ff6622;
+      letter-spacing: 1px;
+      text-shadow: 0 0 6px #ff3300;
+      white-space: nowrap;
+    }
+
+    .hp-bar-outer {
+      width: 52px;
+      height: 5px;
+      background: #1a0a0a;
+      border: 1px solid #441111;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .hp-bar-inner {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #ff2200, #ff6600);
+      border-radius: 2px;
+      transition: width 0.12s;
+    }
+
+    /* Start Overlay */
+    #instructions {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      color: #00e5ff;
+      font-size: 18px;
+      font-family: 'Orbitron', sans-serif;
+      cursor: pointer;
+    }
+
+    /* Death Screen */
+    #death-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      pointer-events: none;
+      transition: background 1.5s ease;
+    }
+
+    #death-screen.active {
+      display: flex;
+      pointer-events: all;
+    }
+
+    #death-title {
+      font-size: 72px;
+      font-weight: 900;
+      color: #cc0000;
+      text-shadow: 0 0 40px rgba(200, 0, 0, 0.9), 0 0 80px rgba(200, 0, 0, 0.5);
+      letter-spacing: 12px;
+      animation: deathPulse 1.5s ease-in-out infinite;
+    }
+
+    #death-subtitle {
+      font-size: 16px;
+      color: rgba(255, 100, 100, 0.7);
+      letter-spacing: 4px;
+      margin-top: 20px;
+    }
+
+    #death-countdown {
+      font-size: 28px;
+      color: #ff4444;
+      margin-top: 40px;
+      letter-spacing: 3px;
+    }
+
+    @keyframes deathPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        text-shadow: 0 0 40px rgba(200, 0, 0, 0.9), 0 0 80px rgba(200, 0, 0, 0.5);
+      }
+
+      50% {
+        opacity: 0.7;
+        text-shadow: 0 0 20px rgba(200, 0, 0, 0.5);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="canvas-wrap">
+    <canvas id="c"></canvas>
+    <div id="scope-overlay">
+      <canvas id="scope-cvs"></canvas>
+      <div id="scope-vignette"></div>
+      <div id="scope-zoom">× 8.0</div>
+    </div>
+    <div id="crosshair">+</div>
+    <div id="hit-flash"></div>
+  </div>
+
+  <div id="instructions">
+    <div id="status-text">CHARGEMENT DU NIVEAU...</div>
+  </div>
+
+  <div id="death-screen">
+    <div id="death-title">VOUS ÊTES MORT</div>
+    <div id="death-subtitle">NEUROSYSTÈME COMPROMIS</div>
+    <div id="death-countdown">RELANCE DANS <span id="death-timer">5</span>s...</div>
+  </div>
+
+  <div id="hud-root">
+    <div id="hud">
+      <!-- PORTRAIT -->
+      <div id="portrait-panel">
+        <div id="portrait-frame"><img id="portrait-img" src="assets/images/face/portrait_hp100.gif" alt="portrait">
+        </div>
+        <div id="biometrics">
+          <div class="bio-line">HR:&nbsp;<span class="bio-value" id="hr-value">72</span>&nbsp;bpm
+            <svg width="38" height="18" viewBox="0 0 38 18" fill="none">
+              <polyline class="hb-line" points="0,9 5,9 7,2 9,16 11,9 15,9 17,5 19,13 21,9 38,9" stroke="#00e5ff"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div class="bio-line">SYS:&nbsp;<span class="bio-value" style="color:#00ff80">ONLINE</span></div>
+          <div class="bio-line">PWR:&nbsp;<span class="bio-value" id="pwr-value">98</span>&nbsp;%</div>
+          <div class="bio-separator"></div>
+          <div class="bio-label">SYSTÈMES &amp; BIOMÉTRICS</div>
+        </div>
+      </div>
+
+      <!-- MINIMAP -->
+      <div id="map-panel">
+        <div id="minimap-wrap">
+          <div class="cross-deco tl">✛</div>
+          <div class="cross-deco tr">✛</div>
+          <div id="minimap-mount"></div>
+        </div>
+      </div>
+
+      <!-- BOTTOM BAR -->
+      <div id="bottom-bar">
+        <!-- HEALTH -->
+        <div id="health-block">
+          <div id="health-icon-bar">
+            <div id="health-icon">
+              <div class="h-seg-row">
+                <div class="h-seg lit" id="hs9"></div>
+                <div class="h-seg lit" id="hs10"></div>
+              </div>
+              <div class="h-seg-row">
+                <div class="h-seg lit" id="hs7"></div>
+                <div class="h-seg lit" id="hs8"></div>
+              </div>
+              <div class="h-seg-row">
+                <div class="h-seg lit" id="hs5"></div>
+                <div class="h-seg lit" id="hs6"></div>
+              </div>
+              <div class="h-seg-row">
+                <div class="h-seg lit" id="hs3"></div>
+                <div class="h-seg lit" id="hs4"></div>
+              </div>
+              <div class="h-seg-row">
+                <div class="h-seg lit" id="hs1"></div>
+                <div class="h-seg lit" id="hs2"></div>
+              </div>
+            </div>
+            <div id="health-value">100%</div>
+          </div>
+          <div id="health-label">HEALTH</div>
+        </div>
+        <div class="v-sep"></div>
+
+        <!-- WEAPONS -->
+        <div id="weapon-slots">
+          <div class="weapon-slot active" id="slot-1">
+            <span class="slot-name">Iron Gazlet</span>
+            <img class="weapon-icon glow-orange" src="assets/images/plasma_types/plasma_irongazlet.jpg"
+              alt="Iron Gazlet">
+            <span class="slot-ammo c-orange">300</span><span class="slot-qty">∞</span><span class="slot-key">1</span>
+          </div>
+          <div class="weapon-slot" id="slot-2">
+            <span class="slot-name">Plasma Pistol Std</span>
+            <img class="weapon-icon glow-blue" src="assets/images/plasma_types/plasma_plasmapistol_standard.jpg"
+              alt="Plasma Pistol Standard">
+            <span class="slot-ammo c-blue">50</span><span class="slot-qty">×3</span><span class="slot-key">2</span>
+          </div>
+          <div class="weapon-slot" id="slot-3">
+            <span class="slot-name">Plasma Pistol Elite</span>
+            <img class="weapon-icon glow-blue-elite" src="assets/images/plasma_types/plasma_plasmapistol_elite.jpg"
+              alt="Plasma Pistol Elite">
+            <span class="slot-ammo c-white">35</span><span class="slot-qty">×2</span><span class="slot-key">3</span>
+          </div>
+          <div class="weapon-slot" id="slot-4">
+            <span class="slot-name">Teal Sniper</span>
+            <img class="weapon-icon glow-cyan" src="assets/images/plasma_types/plasma_tealsniper.jpg" alt="Teal Sniper">
+            <span class="slot-ammo c-cyan">120</span><span class="slot-qty">×1</span><span class="slot-key">4</span>
+          </div>
+          <div class="weapon-slot" id="slot-5">
+            <span class="slot-name">Void Rifle</span>
+            <img class="weapon-icon glow-purple" src="assets/images/plasma_types/plasma_voidrifle.jpg" alt="Void Rifle">
+            <span class="slot-ammo c-purple">90</span><span class="slot-qty">×2</span><span class="slot-key">5</span>
+          </div>
+        </div>
+        <div class="v-sep"></div>
+
+        <!-- ENERGY -->
+        <div id="energy-block">
+          <div id="echarts-gauge"></div>
+          <div id="energy-label">POWER / ARMOR</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
+}}
+</script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+    import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+    import { Octree } from 'three/addons/math/Octree.js';
+    import { Capsule } from 'three/addons/math/Capsule.js';
+    import { clone as skeletonClone } from 'three/addons/utils/SkeletonUtils.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+    // Local project scripts
+    import { PlasmaSystem, WEAPON_CONFIGS } from './plasma_system.js';
+    import { GauntletController } from './gauntlet_controller.js';
+    import { Minimap } from './minimap.js';
+
+    /* ============================================================
+       HUD Scaling & Setup
+    ============================================================ */
+    function scaleHUD() {
+      const hud = document.getElementById('hud');
+      const sx = window.innerWidth / 1920, sy = window.innerHeight / 1080;
+      const s = Math.min(sx, sy);
+      const ox = (window.innerWidth - 1920 * s) / 2;
+      const oy = (window.innerHeight - 1080 * s) / 2;
+      hud.style.transform = `translate(${ox}px, ${oy}px) scale(${s})`;
+    }
+    window.addEventListener('resize', scaleHUD);
+    scaleHUD();
+
+    let minimap = null;
+
+    // Gauge Setup
+    const gaugeChart = echarts.init(document.getElementById('echarts-gauge'), null, { renderer: 'canvas' });
+    gaugeChart.setOption({
+      backgroundColor: 'transparent',
+      series: [{
+        type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '88%', center: ['50%', '72%'],
+        progress: { show: true, width: 10, roundCap: true, itemStyle: { color: '#00ff80', shadowBlur: 18, shadowColor: 'rgba(0,255,128,0.65)' } },
+        axisLine: { roundCap: true, lineStyle: { width: 10, color: [[1, 'rgba(0,255,128,0.07)']] } },
+        axisTick: { show: true, splitNumber: 5, distance: -16, length: 5, lineStyle: { color: 'rgba(0,229,255,0.25)', width: 1 } },
+        splitLine: { show: true, distance: -20, length: 10, lineStyle: { color: 'rgba(0,229,255,0.4)', width: 1.5 } },
+        axisLabel: { show: false }, pointer: { show: false }, detail: { show: false }, data: [{ value: 100 }]
+      }]
+    });
+
+    let playerHealth = 100;
+    let playerArmor = 100;
+    let playerInvulnerable = 0;
+    let playerDead = false;
+    let healthRegenTimer = 0;
+    let armorRegenTimer = 0;
+    const REGEN_INTERVAL = 30; // seconds
+
+    function triggerPlayerDeath() {
+      if (playerDead) return;
+      playerDead = true;
+      controls.unlock();
+      playBGM('death');
+      const screen = document.getElementById('death-screen');
+      screen.classList.add('active');
+      setTimeout(() => { screen.style.background = 'rgba(30,0,0,0.85)'; }, 50);
+      let t = 5;
+      document.getElementById('death-timer').textContent = t;
+      const iv = setInterval(() => {
+        t--;
+        document.getElementById('death-timer').textContent = t;
+        if (t <= 0) { clearInterval(iv); location.reload(); }
+      }, 1000);
+    }
+
+    function updateArmor(val) {
+      playerArmor = val;
+      document.getElementById('pwr-value').textContent = Math.floor(val);
+      gaugeChart.setOption({ series: [{ data: [{ value: val }] }] });
+    }
+
+    const PORTRAIT = { 100: 'portrait_hp100.gif', 90: 'portrait_hp090.gif', 80: 'portrait_hp080.gif', 70: 'portrait_hp070.gif', 60: 'portrait_hp060.gif', 50: 'portrait_hp050.gif', 40: 'portrait_hp040.gif', 30: 'portrait_hp030.gif', 20: 'portrait_hp020.gif', 10: 'portrait_hp010.gif', 0: 'portrait_hp000.gif' };
+
+    function updateHUDHealth(hp) {
+      document.getElementById('health-value').textContent = Math.floor(hp) + '%';
+      const hv = document.getElementById('health-value');
+
+      let hr = 72;
+
+      if (hp <= 20) { hv.style.color = '#ff3333'; hv.style.textShadow = '0 0 14px rgba(255,50,50,0.8)'; hr = 145; }
+      else if (hp <= 50) { hv.style.color = '#ffaa00'; hv.style.textShadow = '0 0 14px rgba(255,170,0,0.7)'; hr = 110; }
+      else { hv.style.color = '#00e5ff'; hv.style.textShadow = '0 0 14px rgba(0,229,255,0.7)'; hr = 72 + (100 - hp) * 0.5; }
+
+      const hrValEl = document.getElementById('hr-value');
+      if (hrValEl) hrValEl.textContent = Math.floor(hr);
+      const hbLine = document.querySelector('.hb-line');
+      if (hbLine) {
+        const dur = 60 / hr;
+        hbLine.style.animationDuration = dur + 's';
+      }
+
+      const bracket = Math.max(0, Math.floor(hp / 10) * 10);
+      const portraitImg = document.getElementById('portrait-img');
+      if (portraitImg) portraitImg.src = 'assets/images/face/' + PORTRAIT[bracket];
+
+      const filled = Math.ceil(hp / 10);
+      for (let i = 1; i <= 10; i++) {
+        const seg = document.getElementById('hs' + i);
+        if (!seg) continue;
+        if (i <= filled) {
+          seg.classList.add('lit');
+          if (hp <= 20) { seg.classList.add('danger'); seg.classList.remove('warn'); }
+          else if (hp <= 50) { seg.classList.add('warn'); seg.classList.remove('danger'); }
+          else { seg.classList.remove('warn', 'danger'); }
+        } else {
+          seg.classList.remove('lit', 'warn', 'danger');
+        }
+      }
+    }
+
+    /* ============================================================
+       Three.js Engine Setup
+    ============================================================ */
+    const wrap = document.getElementById('canvas-wrap');
+    const canvas = document.getElementById('c');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0';
+    labelRenderer.domElement.style.pointerEvents = 'none';
+    wrap.appendChild(labelRenderer.domElement);
+
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.01, 1000);
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x060609);
+    scene.fog = new THREE.FogExp2(0x060609, 0.02);
+
+    // Enable environment reflection and ambient light
+    new EXRLoader().load('assets/images/hdri/hdri_inferno2/hdr.exr', tex => {
+      tex.mapping = THREE.EquirectangularReflectionMapping;
+      scene.environment = tex;
+      scene.background = tex;
+    });
+    scene.add(new THREE.AmbientLight(0x223355, 1.0));
+
+    const keyLight = new THREE.DirectionalLight(0xffe0cc, 1.5);
+    keyLight.position.set(20, 40, 30);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.near = 0.5;
+    keyLight.shadow.camera.far = 100;
+    keyLight.shadow.camera.left = keyLight.shadow.camera.bottom = -40;
+    keyLight.shadow.camera.right = keyLight.shadow.camera.top = 40;
+    keyLight.shadow.bias = -0.001;
+    scene.add(keyLight);
+
+    const weaponLight = new THREE.PointLight(0xffeedd, 2.5, 2.5);
+    weaponLight.position.set(0, 0.15, -0.1);
+    camera.add(weaponLight);
+    scene.add(camera);
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      if (scopeOn) drawScope();
+    });
+
+    /* ============================================================
+       Player Controller (Octree + PointerLock)
+    ============================================================ */
+    const clock = new THREE.Clock();
+    const worldOctree = new Octree();
+    const playerCollider = new Capsule(new THREE.Vector3(0, 0.35, 0), new THREE.Vector3(0, 1.5, 0), 0.35);
+    const playerVelocity = new THREE.Vector3();
+    const playerDirection = new THREE.Vector3();
+    let playerOnFloor = false;
+    const keyStates = {};
+
+    let levelLoaded = false;
+
+    const controls = new PointerLockControls(camera, document.body);
+    const instructions = document.getElementById('instructions');
+
+    instructions.addEventListener('click', () => {
+      if (levelLoaded) {
+        controls.lock();
+        if (listener.context.state === 'suspended') listener.context.resume();
+        if (!bgmAudio.isPlaying && bgmBuffers[targetBgm]) {
+          playBGM(targetBgm);
+        }
+      }
+    });
+    controls.addEventListener('lock', () => { instructions.style.display = 'none'; });
+    controls.addEventListener('unlock', () => {
+      instructions.style.display = 'flex';
+      document.getElementById('status-text').innerHTML = 'PAUSE - CLICK TO RESUME';
+    });
+
+    document.addEventListener('keydown', e => { keyStates[e.code] = true; });
+    document.addEventListener('keyup', e => { keyStates[e.code] = false; });
+
+    function playerCollisions() {
+      const result = worldOctree.capsuleIntersect(playerCollider);
+      playerOnFloor = false;
+      if (result) {
+        playerOnFloor = result.normal.y > 0;
+        if (!playerOnFloor) {
+          playerVelocity.addScaledVector(result.normal, -result.normal.dot(playerVelocity));
+        }
+        playerCollider.translate(result.normal.multiplyScalar(result.depth));
+      }
+    }
+
+    function updatePlayer(dt) {
+      let damping = Math.exp(-4 * dt) - 1;
+      if (!playerOnFloor && levelLoaded) {
+        playerVelocity.y -= 30 * dt;
+        damping *= 0.1;
+      }
+      playerVelocity.addScaledVector(playerVelocity, damping);
+      const deltaPosition = playerVelocity.clone().multiplyScalar(dt);
+      playerCollider.translate(deltaPosition);
+      if (levelLoaded) playerCollisions();
+      camera.position.copy(playerCollider.end);
+    }
+
+    function getForwardVector() {
+      camera.getWorldDirection(playerDirection);
+      playerDirection.y = 0;
+      return playerDirection.normalize();
+    }
+
+    function getSideVector() {
+      camera.getWorldDirection(playerDirection);
+      playerDirection.y = 0;
+      playerDirection.normalize().cross(camera.up);
+      return playerDirection;
+    }
+
+    function processControls(dt) {
+      if (!controls.isLocked) return;
+      const speedDelta = dt * (playerOnFloor ? 25 : 8);
+      if (keyStates['KeyW']) playerVelocity.add(getForwardVector().multiplyScalar(speedDelta));
+      if (keyStates['KeyS']) playerVelocity.add(getForwardVector().multiplyScalar(-speedDelta));
+      if (keyStates['KeyA']) playerVelocity.add(getSideVector().multiplyScalar(-speedDelta));
+      if (keyStates['KeyD']) playerVelocity.add(getSideVector().multiplyScalar(speedDelta));
+      if (playerOnFloor && keyStates['Space']) playerVelocity.y = 10;
+    }
+
+    /* ============================================================
+       Audio / Music Setup
+    ============================================================ */
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    const bgmAudio = new THREE.Audio(listener);
+    const audioLoader = new THREE.AudioLoader();
+    const bgmBuffers = {};
+    const musicFiles = {
+      idle: 'Cold Circuits of Hell.mp3',
+      combat: 'Riot Protocol.mp3',
+      death: 'Signal Lost.mp3'
+    };
+
+    let currentBgm = null;
+    let targetBgm = 'idle';
+
+    Object.keys(musicFiles).forEach(key => {
+      audioLoader.load(`assets/audio/musics/${musicFiles[key]}`, buffer => {
+        bgmBuffers[key] = buffer;
+      });
+    });
+
+    function playBGM(trackId) {
+      if (currentBgm === trackId) return;
+      currentBgm = trackId;
+      if (!bgmBuffers[trackId]) return;
+
+      if (bgmAudio.isPlaying) bgmAudio.stop();
+      bgmAudio.setBuffer(bgmBuffers[trackId]);
+      bgmAudio.setLoop(trackId !== 'death'); // Death sequence doesn't loop
+      bgmAudio.setVolume(1.0);
+      bgmAudio.play();
+    }
+
+    /* ============================================================
+       Level Loading
+    ============================================================ */
+    const loader = new GLTFLoader();
+    loader.load('assets/levels/neurohell_level_1.glb', gltf => {
+      gltf.scene.traverse(child => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          if (child.material && child.material.name === 'NH_Window') {
+            child.material.transparent = true;
+            child.material.opacity = 0.35;
+            child.material.side = THREE.DoubleSide;
+          }
+        }
+      });
+      scene.add(gltf.scene);
+      worldOctree.fromGraphNode(gltf.scene);
+
+      minimap = new Minimap(
+        gltf.scene,
+        document.getElementById('minimap-mount'),
+        {
+          width: 210,
+          height: 170,
+          fogOfWar: true,
+          rotateMarker: false,
+          rotateMap: true,
+        }
+      );
+
+      // Try to find a spawn point, or set a default player position
+      let spawnPos = new THREE.Vector3(0, 2, 0);
+      const spawnNode = gltf.scene.getObjectByName('Spawn');
+      if (spawnNode) {
+        spawnNode.getWorldPosition(spawnPos);
+      }
+      playerCollider.start.copy(spawnPos);
+      playerCollider.end.copy(spawnPos).setY(spawnPos.y + 1.15); // capsule height
+
+      levelLoaded = true;
+      document.getElementById('status-text').innerHTML = 'CLICK TO START<div style="font-size:12px;opacity:0.6;margin-top:10px;">WASD to Move | SPACE to Jump | 1-5 to Switch Weapons | L-CLICK to Fire</div>';
+    }, undefined, err => console.error("Could not load level:", err));
+
+
+    /* ============================================================
+       Demons Setup
+    ============================================================ */
+    const targetGroup = new THREE.Group();
+    scene.add(targetGroup);
+    const targets = [];
+    const DEMON_DEFS = [
+      { file: 'demon_mawgrub.glb', name: 'Mawgrub', hpMax: 80, coll: { w: 1.1, h: 1.5, d: 1.0, zOff: 0.25 }, pos: new THREE.Vector3(-15, 0, -25) },
+      { file: 'demon_pyrarachnid.glb', name: 'Pyrarachnid', hpMax: 60, coll: { w: 1.3, h: 0.55, d: 1.1 }, pos: new THREE.Vector3(15, 1, -35) },
+      { file: 'demon_ravager.glb', name: 'Ravager', hpMax: 120, pos: new THREE.Vector3(0, 0, -50) },
+      { file: 'demon_spectre.glb', name: 'Spectre', hpMax: 45, pos: new THREE.Vector3(-10, 0, -35) },
+      { file: 'demon_taurex.glb', name: 'Taurex', hpMax: 150, pos: new THREE.Vector3(8, 0, -45) },
+      { file: 'demon_voidborn.glb', name: 'Voidborn', hpMax: 70, baseY: 0.8, floatAmp: 0.10, floatFreq: 0.65, pos: new THREE.Vector3(0, 0, -25) },
+    ];
+    const demonInstances = [];
+
+    function makeDemonHPBar(name) {
+      const wrap = document.createElement('div'); wrap.className = 'hp-label';
+      const nameEl = document.createElement('div'); nameEl.className = 'hp-name'; nameEl.textContent = name;
+      const outer = document.createElement('div'); outer.className = 'hp-bar-outer';
+      const inner = document.createElement('div'); inner.className = 'hp-bar-inner';
+      outer.appendChild(inner); wrap.appendChild(nameEl); wrap.appendChild(outer);
+      return { el: wrap, inner };
+    }
+
+    function killDemon(demon) {
+      demon.dead = true;
+      demon.active = false;
+      demon.root.visible = false;
+      demon.label.element.style.display = 'none';
+      const idx = targets.indexOf(demon.collider);
+      if (idx !== -1) targets.splice(idx, 1);
+      demon.respawnTimer = 10;
+    }
+
+    function respawnDemon(demon) {
+      demon.hp = demon.hpMax;
+      demon.dead = false;
+      demon.active = false;
+      demon.root.visible = false;
+      demon.label.element.style.display = 'none';
+      demon.hpBarInner.style.width = '100%';
+      demon.hpBarInner.style.background = 'linear-gradient(90deg,#ff2200,#ff6600)';
+      if (!targets.includes(demon.collider)) targets.push(demon.collider);
+
+      const newAction = demon.actions.fly ? 'fly' : (demon.actions.idle ? 'idle' : null);
+      if (newAction && newAction !== demon.currentActionName) {
+        if (demon.actions[demon.currentActionName]) demon.actions[demon.currentActionName].stop();
+        if (demon.actions[newAction]) demon.actions[newAction].play();
+        demon.currentActionName = newAction;
+      }
+    }
+
+    async function loadDemons() {
+      for (const def of DEMON_DEFS) {
+        let gltf;
+        try { gltf = await new Promise((res, rej) => loader.load('assets/demons/' + def.file, res, undefined, rej)); }
+        catch (e) { console.warn('Missing demon asset:', def.file); continue; }
+
+        const root = skeletonClone(gltf.scene);
+        root.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(root);
+        const h = box.getSize(new THREE.Vector3()).y;
+        const sc = h > 0.001 ? 1.5 / h : (def.name === 'Voidborn' ? 100 : 1);
+        root.scale.multiplyScalar(sc);
+
+        const baseY = def.baseY ?? 0;
+        root.position.copy(def.pos).setY(def.pos.y + baseY);
+        root.traverse(c => { if (c.isMesh || c.isSkinnedMesh) { c.castShadow = true; c.frustumCulled = false; } });
+        targetGroup.add(root);
+
+        const cw = def.coll?.w ?? 0.65, ch = def.coll?.h ?? 1.5, cd = def.coll?.d ?? 0.5, czOff = def.coll?.zOff ?? 0;
+        const collider = new THREE.Mesh(new THREE.BoxGeometry(cw, ch, cd), new THREE.MeshBasicMaterial({ visible: false }));
+        collider.position.copy(def.pos);
+        collider.position.y += ch / 2 + baseY;
+        collider.position.z += czOff;
+        collider._demonRoot = root;
+        scene.add(collider);
+        targets.push(collider);
+
+        let rootBoneName = null;
+        root.traverse(c => {
+          if (c.isSkinnedMesh && !rootBoneName && c.skeleton && c.skeleton.bones.length > 0) {
+            rootBoneName = c.skeleton.bones[0].name;
+          }
+        });
+
+        gltf.animations.forEach(clip => {
+          clip.tracks = clip.tracks.filter(t => {
+            let isRootPos = false;
+            if (rootBoneName && t.name === rootBoneName + '.position') isRootPos = true;
+            if (/(root|pelvis|hips|mixamorigHips|Armature)\.position/i.test(t.name)) isRootPos = true;
+            return !isRootPos;
+          });
+        });
+
+        const mixer = new THREE.AnimationMixer(root);
+        const actions = {};
+
+        const idle = gltf.animations.find(a => /idle|wait|stand/i.test(a.name)) || gltf.animations[0];
+        if (idle) actions.idle = mixer.clipAction(idle).setLoop(THREE.LoopRepeat, Infinity);
+
+        const walk = gltf.animations.find(a => /walk|run|chase/i.test(a.name));
+        if (walk) actions.walk = mixer.clipAction(walk).setLoop(THREE.LoopRepeat, Infinity);
+
+        if (def.name === 'Voidborn') {
+          const fly = gltf.animations.find(a => /fly/i.test(a.name));
+          if (fly) actions.fly = mixer.clipAction(fly).setLoop(THREE.LoopRepeat, Infinity);
+        }
+
+        let initialActionName = actions.idle ? 'idle' : null;
+        if (def.name === 'Voidborn' && actions.fly) initialActionName = 'fly';
+        if (initialActionName) actions[initialActionName].play();
+
+        const { el: hpEl, inner: hpBarInner } = makeDemonHPBar(def.name);
+        const label = new CSS2DObject(hpEl);
+        label.position.set(0, ch + 0.25, 0);
+        root.add(label);
+
+        root.visible = false;
+        label.element.style.display = 'none';
+        const baseScale = root.scale.clone();
+        demonInstances.push({ root, mixer, collider, hp: def.hpMax, hpMax: def.hpMax, hpBarInner, label, dead: false, respawnTimer: 0, baseY, colliderBaseY: baseY + ch / 2, floatAmp: def.floatAmp ?? 0, floatFreq: def.floatFreq ?? 1, floatPhase: Math.random() * Math.PI * 2, active: false, baseScale, actions, currentActionName: initialActionName });
+      }
+    }
+    loadDemons();
+
+
+    /* ============================================================
+       Weapons Integration
+    ============================================================ */
+    const WPN_LIST = [
+      { id: 'irongazlet', file: 'weapon_irongazlet.glb', hands: 'both', plasma: '#ff6600', sniper: false, maxAmmo: Infinity, ammo: Infinity, regen: 0 },
+      { id: 'plasma_standard', file: 'weapon_plasmapistol_standard.glb', hands: 'right', plasma: '#3377ff', sniper: false, maxAmmo: 50, ammo: 50, regen: 0.7 },
+      { id: 'plasma_elite', file: 'weapon_plasmapistol_elite.glb', hands: 'right', plasma: '#1144ff', sniper: false, maxAmmo: 35, ammo: 35, regen: 3 },
+      { id: 'teal_sniper', file: 'weapon_tealsniper.glb', hands: 'right', plasma: '#00ddbb', sniper: true, maxAmmo: 120, ammo: 120, regen: 0.4 },
+      { id: 'void_rifle', file: 'weapon_voidrifle.glb', hands: 'right', plasma: '#aa00ff', sniper: false, maxAmmo: 90, ammo: 90, regen: 10 }
+    ];
+    let currentWeaponIndex = 0;
+    let currentCfg = WPN_LIST[0];
+    let modelLeft = null, modelRight = null;
+    let mixerLeft = null, mixerRight = null;
+    let clipMap = {};
+
+    const plasma = new PlasmaSystem(scene, {
+      poolSize: 100, targets,
+      onHit: (info) => {
+        document.getElementById('hit-flash').style.background = currentCfg.plasma + '22';
+        setTimeout(() => document.getElementById('hit-flash').style.background = 'rgba(255,100,0,0)', 120);
+        const demon = demonInstances.find(d => !d.dead && d.collider === info.target);
+        if (demon) {
+          demon.hp = Math.max(0, demon.hp - info.damage);
+          demon.hpBarInner.style.width = (demon.hp / demon.hpMax * 100).toFixed(1) + '%';
+          const r = demon.hp / demon.hpMax;
+          demon.hpBarInner.style.background = r > 0.5 ? 'linear-gradient(90deg,#ff2200,#ff6600)' : r > 0.25 ? 'linear-gradient(90deg,#ff6600,#ffaa00)' : '#ff0000';
+          if (demon.hp <= 0) killDemon(demon);
+        }
+      }
+    });
+
+    const gauntlet = new GauntletController(plasma, {
+      punchRate: 0.38,
+      onPunch: () => {
+        document.getElementById('hit-flash').style.background = 'rgba(255,180,0,0.12)';
+        setTimeout(() => document.getElementById('hit-flash').style.background = 'rgba(255,100,0,0)', 100);
+      }
+    });
+
+    const WEAPON_POSES = {
+      irongazlet: { scaleMul: 0.78, fp: { pos: new THREE.Vector3(0.00, 0.25, 0.0), rot: new THREE.Euler(THREE.MathUtils.degToRad(35), 0, 0) } },
+      plasma_standard: { scaleMul: 1.00, fp: { pos: new THREE.Vector3(0.12, -0.10, 0.05), rot: new THREE.Euler(THREE.MathUtils.degToRad(-8), Math.PI, 0) } },
+      plasma_elite: { scaleMul: 1.08, fp: { pos: new THREE.Vector3(0.12, -0.055, 0.06), rot: new THREE.Euler(THREE.MathUtils.degToRad(-6), Math.PI, 0) } },
+      teal_sniper: { scaleMul: 1.28, fp: { pos: new THREE.Vector3(0.17, 0.02, 0.08), rot: new THREE.Euler(THREE.MathUtils.degToRad(-4), 0, 0) } },
+      void_rifle: { scaleMul: 1.15, fp: { pos: new THREE.Vector3(0.12, 0.12, 0.08), rot: new THREE.Euler(THREE.MathUtils.degToRad(-5), Math.PI, 0) } }
+    };
+    const MUZZLE_RULES = {
+      irongazlet: { yFactor: 0.85, zSide: 'min', zPush: -0.015, xOffset: 0 },
+      plasma_standard: { yFactor: 0.85, zSide: 'min', zPush: -0.020, xOffset: 0 },
+      plasma_elite: { yFactor: 0.85, zSide: 'max', zPush: 0.020, xOffset: 0 },
+      teal_sniper: { yFactor: 0.85, zSide: 'min', zPush: -0.030, xOffset: 0 },
+      void_rifle: { yFactor: 0.85, zSide: 'max', zPush: 0.025, xOffset: 0 }
+    };
+
+    function getMuzzleWorldPos(inst, wid) {
+      if (!inst?.src) {
+        const pos = new THREE.Vector3(); camera.getWorldPosition(pos);
+        const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
+        return pos.addScaledVector(dir, 0.3);
+      }
+      let muzzleNode = null;
+      inst.src.traverse(c => {
+        if (!muzzleNode && c.name && c.name.toLowerCase().includes('muzzle')) muzzleNode = c;
+      });
+      if (muzzleNode) {
+        const p = new THREE.Vector3();
+        muzzleNode.getWorldPosition(p);
+        return p;
+      }
+      const rule = MUZZLE_RULES[wid], box = new THREE.Box3().setFromObject(inst.src), size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
+      const localPos = new THREE.Vector3(center.x + rule.xOffset, box.min.y + size.y * rule.yFactor, rule.zSide === 'max' ? box.max.z + rule.zPush : box.min.z + rule.zPush);
+      return inst.pivot.localToWorld(localPos);
+    }
+
+    const _aimRaycaster = new THREE.Raycaster();
+    function getAimPoint() {
+      const camPos = new THREE.Vector3(), camDir = new THREE.Vector3();
+      camera.getWorldPosition(camPos); camera.getWorldDirection(camDir);
+      _aimRaycaster.set(camPos, camDir);
+      const hits = _aimRaycaster.intersectObjects(targets, false);
+      return hits.length > 0 ? hits[0].point.clone() : camPos.clone().addScaledVector(camDir, 60);
+    }
+
+    function buildInstance(gltf, mirrored, normScale, wid) {
+      const src = skeletonClone(gltf.scene);
+      const root = new THREE.Group(), pivot = new THREE.Group();
+      root.add(pivot); pivot.add(src);
+      src.scale.setScalar(normScale);
+      src.traverse(c => { if (c.isMesh || c.isSkinnedMesh) c.frustumCulled = false; });
+      const pose = WEAPON_POSES[wid].fp;
+      pivot.position.copy(pose.pos); pivot.rotation.copy(pose.rot);
+      if (mirrored) { pivot.scale.x = -1; pivot.traverse(c => { if (c.isMesh && c.material) { const fix = m => { const m2 = m.clone(); m2.side = THREE.DoubleSide; return m2; }; c.material = Array.isArray(c.material) ? c.material.map(fix) : fix(c.material); } }); }
+      return { model: root, src, pivot, mixer: new THREE.AnimationMixer(src) };
+    }
+
+    // Plasma color per weapon slot for HUD text
+    const SLOT_PLASMA_COLORS = [
+      '#ff8c00', // irongazlet (orange)
+      '#5096ff', // plasma_standard (blue)
+      '#1144ff', // plasma_elite (deep blue)
+      '#00ffd4', // teal_sniper (cyan)
+      '#b050ff', // void_rifle (purple)
+    ];
+
+    async function switchWeapon(idx) {
+      if (modelLeft) { camera.remove(modelLeft.model); modelLeft = null; mixerLeft = null; }
+      if (modelRight) { camera.remove(modelRight.model); modelRight = null; mixerRight = null; }
+
+      currentWeaponIndex = idx;
+      currentCfg = WPN_LIST[idx];
+      plasma.setWeapon(currentCfg.id);
+
+      for (let i = 1; i <= 5; i++) {
+        const slot = document.getElementById(`slot-${i}`);
+        slot.classList.remove('active');
+        const nameEl = slot.querySelector('.slot-name');
+        if (nameEl) nameEl.style.color = SLOT_PLASMA_COLORS[i - 1];
+        const ammoEl = slot.querySelector('.slot-ammo');
+        if (ammoEl) ammoEl.style.color = SLOT_PLASMA_COLORS[i - 1];
+      }
+      const activeSlot = document.getElementById(`slot-${idx + 1}`);
+      activeSlot.classList.add('active');
+      const activeNameEl = activeSlot.querySelector('.slot-name');
+      if (activeNameEl) activeNameEl.style.color = '#ffffff';
+      const activeAmmoEl = activeSlot.querySelector('.slot-ammo');
+      if (activeAmmoEl) activeAmmoEl.style.color = '#ffffff';
+
+      const gltf = await new Promise((res, rej) => loader.load('assets/weapons/' + currentCfg.file, res, undefined, rej));
+      clipMap = gltf.animations;
+
+      const box = new THREE.Box3().setFromObject(gltf.scene);
+      const maxDim = Math.max(...box.getSize(new THREE.Vector3()).toArray());
+      const normScale = (maxDim > 0.0001 ? 0.45 / maxDim : 1) * (WEAPON_POSES[currentCfg.id]?.scaleMul || 1);
+
+      const hands = currentCfg.hands;
+      // Lift weapons height (changed from -0.18 to -0.06)
+      if (hands === 'left' || hands === 'both') {
+        modelLeft = buildInstance(gltf, false, normScale, currentCfg.id);
+        modelLeft.model.position.set(hands === 'both' ? 0.28 : 0, -0.06 - box.getCenter(new THREE.Vector3()).y, -0.70);
+        camera.add(modelLeft.model);
+        mixerLeft = modelLeft.mixer;
+      }
+      if (hands === 'right' || hands === 'both') {
+        modelRight = buildInstance(gltf, true, normScale, currentCfg.id);
+        modelRight.model.position.set(hands === 'both' ? -0.28 : 0, -0.06 - box.getCenter(new THREE.Vector3()).y, -0.70);
+        camera.add(modelRight.model);
+        mixerRight = modelRight.mixer;
+      }
+
+      if (currentCfg.id === 'irongazlet') gauntlet.init(mixerLeft, mixerRight, clipMap);
+    }
+    // Init first weapon
+    switchWeapon(0);
+
+    document.addEventListener('keydown', e => {
+      if (!controls.isLocked) return;
+      const match = e.code.match(/Digit([1-5])/);
+      if (match) switchWeapon(parseInt(match[1]) - 1);
+    });
+
+    /* ============================================================
+       Shooting Mechanics
+    ============================================================ */
+    let mouseDown = false, scopeOn = false;
+    const scopeCvs = document.getElementById('scope-cvs');
+    function drawScope() {
+      const W = window.innerWidth, H = window.innerHeight;
+      scopeCvs.width = W;
+      scopeCvs.height = H;
+      const ctx = scopeCvs.getContext('2d');
+      ctx.clearRect(0, 0, W, H);
+
+      const cx = W / 2, cy = H / 2;
+      const R = Math.min(W, H) * 0.295;
+      const teal = '#00ddbb', dimT = 'rgba(0,221,187,0.28)';
+
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.strokeStyle = teal; ctx.lineWidth = 1.6; ctx.stroke();
+
+      ctx.strokeStyle = dimT; ctx.lineWidth = 0.7;
+      ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+
+      ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = teal; ctx.fill();
+
+      const sp = R / 5;
+      for (let i = -4; i <= 4; i++) {
+        if (i === 0) continue;
+        const r2 = Math.abs(i) === 4 ? 2.2 : 1.4;
+        const c2 = Math.abs(i) === 4 ? teal : dimT;
+        ctx.beginPath(); ctx.arc(cx + i * sp, cy, r2, 0, Math.PI * 2); ctx.fillStyle = c2; ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, cy + i * sp, r2, 0, Math.PI * 2); ctx.fillStyle = c2; ctx.fill();
+      }
+
+      const vign = document.getElementById('scope-vignette');
+      const pct = (R / Math.min(W, H) * 100).toFixed(1);
+      vign.style.background = `radial-gradient(circle at center, transparent ${(+pct - 2).toFixed(1)}%, rgba(0,0,0,.92) ${(+pct + 10).toFixed(1)}%, #000 ${(+pct + 24).toFixed(1)}%)`;
+    }
+    function setScopeOn(on) {
+      scopeOn = on;
+      document.getElementById('scope-overlay').classList.toggle('on', on);
+      document.getElementById('crosshair').style.display = on ? 'none' : 'block';
+      camera.fov = on ? 7 : 65; camera.updateProjectionMatrix();
+      if (on) drawScope();
+    }
+
+    window.addEventListener('mousedown', e => {
+      if (!controls.isLocked) return;
+      if (currentCfg.id === 'irongazlet') {
+        if (e.button === 0) gauntlet.onLMBDown();
+        if (e.button === 2) gauntlet.onRMBDown();
+      } else {
+        if (e.button === 2 && currentCfg.sniper) setScopeOn(!scopeOn);
+        if (e.button === 0) {
+          if (currentCfg.ammo >= 1 || currentCfg.maxAmmo === Infinity) {
+            mouseDown = true;
+            if (!WEAPON_CONFIGS[currentCfg.id]?.continuousFire) {
+              if (currentCfg.maxAmmo !== Infinity) currentCfg.ammo -= 1;
+              const mpos = getMuzzleWorldPos(modelRight || modelLeft, currentCfg.id);
+              plasma.fireAt(mpos, getAimPoint().sub(mpos).normalize());
+            }
+          }
+        }
+      }
+    });
+    window.addEventListener('mouseup', e => {
+      if (currentCfg.id === 'irongazlet') {
+        if (e.button === 0) gauntlet.onLMBUp();
+        if (e.button === 2) gauntlet.onRMBUp();
+      } else {
+        mouseDown = false; plasma.stopFiring();
+      }
+    });
+
+    /* ============================================================
+       Game Loop
+    ============================================================ */
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+
+      if (controls.isLocked) {
+        processControls(dt);
+        updatePlayer(dt);
+
+        // Camera Bobbing
+        const t = clock.elapsedTime;
+        camera.position.y += Math.sin(t * (playerVelocity.lengthSq() > 1 ? 10 : 2)) * 0.01;
+      }
+
+      // Anim update
+      if (mixerLeft) mixerLeft.update(dt);
+      if (mixerRight) mixerRight.update(dt);
+
+      // Weapons usage update
+      if (currentCfg.id === 'irongazlet') {
+        const muzzles = [];
+        [modelLeft, modelRight].forEach(m => { if (m) muzzles.push(getMuzzleWorldPos(m, 'irongazlet')); });
+        const mCenter = new THREE.Vector3();
+        if (muzzles.length > 0) mCenter.copy(muzzles[0]);
+        else camera.getWorldPosition(mCenter);
+        gauntlet.update(dt, muzzles, getAimPoint().sub(mCenter).normalize());
+      } else if (mouseDown) {
+        if (WEAPON_CONFIGS[currentCfg.id]?.continuousFire && plasma.canFire) {
+          if (currentCfg.ammo >= 1 || currentCfg.maxAmmo === Infinity) {
+            if (currentCfg.maxAmmo !== Infinity) currentCfg.ammo -= 1;
+            const mpos = getMuzzleWorldPos(modelRight || modelLeft, currentCfg.id);
+            plasma.fireAt(mpos, getAimPoint().sub(mpos).normalize());
+          }
+        }
+      }
+
+      // Player Invulnerability & Demon collisions
+      if (playerInvulnerable > 0) playerInvulnerable -= dt;
+
+      // Passive regeneration (+1 HP / +1 Armor every 30s)
+      if (!playerDead) {
+        healthRegenTimer += dt;
+        if (healthRegenTimer >= REGEN_INTERVAL && playerHealth < 100) {
+          playerHealth = Math.min(100, playerHealth + 1);
+          updateHUDHealth(playerHealth);
+          healthRegenTimer = 0;
+        }
+        armorRegenTimer += dt;
+        if (armorRegenTimer >= REGEN_INTERVAL && playerArmor < 100) {
+          playerArmor = Math.min(100, playerArmor + 1);
+          updateArmor(playerArmor);
+          armorRegenTimer = 0;
+        }
+      }
+
+      // Demons behavior
+      const SPAWN_DIST = 18;
+      const CHASE_SPEED = 3.5;
+
+      demonInstances.forEach(d => {
+        if (!d.dead) {
+          const distToPlayer = camera.position.distanceTo(d.collider.position);
+
+          if (!d.active && distToPlayer < SPAWN_DIST) {
+            d.active = true;
+            d.root.visible = true;
+            d.label.element.style.display = '';
+            d.root.scale.setScalar(0.01);
+          }
+
+          if (d.active) {
+            if (d.root.scale.y < d.baseScale.y * 0.99) {
+              d.root.scale.lerp(d.baseScale, dt * 5);
+            } else {
+              d.root.scale.copy(d.baseScale);
+            }
+
+            d.mixer.update(dt);
+
+            if (d.floatAmp > 0) {
+              d.floatPhase += dt;
+              const yOff = Math.sin(d.floatPhase * d.floatFreq) * d.floatAmp;
+              d.root.position.y = d.baseY + yOff;
+              d.collider.position.y = d.colliderBaseY + yOff;
+            }
+            let isMoving = false;
+            if (distToPlayer > 1.2 && distToPlayer < SPAWN_DIST + 5) {
+              const dir = new THREE.Vector3().subVectors(camera.position, d.collider.position);
+              dir.y = 0;
+              if (dir.lengthSq() > 0.001) {
+                dir.normalize();
+                d.collider.position.addScaledVector(dir, CHASE_SPEED * dt);
+                d.root.position.x = d.collider.position.x;
+                d.root.position.z = d.collider.position.z;
+
+                const lookTarget = d.collider.position.clone().add(dir);
+                d.root.lookAt(lookTarget.x, d.root.position.y, lookTarget.z);
+                isMoving = true;
+              }
+            }
+
+            let nextActionName = d.currentActionName;
+            if (d.currentActionName !== 'fly') {
+              if (isMoving && d.actions.walk) nextActionName = 'walk';
+              else if (!isMoving && d.actions.idle) nextActionName = 'idle';
+            }
+
+            if (nextActionName !== d.currentActionName) {
+              if (d.actions[d.currentActionName]) d.actions[d.currentActionName].fadeOut(0.25);
+              if (d.actions[nextActionName]) d.actions[nextActionName].reset().fadeIn(0.25).play();
+              d.currentActionName = nextActionName;
+            }
+
+            if (distToPlayer <= 1.5 && playerInvulnerable <= 0) {
+              let dmg = 15;
+              if (playerArmor > 0) {
+                let blocked = Math.min(dmg * 0.5, playerArmor);
+                playerArmor -= blocked;
+                dmg -= blocked;
+                updateArmor(playerArmor);
+              }
+              playerHealth -= dmg;
+              playerInvulnerable = 1.0;
+
+              const flash = document.getElementById('hit-flash');
+              flash.style.background = 'rgba(255, 0, 0, 0.4)';
+              setTimeout(() => {
+                flash.style.background = 'rgba(255, 0, 0, 0)';
+              }, 150);
+
+              updateHUDHealth(Math.max(0, playerHealth));
+              if (playerHealth <= 0) triggerPlayerDeath();
+            }
+          }
+        } else {
+          d.respawnTimer -= dt;
+          if (d.respawnTimer <= 0) respawnDemon(d);
+        }
+      });
+
+      // Music context logic
+      if (playerHealth <= 0) {
+        targetBgm = 'death';
+      } else {
+        let isCombat = false;
+        demonInstances.forEach(d => {
+          if (d.active && !d.dead && camera.position.distanceTo(d.collider.position) < SPAWN_DIST + 5) {
+            isCombat = true;
+          }
+        });
+        targetBgm = isCombat ? 'combat' : 'idle';
+      }
+
+      if (targetBgm !== currentBgm && bgmBuffers[targetBgm]) {
+        playBGM(targetBgm);
+      }
+
+      // Ammo Regeneration & HUD update
+      for (let i = 0; i < WPN_LIST.length; i++) {
+        const w = WPN_LIST[i];
+        if (w.maxAmmo !== Infinity && w.ammo < w.maxAmmo) {
+          w.ammo = Math.min(w.maxAmmo, w.ammo + w.regen * dt);
+        }
+        if (w.maxAmmo !== Infinity) {
+          const ammoSlot = document.querySelector(`#slot-${i + 1} .slot-ammo`);
+          if (ammoSlot) ammoSlot.textContent = Math.floor(w.ammo);
+        }
+      }
+
+      plasma.update(dt, targets);
+
+      if (minimap) {
+        minimap.updatePlayer(camera.position, camera.rotation.y);
+        minimap.render();
+      }
+
+      
+// === PATCH: sync collider with root (fix Voidborn + general hitbox) ===
+demonInstances.forEach(d => {
+  if (!d.dead) {
+    // basic follow
+    d.collider.position.x = d.root.position.x;
+    d.collider.position.z = d.root.position.z;
+
+    // vertical follow (important for Voidborn)
+    if (d.floatAmp > 0) {
+      d.collider.position.y = d.root.position.y + 0.2;
+    } else {
+      d.collider.position.y = d.root.position.y + 0.75;
+    }
+  }
+});
+
+renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>NeuroHell — Prévisualisation Assets</title>
+<link rel="icon" type="image/x-icon" href="assets/images/favicon/favicon.ico">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Courier New', monospace; overflow: hidden; }
+
+  #ui {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.85);
+    border-bottom: 1px solid #333;
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 16px;
+    z-index: 100;
+  }
+  #ui h1 { font-size: 14px; color: #ff4400; letter-spacing: 2px; text-transform: uppercase; }
+  #ui span { font-size: 11px; color: #666; }
+
+  #filters {
+    position: fixed; left: 0; top: 48px; bottom: 0;
+    width: 220px;
+    background: rgba(0,0,0,0.8);
+    border-right: 1px solid #222;
+    overflow-y: auto;
+    z-index: 100;
+    padding: 12px 0;
+  }
+
+  .filter-section { padding: 8px 14px; }
+  .filter-section h3 { font-size: 10px; color: #ff4400; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
+
+  .demon-btn {
+    display: block; width: 100%;
+    padding: 8px 14px; margin-bottom: 2px;
+    background: transparent; border: none;
+    color: #888; font-family: 'Courier New', monospace; font-size: 11px;
+    cursor: pointer; text-align: left;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .demon-btn:hover { color: #ccc; background: rgba(255,255,255,0.05); }
+  .demon-btn.active { color: #ff6600; border-left-color: #ff6600; background: rgba(255,100,0,0.08); }
+  .demon-btn .anim-count { float: right; color: #444; font-size: 10px; }
+
+  .anim-btn {
+    display: block; width: 100%;
+    padding: 6px 14px 6px 24px;
+    background: transparent; border: none;
+    color: #666; font-family: 'Courier New', monospace; font-size: 10px;
+    cursor: pointer; text-align: left;
+    transition: all 0.15s;
+  }
+  .anim-btn:hover { color: #aaa; }
+  .anim-btn.active { color: #00ccff; }
+  .anim-btn::before { content: '▸ '; }
+  .anim-btn.active::before { content: '▶ '; }
+
+  #canvas-container {
+    position: fixed;
+    left: 220px; top: 48px; right: 0; bottom: 40px;
+  }
+  canvas { display: block; width: 100% !important; height: 100% !important; }
+
+  #status-bar {
+    position: fixed; left: 220px; right: 0; bottom: 0; height: 40px;
+    background: rgba(0,0,0,0.9);
+    border-top: 1px solid #222;
+    display: flex; align-items: center; gap: 24px;
+    padding: 0 16px; font-size: 11px; color: #555;
+    z-index: 100;
+  }
+  #status-bar span { color: #777; }
+  #status-bar .val { color: #ff6600; }
+
+  #loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 200;
+    gap: 16px;
+  }
+  #loading-overlay h2 { color: #ff4400; font-size: 18px; letter-spacing: 3px; }
+  #loading-bar-wrap { width: 300px; height: 3px; background: #222; }
+  #loading-bar { height: 100%; background: #ff4400; width: 0; transition: width 0.3s; }
+  #loading-text { color: #555; font-size: 11px; }
+
+  .separator { height: 1px; background: #1a1a1a; margin: 8px 14px; }
+
+  #grid-toggle {
+    padding: 4px 10px; background: transparent;
+    border: 1px solid #333; color: #666;
+    font-family: 'Courier New', monospace; font-size: 10px;
+    cursor: pointer; border-radius: 2px;
+  }
+  #grid-toggle:hover { border-color: #555; color: #aaa; }
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <h2>⬡ NEUROHELL</h2>
+  <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+  <div id="loading-text">Initialisation...</div>
+</div>
+
+<div id="ui">
+  <h1>⬡ NeuroHell — Assets Preview</h1>
+  <span>Clic gauche : orbiter · Molette : zoom · Clic droit : pan</span>
+  <button id="grid-toggle">Grille ON</button>
+</div>
+
+<div id="filters">
+  <div class="filter-section">
+    <h3>Démons</h3>
+    <div id="demon-list"></div>
+  </div>
+</div>
+
+<div id="canvas-container">
+  <canvas id="c"></canvas>
+</div>
+
+<div id="status-bar">
+  <span>Démon : <span class="val" id="sb-demon">—</span></span>
+  <span>Animation : <span class="val" id="sb-anim">—</span></span>
+  <span>Frame : <span class="val" id="sb-frame">0</span></span>
+  <span>Tris : <span class="val" id="sb-tris">—</span></span>
+  <span>Bones : <span class="val" id="sb-bones">—</span></span>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const DEMONS = [
+  { id: 'voidborn',     label: 'Voidborn',     file: 'assets/demons/demon_voidborn.glb',     scale: 100, color: '#00ccff' },
+  { id: 'taurex',       label: 'Taurex',       file: 'assets/demons/demon_taurex.glb',       scale: 100, color: '#ff4400' },
+  { id: 'mawgrub',      label: 'Mawgrub',      file: 'assets/demons/demon_mawgrub.glb',      scale: 1,   color: '#ff8800' },
+  { id: 'spectre',      label: 'Spectre',      file: 'assets/demons/demon_spectre.glb',      scale: 100, color: '#aa44ff' },
+  { id: 'ravager',      label: 'Ravager',      file: 'assets/demons/demon_ravager.glb',      scale: 100, color: '#ff2200' },
+  { id: 'pyrarachnid',  label: 'Pyrarachnid',  file: 'assets/demons/demon_pyrarachnid.glb',  scale: 1,   color: '#ff6600' },
+];
+
+const canvas  = document.getElementById('c');
+const container = document.getElementById('canvas-container');
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.setClearColor(0x080810);
+
+const scene  = new THREE.Scene();
+scene.fog    = new THREE.FogExp2(0x080810, 0.008);
+
+const camera = new THREE.PerspectiveCamera(60, 1, 0.01, 2000);
+camera.position.set(0, 3, 8);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1, 0);
+
+const ambient = new THREE.AmbientLight(0x111133, 2);
+scene.add(ambient);
+
+const dirLight = new THREE.DirectionalLight(0xffeedd, 3);
+ dirLight.position.set(5, 10, 5);
+ dirLight.castShadow = true;
+ dirLight.shadow.mapSize.set(2048, 2048);
+ dirLight.shadow.camera.near = 0.1;
+ dirLight.shadow.camera.far  = 50;
+ dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -10;
+ dirLight.shadow.camera.right = dirLight.shadow.camera.top  = 10;
+scene.add(dirLight);
+
+const fillLight = new THREE.PointLight(0x220033, 2, 20);
+fillLight.position.set(-5, 3, -3);
+scene.add(fillLight);
+
+const rimLight = new THREE.PointLight(0x003355, 1.5, 15);
+rimLight.position.set(0, 5, -8);
+scene.add(rimLight);
+
+const groundMat = new THREE.MeshStandardMaterial({
+  color: 0x111118,
+  roughness: 0.9,
+  metalness: 0.1,
+});
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+let gridHelper = new THREE.GridHelper(100, 100, 0x222244, 0x151525);
+scene.add(gridHelper);
+
+document.getElementById('grid-toggle').onclick = () => {
+  gridHelper.visible = !gridHelper.visible;
+  document.getElementById('grid-toggle').textContent = gridHelper.visible ? 'Grille ON' : 'Grille OFF';
+};
+
+const cache = {};
+let active = null;
+const clock = new THREE.Clock();
+const loader = new GLTFLoader();
+
+function setLoading(text, pct) {
+  document.getElementById('loading-text').textContent = text;
+  document.getElementById('loading-bar').style.width = pct + '%';
+}
+
+function hideLoading() {
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+
+function getOrderedClipNames(data) {
+  return Object.keys(data.clips).sort((a, b) => {
+    if (a.toLowerCase().includes('idle') && !b.toLowerCase().includes('idle')) return -1;
+    if (!a.toLowerCase().includes('idle') && b.toLowerCase().includes('idle')) return 1;
+    return a.localeCompare(b, 'fr', { sensitivity: 'base' });
+  });
+}
+
+function getDefaultAnimName(data) {
+  const names = getOrderedClipNames(data);
+  return names[0] || null;
+}
+
+async function loadDemon(cfg) {
+  if (cache[cfg.id]) return cache[cfg.id];
+
+  return new Promise((resolve, reject) => {
+    loader.load(cfg.file, (gltf) => {
+      const model = gltf.scene;
+      model.scale.setScalar(cfg.scale);
+      model.position.set(0, 0, 0);
+      model.updateMatrixWorld(true);
+
+      // Use foot/toe bone world Y for grounding (mesh may include trail below feet)
+      let groundY = null;
+      model.traverse(obj => {
+        if (obj.isBone && obj.name.match(/(_L_Foot|_R_Foot|_L_ToeBase|_R_ToeBase)$/)) {
+          const p = new THREE.Vector3();
+          obj.getWorldPosition(p);
+          if (groundY === null || p.y < groundY) groundY = p.y;
+        }
+      });
+      if (groundY !== null && Math.abs(groundY) > 0.01) {
+        model.position.y -= groundY;
+      } else {
+        const box = new THREE.Box3().setFromObject(model);
+        model.position.y -= box.min.y;
+      }
+
+      model.traverse(c => {
+        if (c.isMesh) {
+          c.castShadow = true;
+          c.receiveShadow = true;
+        }
+      });
+
+      // Strip RL_BoneRoot translation tracks — AccuRig root motion offsets the whole skeleton
+      gltf.animations.forEach(clip => {
+        clip.tracks = clip.tracks.filter(t => !t.name.match(/RL_BoneRoot\.position/));
+      });
+
+      const mixer = new THREE.AnimationMixer(model);
+      const clips = {};
+      console.log(`[${cfg.id}] ${gltf.animations.length} animations brutes:`);
+      gltf.animations.forEach((clip) => {
+        console.log(`  → "${clip.name}"`);
+        let name = clip.name
+          .replace(/^[^|]*\|/, '')
+          .replace(/\.\d+$/, '')
+          .replace(/^[0-9]+_/, '')
+          .replace(/^(h[0-9]+[-_]|kid[-_])/, '')
+          .replace(/[-_](f[0-9]+[a-z]?|[0-9]{4,})$/i, '')
+          .replace(/[-_](start|loop|end|line[0-9]+[a-z]?)$/i, '')
+          .trim();
+        if (!name) name = clip.name;
+        if (!clips[name]) {
+          clips[name] = clip;
+          console.log(`    → mappé : "${name}"`);
+        }
+      });
+      console.log(`[${cfg.id}] Clips indexés:`, Object.keys(clips));
+
+      let tris = 0;
+      model.traverse(c => {
+        if (c.isMesh && c.geometry) {
+          tris += c.geometry.index ? c.geometry.index.count / 3 : 0;
+        }
+      });
+
+      cache[cfg.id] = {
+        gltf,
+        model,
+        mixer,
+        clips,
+        tris: Math.round(tris),
+        bones: gltf.parser.json.skins?.[0]?.joints?.length || 0,
+      };
+      resolve(cache[cfg.id]);
+    }, undefined, reject);
+  });
+}
+
+function playAnimation(data, animName) {
+  if (!data) return null;
+
+  data.mixer.stopAllAction();
+
+  const clip = animName ? data.clips[animName] : null;
+  if (!clip) return null;
+
+  const action = data.mixer.clipAction(clip);
+  action.reset();
+  action.enabled = true;
+  action.clampWhenFinished = false;
+  action.setLoop(THREE.LoopRepeat, Infinity);
+  action.timeScale = 1;
+  action.paused = false;
+  action.play();
+
+  return action;
+}
+
+async function showDemon(cfg, animName = null) {
+  if (active?.mixer) active.mixer.stopAllAction();
+  if (active?.model) scene.remove(active.model);
+
+  setLoading(`Chargement ${cfg.label}...`, 30);
+  document.getElementById('loading-overlay').style.display = 'flex';
+
+  let data;
+  try {
+    data = await loadDemon(cfg);
+  } catch (e) {
+    console.warn(`[NeuroHell] ${cfg.id} introuvable : ${e.message}`);
+    hideLoading();
+    updateSidebar(cfg, null, null);
+    updateStatusBar(cfg, null, null);
+    return;
+  }
+
+  hideLoading();
+  scene.add(data.model);
+
+  data.model.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(data.model);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const dist = Math.max(size.x, size.y, size.z) * 2;
+
+  camera.far = Math.max(2000, dist * 8);
+  camera.updateProjectionMatrix();
+  scene.fog.density = Math.min(0.008, 2.0 / (dist * 10));
+
+  controls.target.copy(center);
+  camera.position.set(center.x, center.y, center.z + dist);
+  controls.update();
+
+  const finalAnimName = animName || getDefaultAnimName(data);
+  const action = playAnimation(data, finalAnimName);
+
+  active = {
+    cfg,
+    animName: finalAnimName,
+    model: data.model,
+    mixer: data.mixer,
+    action,
+    data,
+  };
+
+  updateSidebar(cfg, finalAnimName, data);
+  updateStatusBar(cfg, finalAnimName, data);
+}
+
+function buildSidebar() {
+  const list = document.getElementById('demon-list');
+  list.innerHTML = '';
+
+  DEMONS.forEach(cfg => {
+    const btn = document.createElement('button');
+    btn.className = 'demon-btn';
+    btn.id = `btn-${cfg.id}`;
+    btn.innerHTML = `<span style="color:${cfg.color}">■</span> ${cfg.label} <span class="anim-count" id="ac-${cfg.id}">…</span>`;
+    btn.onclick = async () => {
+      const data = cache[cfg.id];
+      const firstAnim = data ? getDefaultAnimName(data) : null;
+      await showDemon(cfg, firstAnim);
+      setActiveDemon(cfg.id);
+    };
+    list.appendChild(btn);
+
+    const animContainer = document.createElement('div');
+    animContainer.id = `anims-${cfg.id}`;
+    animContainer.style.display = 'none';
+    list.appendChild(animContainer);
+
+    const sep = document.createElement('div');
+    sep.className = 'separator';
+    list.appendChild(sep);
+  });
+}
+
+function setActiveDemon(id) {
+  document.querySelectorAll('.demon-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`btn-${id}`)?.classList.add('active');
+
+  DEMONS.forEach(cfg => {
+    const c = document.getElementById(`anims-${cfg.id}`);
+    if (c) c.style.display = cfg.id === id ? 'block' : 'none';
+  });
+}
+
+function updateSidebar(cfg, activeAnim, data) {
+  setActiveDemon(cfg.id);
+
+  if (!data) return;
+
+  const names = getOrderedClipNames(data);
+  document.getElementById(`ac-${cfg.id}`).textContent = names.length;
+
+  const container = document.getElementById(`anims-${cfg.id}`);
+  container.innerHTML = '';
+  names.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'anim-btn' + (name === activeAnim ? ' active' : '');
+    btn.textContent = name;
+    btn.onclick = () => {
+      const action = playAnimation(data, name);
+      active.animName = name;
+      active.cfg = cfg;
+      active.action = action;
+      active.data = data;
+      updateStatusBar(cfg, name, data);
+      container.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    container.appendChild(btn);
+  });
+}
+
+function updateStatusBar(cfg, animName, data) {
+  document.getElementById('sb-demon').textContent = cfg?.label || '—';
+  document.getElementById('sb-anim').textContent = animName || '—';
+  document.getElementById('sb-tris').textContent = data?.tris?.toLocaleString() || '—';
+  document.getElementById('sb-bones').textContent = data?.bones || '—';
+}
+
+function resize() {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(container);
+resize();
+
+let frame = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  controls.update();
+  if (active?.mixer) active.mixer.update(delta);
+  renderer.render(scene, camera);
+
+  const actionTime = active?.action?.time ?? 0;
+  document.getElementById('sb-frame').textContent = Math.floor(actionTime * 24) || frame++;
+}
+animate();
+
+buildSidebar();
+setLoading('Chargement Mawgrub...', 10);
+showDemon(DEMONS[2], null);
+</script>
+</body>
+</html>
