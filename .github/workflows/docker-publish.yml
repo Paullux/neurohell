@@ -17,14 +17,14 @@ jobs:
           lfs: true
           fetch-depth: 0
 
-      - name: Install Git LFS
+      - name: Install and pull Git LFS
         run: |
           git lfs install
           git lfs pull
 
       - name: Verify LFS assets
         run: |
-          echo "== LFS files =="
+          echo "== LFS tracked files =="
           git lfs ls-files
           echo "== Level =="
           ls -lh assets/levels
