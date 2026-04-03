@@ -15,15 +15,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+          fetch-depth: 0
 
-      - name: Pull Git LFS files
-        run: git lfs pull
-
-      - name: Verify LFS files
+      - name: Install Git LFS
         run: |
+          git lfs install
+          git lfs pull
+
+      - name: Verify LFS assets
+        run: |
+          echo "== LFS files =="
           git lfs ls-files
-          ls -lh assets/levels || true
-          ls -lh assets/videos || true
+          echo "== Level =="
+          ls -lh assets/levels
+          echo "== Demons =="
+          ls -lh assets/demons
+          echo "== Weapons =="
+          ls -lh assets/weapons
+          echo "== Videos =="
+          ls -lh assets/videos
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -47,6 +57,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          no-cache: true
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
