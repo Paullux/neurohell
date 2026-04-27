@@ -299,6 +299,136 @@
       font-size: 0.95rem;
     }
 
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .screenshot-item {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0,0,0,0.35);
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+
+    .screenshot-item:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 120, 120, 0.45);
+    }
+
+    .screenshot-item img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .screenshot-caption {
+      padding: 8px 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .dl-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    .dl-button {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      text-decoration: none;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      cursor: pointer;
+    }
+
+    .dl-button:hover {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 124, 124, 0.45);
+    }
+
+    .dl-button.unavailable {
+      opacity: 0.45;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .dl-icon {
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+
+    .dl-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .dl-name {
+      font-family: 'OrbitronLocal', Arial, sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .dl-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .dl-badge {
+      margin-left: auto;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255, 77, 77, 0.15);
+      border: 1px solid rgba(255, 77, 77, 0.35);
+      color: #ff9999;
+      white-space: nowrap;
+    }
+
+    .dl-badge.soon {
+      background: rgba(255, 170, 0, 0.1);
+      border-color: rgba(255, 170, 0, 0.3);
+      color: #ffcc66;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      cursor: zoom-out;
+    }
+
+    .lightbox.active { display: flex; }
+
+    .lightbox img {
+      max-width: 92vw;
+      max-height: 88vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 0 60px rgba(0,0,0,0.8);
+    }
+
     .overlay {
       position: fixed;
       inset: 0;
@@ -358,6 +488,8 @@
         <div class="menu-list">
           <button class="menu-button active" data-target="play">Lancer le jeu</button>
           <button class="menu-button" data-target="story">Histoire du jeu</button>
+          <button class="menu-button" data-target="screenshots">Captures d'écran</button>
+          <button class="menu-button" data-target="download">Télécharger</button>
           <button class="menu-button" data-target="preview">Menu preview</button>
         </div>
 
@@ -523,6 +655,66 @@
           </div>
         </div>
 
+        <div class="screen" id="screen-screenshots">
+          <h2>Captures d'écran</h2>
+          <div class="screenshot-grid" id="screenshot-grid">
+            <!-- Les captures seront ajoutées ici.
+                 Format attendu : ./assets/images/screenshots/screenshot_01.jpg etc.
+                 Exemple de structure à décommenter quand les captures sont disponibles :
+
+            <div class="screenshot-item" data-full="./assets/images/screenshots/screenshot_01.jpg">
+              <img src="./assets/images/screenshots/screenshot_01.jpg" alt="Niveau 1 — couloir" loading="lazy" />
+              <div class="screenshot-caption">Niveau 1 — couloir principal</div>
+            </div>
+            -->
+          </div>
+          <div class="hero-card" style="margin-top:18px;" id="no-screenshots-msg">
+            <h3>Captures à venir</h3>
+            <p>
+              Les captures d'écran de la version desktop seront ajoutées ici au fil du développement.
+              Place les fichiers dans <code>./assets/images/screenshots/</code> et décommente les entrées dans le HTML.
+            </p>
+          </div>
+        </div>
+
+        <div class="screen" id="screen-download">
+          <h2>Télécharger</h2>
+          <div class="hero">
+            <div class="hero-card">
+              <h3>Version Desktop</h3>
+              <p>
+                La version bureau offre des modèles high poly, des particules GPU complexes et un éclairage dynamique Vulkan.
+                Développée sous Godot 4.
+              </p>
+            </div>
+            <div class="dl-grid">
+              <a class="dl-button unavailable" href="#" aria-disabled="true">
+                <span class="dl-icon">&#x1F5A5;</span>
+                <div class="dl-info">
+                  <span class="dl-name">Windows</span>
+                  <span class="dl-meta">Windows 10 / 11 — 64 bit</span>
+                </div>
+                <span class="dl-badge soon">Bientôt</span>
+              </a>
+              <a class="dl-button unavailable" href="#" aria-disabled="true">
+                <span class="dl-icon">&#x1F427;</span>
+                <div class="dl-info">
+                  <span class="dl-name">Linux</span>
+                  <span class="dl-meta">x86_64 — Ubuntu, Debian, Arch...</span>
+                </div>
+                <span class="dl-badge soon">Bientôt</span>
+              </a>
+            </div>
+            <div class="hero-card">
+              <h3>Version Web (prototype)</h3>
+              <p>
+                La démo navigateur reste accessible via le menu <strong>Lancer le jeu</strong>.
+                Pas d'installation requise.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div class="screen" id="screen-preview">
           <h2>Menu preview</h2>
           <div class="hero">
@@ -543,6 +735,10 @@
     <footer>
       NeuroHell - prototype en cours
     </footer>
+  </div>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <img id="lightbox-img" src="" alt="" />
   </div>
 
   <div class="overlay" id="videoOverlay" aria-hidden="true">
@@ -589,6 +785,25 @@
         });
       }
     }
+
+    // Lightbox
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    document.getElementById('screenshot-grid').addEventListener('click', e => {
+      const item = e.target.closest('.screenshot-item');
+      if (!item) return;
+      lightboxImg.src = item.dataset.full || item.querySelector('img')?.src || '';
+      lightboxImg.alt = item.querySelector('.screenshot-caption')?.textContent || '';
+      lightbox.classList.add('active');
+      lightbox.setAttribute('aria-hidden', 'false');
+    });
+
+    lightbox.addEventListener('click', () => {
+      lightbox.classList.remove('active');
+      lightbox.setAttribute('aria-hidden', 'true');
+      lightboxImg.src = '';
+    });
 
     startGameButton.addEventListener('click', launchIntroThenGame);
 
