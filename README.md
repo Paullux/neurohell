@@ -69,6 +69,23 @@ Un push de tag `v*.*.*` déclenche automatiquement :
 
 ---
 
+## 📚 Documentation
+
+La documentation technique est dans le dossier [`docs/`](docs/) :
+
+| Fichier | Contenu |
+|---|---|
+| [architecture.md](docs/architecture.md) | Vue d'ensemble, scènes, autoloads, groupes, signaux |
+| [player.md](docs/player.md) | Contrôleur FPS, mouvement, torche, dégâts, regen |
+| [combat.md](docs/combat.md) | Armes, projectiles, système plasma |
+| [hud.md](docs/hud.md) | HUD, portraits, jauges, minimap, scope |
+| [ai.md](docs/ai.md) | IA des démons, navigation, animations, respawn |
+| [levels.md](docs/levels.md) | Contrôleurs de niveau, colliders GLB, portails |
+| [audio.md](docs/audio.md) | Musique contextuelle, transitions |
+| [cicd.md](docs/cicd.md) | CI/CD GitHub Actions, builds Windows/Linux |
+
+---
+
 ## Licence
 
 Ce projet est sous licence **MIT** — voir [LICENSE](LICENSE).
