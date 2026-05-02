@@ -686,24 +686,36 @@
                 La version bureau offre des modèles high poly, des particules GPU complexes et un éclairage dynamique Vulkan.
                 Développée sous Godot 4.
               </p>
+              <p id="dl-release-info" style="font-size:0.88rem;color:var(--muted);margin-top:6px;">
+                Vérification de la dernière version…
+              </p>
             </div>
-            <div class="dl-grid">
-              <a class="dl-button unavailable" href="#" aria-disabled="true">
+            <div class="dl-grid" id="dl-grid">
+              <!-- Rempli dynamiquement par fetchLatestRelease() -->
+              <a class="dl-button unavailable" id="dl-win" href="#" aria-disabled="true">
                 <span class="dl-icon">&#x1F5A5;</span>
                 <div class="dl-info">
                   <span class="dl-name">Windows</span>
                   <span class="dl-meta">Windows 10 / 11 — 64 bit</span>
                 </div>
-                <span class="dl-badge soon">Bientôt</span>
+                <span class="dl-badge soon" id="dl-win-badge">Bientôt</span>
               </a>
-              <a class="dl-button unavailable" href="#" aria-disabled="true">
+              <a class="dl-button unavailable" id="dl-linux" href="#" aria-disabled="true">
                 <span class="dl-icon">&#x1F427;</span>
                 <div class="dl-info">
                   <span class="dl-name">Linux</span>
-                  <span class="dl-meta">x86_64 — Ubuntu, Debian, Arch...</span>
+                  <span class="dl-meta">x86_64 — Ubuntu, Debian, Arch…</span>
                 </div>
-                <span class="dl-badge soon">Bientôt</span>
+                <span class="dl-badge soon" id="dl-linux-badge">Bientôt</span>
               </a>
+            </div>
+            <div class="hero-card" id="dl-requirements" style="display:none;">
+              <h3>Configuration minimale</h3>
+              <p style="font-size:0.9rem;color:var(--muted);line-height:1.8;">
+                GPU : Vulkan 1.0 ou OpenGL 3.3&nbsp;&nbsp;·&nbsp;&nbsp;
+                RAM : 4 Go&nbsp;&nbsp;·&nbsp;&nbsp;
+                Windows 10 64-bit / Linux glibc ≥ 2.31
+              </p>
             </div>
             <div class="hero-card">
               <h3>Version Web (prototype)</h3>
@@ -820,6 +832,86 @@
         overlay.setAttribute('aria-hidden', 'true');
       }
     });
+
+    // ── Téléchargements : fetch de la dernière GitHub Release ──────────────
+    const GITHUB_RELEASES_API = 'https://api.github.com/repos/Paullux/neurohell/releases/latest';
+
+    function formatReleaseDate(isoString) {
+      const d = new Date(isoString);
+      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+
+    async function fetchLatestRelease() {
+      const infoEl      = document.getElementById('dl-release-info');
+      const winBtn      = document.getElementById('dl-win');
+      const linuxBtn    = document.getElementById('dl-linux');
+      const winBadge    = document.getElementById('dl-win-badge');
+      const linuxBadge  = document.getElementById('dl-linux-badge');
+      const reqCard     = document.getElementById('dl-requirements');
+
+      try {
+        const resp = await fetch(GITHUB_RELEASES_API, {
+          headers: { 'Accept': 'application/vnd.github+json' }
+        });
+
+        // Aucune release encore publiée
+        if (resp.status === 404) {
+          infoEl.textContent = 'Aucune version compilée disponible pour l\'instant.';
+          return;
+        }
+
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+        const data = await resp.json();
+        const version     = data.tag_name   ?? '';
+        const publishedAt = data.published_at ?? '';
+        const assets      = data.assets      ?? [];
+
+        const dateStr = publishedAt ? formatReleaseDate(publishedAt) : '';
+        infoEl.innerHTML =
+          `Dernière version&nbsp;: <strong style="color:#fff;">${version}</strong>` +
+          (dateStr ? `&nbsp;&nbsp;·&nbsp;&nbsp;publiée le ${dateStr}` : '');
+
+        // Chercher les assets Windows et Linux
+        const winAsset   = assets.find(a => a.name.toLowerCase().includes('windows'));
+        const linuxAsset = assets.find(a => a.name.toLowerCase().includes('linux'));
+
+        if (winAsset) {
+          winBtn.href = winAsset.browser_download_url;
+          winBtn.classList.remove('unavailable');
+          winBtn.removeAttribute('aria-disabled');
+          winBadge.textContent = version;
+          winBadge.classList.remove('soon');
+          // Afficher la taille
+          const mb = (winAsset.size / 1048576).toFixed(1);
+          winBtn.querySelector('.dl-meta').textContent = `Windows 10 / 11 — 64 bit — ${mb} Mo`;
+        } else {
+          infoEl.textContent += ' · Build Windows en cours…';
+        }
+
+        if (linuxAsset) {
+          linuxBtn.href = linuxAsset.browser_download_url;
+          linuxBtn.classList.remove('unavailable');
+          linuxBtn.removeAttribute('aria-disabled');
+          linuxBadge.textContent = version;
+          linuxBadge.classList.remove('soon');
+          const mb = (linuxAsset.size / 1048576).toFixed(1);
+          linuxBtn.querySelector('.dl-meta').textContent = `x86_64 — Ubuntu, Debian, Arch… — ${mb} Mo`;
+        }
+
+        // Afficher la config minimale si au moins un lien dispo
+        if (winAsset || linuxAsset) {
+          reqCard.style.display = '';
+        }
+
+      } catch (err) {
+        infoEl.textContent = 'Impossible de récupérer les informations de la dernière version.';
+        console.warn('[NeuroHell] GitHub Releases fetch failed:', err);
+      }
+    }
+
+    // Lancer la vérification dès que la page est prête
+    fetchLatestRelease();
   </script>
 </body>
 
