@@ -46,6 +46,7 @@ http://localhost:8080
 * [Brief technique FPS](./fps_threejs_briefing_1.md)
 * [Direction musicale](./musics.md)
 * [Histoire et narration](./story_of_neurohell.md)
+* [Migration Web → Desktop (Godot)](./DESKTOP_MIGRATION.md)
 
 ---
 
