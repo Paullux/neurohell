@@ -51,6 +51,15 @@ jobs:
           lfs: true
           fetch-depth: 0
 
+      - name: "🗂  Cache LFS objects"
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.gitattributes') }}-${{ github.sha }}
+          restore-keys: |
+            lfs-${{ hashFiles('.gitattributes') }}-
+            lfs-
+
       - name: "🗂  Pull LFS objects"
         run: git lfs pull
 
