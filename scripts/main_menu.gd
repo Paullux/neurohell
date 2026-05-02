@@ -1,52 +1,115 @@
 extends Control
 
-@onready var button_play: Button = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonPlay
-@onready var button_story: Button = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonStory
-@onready var button_screenshots: Button = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonScreenshots
-@onready var button_download: Button = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonDownload
-@onready var button_quit: Button = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonQuit
+@onready var button_play:        Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonPlay
+@onready var button_story:       Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonStory
+@onready var button_screenshots: Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonScreenshots
+@onready var button_download:    Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonDownload
+@onready var button_quit:        Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonQuit
+@onready var content_label:      RichTextLabel = $RootMargin/Center/VBox/MainContent/ContentPanel/ContentLabel
+@onready var intro_overlay:      ColorRect     = $IntroOverlay
+@onready var intro_video:        VideoStreamPlayer = $IntroOverlay/IntroVideo
 
-@onready var content_label: RichTextLabel = $RootMargin/Center/VBox/MainContent/ContentPanel/ContentLabel
-@onready var intro_overlay: ColorRect = $IntroOverlay
-@onready var intro_video: VideoStreamPlayer = $IntroOverlay/IntroVideo
+const LEVEL_1_SCENE   := "res://scenes/level_1.tscn"
+const GITHUB_API      := "https://api.github.com/repos/Paullux/neurohell/releases/latest"
 
-const LEVEL_1_SCENE := "res://scenes/level_1.tscn"
+var _active_btn:      Button = null
+var _btn_base_texts:  Dictionary = {}  # texte original de chaque bouton
+var _latest_version:  String = ""      # rempli par le fetch GitHub
+var _http:            HTTPRequest = null
+
+# ── Style actif (rouge + crânes permanent) ───────────────────
+var _style_active: StyleBoxFlat = null
+var _style_normal: StyleBoxFlat = null
 
 func _ready() -> void:
 	intro_overlay.visible = false
 
+	# Styles
+	_style_active = StyleBoxFlat.new()
+	_style_active.bg_color     = Color(0.47, 0.0, 0.0, 0.9)
+	_style_active.border_color = Color(1.0, 0.44, 0.44, 0.8)
+	_style_active.set_border_width_all(1)
+	_style_active.set_corner_radius_all(10)
+
+	_style_normal = StyleBoxFlat.new()
+	_style_normal.bg_color     = Color(1, 1, 1, 0.04)
+	_style_normal.border_color = Color(1, 1, 1, 0.08)
+	_style_normal.set_border_width_all(1)
+	_style_normal.set_corner_radius_all(10)
+
+	# Connexions
 	button_play.pressed.connect(_on_play_pressed)
-	button_story.pressed.connect(_show_story)
-	button_screenshots.pressed.connect(_show_screenshots)
-	button_download.pressed.connect(_show_download)
+	button_story.pressed.connect(func() -> void: _select(button_story); _show_story())
+	button_screenshots.pressed.connect(func() -> void: _select(button_screenshots); _show_screenshots())
+	button_download.pressed.connect(func() -> void: _select(button_download); _show_download())
 	button_quit.pressed.connect(_on_quit_pressed)
 
 	intro_video.finished.connect(_go_to_level_1)
 
-	# Crânes au survol sur tous les boutons du menu
+	# Mémoriser textes originaux + setup hover
 	for btn: Button in [button_play, button_story, button_screenshots, button_download, button_quit]:
+		_btn_base_texts[btn] = btn.text
 		_setup_skull_hover(btn)
 
+	# Fetch version GitHub en arrière-plan
+	_fetch_latest_version()
+
+	# Sélection initiale
+	_select(button_play)
 	_show_home()
 
-# ── Effet crâne au survol ────────────────────────────────────
+
+# ── Sélection active ─────────────────────────────────────────
+func _select(btn: Button) -> void:
+	# Désactiver l'ancien bouton actif
+	if _active_btn != null and _active_btn != btn:
+		_active_btn.text = _btn_base_texts[_active_btn]
+		_active_btn.add_theme_stylebox_override("normal", _style_normal)
+		_active_btn.add_theme_stylebox_override("hover",  _style_normal)
+
+	_active_btn = btn
+	var base: String = _btn_base_texts[btn]
+	btn.text = "💀  " + base + "  💀"
+	btn.add_theme_stylebox_override("normal",  _style_active)
+	btn.add_theme_stylebox_override("hover",   _style_active)
+	btn.add_theme_stylebox_override("pressed", _style_active)
+
+
+# ── Effet crâne au survol (boutons non actifs) ───────────────
 func _setup_skull_hover(btn: Button) -> void:
-	var original_text := btn.text
 	btn.mouse_entered.connect(func() -> void:
-		btn.text = "💀  " + original_text + "  💀"
+		if _active_btn == btn:
+			return
+		btn.text = "💀  " + _btn_base_texts[btn] + "  💀"
 	)
 	btn.mouse_exited.connect(func() -> void:
-		btn.text = original_text
+		if _active_btn == btn:
+			return
+		btn.text = _btn_base_texts[btn]
 	)
 
-func _input(event: InputEvent) -> void:
-	if intro_overlay.visible and event.is_action_pressed("ui_cancel"):
-		_skip_intro()
 
-func _skip_intro() -> void:
-	intro_video.stop()
-	_go_to_level_1()
+# ── Fetch version GitHub ─────────────────────────────────────
+func _fetch_latest_version() -> void:
+	_http = HTTPRequest.new()
+	add_child(_http)
+	_http.request_completed.connect(_on_version_fetched)
+	_http.request(GITHUB_API, ["User-Agent: NeuroHell-Menu", "Accept: application/vnd.github+json"])
 
+func _on_version_fetched(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_http.queue_free()
+	_http = null
+	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
+		return
+	var json: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if json and json.has("tag_name"):
+		_latest_version = json.get("tag_name", "")
+		# Rafraîchir la section téléchargement si elle est visible
+		if _active_btn == button_download:
+			_show_download()
+
+
+# ── Contenus ─────────────────────────────────────────────────
 func _show_home() -> void:
 	content_label.text = """
 [center][font_size=28][b]Entrée en enfer[/b][/font_size][/center]
@@ -89,36 +152,87 @@ func _show_screenshots() -> void:
 [font_size=24][b]Captures d'écran[/b][/font_size]
 
 Les captures de la version desktop seront ajoutées plus tard.
-
-Tu pourras créer une galerie avec des TextureButton ou des TextureRect dans un GridContainer.
 """
 
 
 func _show_download() -> void:
+	var current   := GameVersion.VERSION
+	var build_date := GameVersion.BUILD_DATE
+	var os_name   := OS.get_name()
+
+	if not content_label.meta_clicked.is_connected(_on_link_clicked):
+		content_label.meta_clicked.connect(_on_link_clicked)
+
+	# ── Version de développement ─────────────────────────────
+	if current == "dev":
+		var update_notice := ""
+		if _latest_version != "":
+			update_notice = "\n[color=#ffcc00]⬆  Version [b]%s[/b] disponible sur [url=https://neurohell.com]neurohell.com[/url][/color]" % _latest_version
+		content_label.text = """
+[font_size=24][b]Télécharger[/b][/font_size]
+
+[color=#aaaaaa]Vous utilisez une version de développement.[/color]%s
+
+[b]🪟 Windows[/b]
+[url=https://github.com/Paullux/neurohell/releases/latest]Voir les releases sur GitHub[/url]
+
+[b]🐧 Linux[/b]
+[url=https://github.com/Paullux/neurohell/releases/latest]Voir les releases sur GitHub[/url]
+
+[color=#aaaaaa]GPU requis : Vulkan 1.0 ou OpenGL 3.3+[/color]
+""" % update_notice
+		return
+
+	# ── Version officielle ────────────────────────────────────
+	# Bannière mise à jour disponible
+	var update_banner := ""
+	if _latest_version != "" and _latest_version != current:
+		update_banner = "\n[color=#ffcc00]⬆  Mise à jour disponible : [b]%s[/b]  →  [url=https://neurohell.com]neurohell.com[/url][/color]\n" % _latest_version
+	elif _latest_version == current:
+		update_banner = "\n[color=#00e5ff]✔  Vous avez la dernière version.[/color]\n"
+
+	# Mise en évidence plateforme actuelle
+	var win_label := "[b]🪟 Windows[/b]"
+	var lin_label := "[b]🐧 Linux[/b]"
+	if os_name == "Windows":
+		win_label = "[color=#00e5ff][b]🪟 Windows  ◄ votre plateforme[/b][/color]"
+	elif os_name == "Linux":
+		lin_label = "[color=#00e5ff][b]🐧 Linux  ◄ votre plateforme[/b][/color]"
+
 	content_label.text = """
 [font_size=24][b]Télécharger[/b][/font_size]
 
-[b]Windows[/b]
-Bientôt disponible.
+[color=#00e5ff]Version installée : [b]%s[/b][/color]   ·   [color=#aaaaaa]build du %s[/color]   ·   [color=#aaaaaa]%s[/color]
+%s
+%s
+[url=https://github.com/Paullux/neurohell/releases/download/%s/NeuroHell-Windows.zip]NeuroHell-Windows.zip[/url]
 
-[b]Linux[/b]
-Bientôt disponible.
+%s
+[url=https://github.com/Paullux/neurohell/releases/download/%s/NeuroHell-Linux.zip]NeuroHell-Linux.zip[/url]
 
-La version Godot desktop permettra de profiter de meilleurs effets visuels, particules GPU et éclairages dynamiques.
-"""
+[color=#aaaaaa]GPU requis : Vulkan 1.0 ou OpenGL 3.3+[/color]
+""" % [current, build_date, os_name, update_banner, win_label, current, lin_label, current]
 
 
+# ── Actions ──────────────────────────────────────────────────
 func _on_play_pressed() -> void:
+	_select(button_play)
 	intro_overlay.visible = true
 	intro_video.play()
 
-
 func _go_to_level_1() -> void:
 	intro_overlay.visible = false
-
 	var err := get_tree().change_scene_to_file(LEVEL_1_SCENE)
 	if err != OK:
 		push_error("Impossible de charger le niveau 1 : " + LEVEL_1_SCENE)
 
+func _on_link_clicked(meta: Variant) -> void:
+	OS.shell_open(str(meta))
+
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+func _input(event: InputEvent) -> void:
+	if intro_overlay.visible and event.is_action_pressed("ui_cancel"):
+		intro_video.stop()
+		_go_to_level_1()
