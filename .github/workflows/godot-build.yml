@@ -67,13 +67,16 @@ jobs:
           godot --version
 
           echo "→ Téléchargement des templates d'export…"
-          TPL_DIR="${HOME}/.local/share/godot/export_templates/${FULL}"
+          # ⚠️  Godot cherche les templates avec un point : 4.6.2.stable (pas 4.6.2-stable)
+          TPL_VERSION="${GODOT_VERSION}.${GODOT_STABILITY}"
+          TPL_DIR="${HOME}/.local/share/godot/export_templates/${TPL_VERSION}"
           mkdir -p "${TPL_DIR}"
           wget -q "${BASE}/Godot_v${FULL}_export_templates.tpz" -O templates.tpz
           unzip -q templates.tpz -d tpl_tmp
           mv tpl_tmp/templates/* "${TPL_DIR}/"
           rm -rf tpl_tmp templates.tpz godot.zip
           echo "Templates installés dans ${TPL_DIR}"
+          ls "${TPL_DIR}" | head -5
 
       - name: "🔢 Écrire le fichier de version"
         run: |
@@ -93,8 +96,10 @@ jobs:
 
       - name: "🧱 Import des assets Godot"
         run: |
-          # Premier lancement headless pour générer les .import
-          timeout 60 godot --headless --import 2>&1 | tail -10 || true
+          # Générer tous les .import — peut prendre plusieurs minutes sur un gros projet
+          # timeout 900s = 15 min, largement suffisant
+          timeout 900 godot --headless --import 2>&1 | tail -20 || true
+          echo "Import terminé"
 
       - name: "📦 Export ${{ matrix.name }}"
         run: |
