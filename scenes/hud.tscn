@@ -1,0 +1,605 @@
+[gd_scene format=3 uid="uid://c1ryss6auwxt5"]
+
+[ext_resource type="Script" uid="uid://c437veidm7lax" path="res://scripts/hud.gd" id="1"]
+[ext_resource type="Script" uid="uid://ddo5bbt3rslk1" path="res://scripts/armor_gauge.gd" id="2"]
+[ext_resource type="Script" uid="uid://buqa26kq31hsg" path="res://scripts/scope_canvas.gd" id="3"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_minimap"]
+viewport_path = NodePath("Root/TopRight/MinimapViewport")
+
+[node name="HUD" type="CanvasLayer" unique_id=1303394881]
+layer = 10
+script = ExtResource("1")
+
+[node name="Root" type="Control" parent="." unique_id=193792493]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HitFlash" type="ColorRect" parent="Root" unique_id=143182595]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="Crosshair" type="Label" parent="Root" unique_id=1422085436]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -10.0
+offset_top = -14.0
+offset_right = 10.0
+offset_bottom = 14.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.5)
+theme_override_font_sizes/font_size = 24
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TopLeft" type="Control" parent="Root" unique_id=164757778]
+anchors_preset = 0
+offset_left = 28.0
+offset_top = 28.0
+offset_right = 420.0
+offset_bottom = 200.0
+mouse_filter = 2
+
+[node name="PortraitFrame" type="Panel" parent="Root/TopLeft" unique_id=1211777391]
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 128.0
+mouse_filter = 2
+
+[node name="Portrait" type="VideoStreamPlayer" parent="Root/TopLeft/PortraitFrame" unique_id=366532807]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand = true
+loop = true
+
+[node name="Biometrics" type="VBoxContainer" parent="Root/TopLeft" unique_id=1785906079]
+layout_mode = 0
+offset_left = 142.0
+offset_right = 392.0
+offset_bottom = 140.0
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="HRLine" type="HBoxContainer" parent="Root/TopLeft/Biometrics" unique_id=701143670]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="HRLabel" type="Label" parent="Root/TopLeft/Biometrics/HRLine" unique_id=165047300]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "HR: "
+
+[node name="HRValue" type="Label" parent="Root/TopLeft/Biometrics/HRLine" unique_id=341896770]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "72 bpm"
+
+[node name="SYSLine" type="Label" parent="Root/TopLeft/Biometrics" unique_id=117664669]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0.502, 1)
+theme_override_font_sizes/font_size = 15
+text = "SYS: ONLINE"
+
+[node name="ARMORLine" type="HBoxContainer" parent="Root/TopLeft/Biometrics" unique_id=900000001]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ARMORLabel" type="Label" parent="Root/TopLeft/Biometrics/ARMORLine" unique_id=900000002]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "ARMOR: "
+
+[node name="ARMORValue" type="Label" parent="Root/TopLeft/Biometrics/ARMORLine" unique_id=900000003]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "100 %"
+
+[node name="PWRLine" type="HBoxContainer" parent="Root/TopLeft/Biometrics" unique_id=1110100333]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PWRLabel" type="Label" parent="Root/TopLeft/Biometrics/PWRLine" unique_id=150878375]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "PWR: "
+
+[node name="PWRValue" type="Label" parent="Root/TopLeft/Biometrics/PWRLine" unique_id=2003708330]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "100 %"
+
+[node name="BioSeparator" type="HSeparator" parent="Root/TopLeft/Biometrics" unique_id=156133812]
+custom_minimum_size = Vector2(120, 1)
+layout_mode = 2
+
+[node name="BioLabel" type="Label" parent="Root/TopLeft/Biometrics" unique_id=303944377]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 0.5)
+theme_override_font_sizes/font_size = 9
+text = "SYSTÈMES & BIOMÉTRICS"
+
+[node name="TopRight" type="Panel" parent="Root" unique_id=703681224]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -238.0
+offset_top = 28.0
+offset_right = -28.0
+offset_bottom = 198.0
+mouse_filter = 2
+
+[node name="MinimapViewport" type="SubViewport" parent="Root/TopRight" unique_id=1690721344]
+size = Vector2i(210, 170)
+render_target_update_mode = 4
+
+[node name="MinimapCamera" type="Camera3D" parent="Root/TopRight/MinimapViewport" unique_id=100957842]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 30, 0)
+projection = 1
+size = 60.0
+far = 200.0
+
+[node name="MinimapTexture" type="TextureRect" parent="Root/TopRight" unique_id=1322633574]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = SubResource("ViewportTexture_minimap")
+expand_mode = 1
+
+[node name="BottomBar" type="Panel" parent="Root" unique_id=676913410]
+layout_mode = 0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -170.0
+mouse_filter = 2
+
+[node name="BottomContent" type="HBoxContainer" parent="Root/BottomBar" unique_id=1862367131]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_right = -28.0
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="HealthBlock" type="VBoxContainer" parent="Root/BottomBar/BottomContent" unique_id=64162471]
+custom_minimum_size = Vector2(155, 0)
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="HealthIconRow" type="HBoxContainer" parent="Root/BottomBar/BottomContent/HealthBlock" unique_id=2141950295]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="HealthSegments" type="GridContainer" parent="Root/BottomBar/BottomContent/HealthBlock/HealthIconRow" unique_id=1391088604]
+layout_mode = 2
+mouse_filter = 2
+columns = 2
+
+[node name="HealthValue" type="Label" parent="Root/BottomBar/BottomContent/HealthBlock/HealthIconRow" unique_id=2055346116]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 1)
+theme_override_font_sizes/font_size = 38
+text = "100%"
+
+[node name="HealthLabel" type="Label" parent="Root/BottomBar/BottomContent/HealthBlock" unique_id=807624060]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 0.55)
+theme_override_font_sizes/font_size = 9
+text = "POWER"
+horizontal_alignment = 1
+
+[node name="Sep1" type="VSeparator" parent="Root/BottomBar/BottomContent" unique_id=1483606441]
+custom_minimum_size = Vector2(1, 120)
+layout_mode = 2
+
+[node name="EnergyBlock" type="VBoxContainer" parent="Root/BottomBar/BottomContent" unique_id=1439421618]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="ArmorGauge" type="Control" parent="Root/BottomBar/BottomContent/EnergyBlock" unique_id=8553606]
+custom_minimum_size = Vector2(180, 155)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+script = ExtResource("2")
+
+[node name="ArmorLabel" type="Label" parent="Root/BottomBar/BottomContent/EnergyBlock" unique_id=900000004]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.898, 1, 0.55)
+theme_override_font_sizes/font_size = 9
+text = "ARMOR"
+horizontal_alignment = 1
+
+[node name="Sep2" type="VSeparator" parent="Root/BottomBar/BottomContent" unique_id=260082765]
+custom_minimum_size = Vector2(1, 120)
+layout_mode = 2
+
+[node name="WeaponSlots" type="HBoxContainer" parent="Root/BottomBar/BottomContent" unique_id=141416884]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Slot1" type="Panel" parent="Root/BottomBar/BottomContent/WeaponSlots" unique_id=1766133484]
+custom_minimum_size = Vector2(126, 130)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="SlotName1" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot1" unique_id=704611816]
+layout_mode = 0
+anchor_right = 1.0
+offset_top = 8.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.7, 0.78, 0.94, 0.65)
+theme_override_font_sizes/font_size = 13
+text = "Iron Gazlet"
+horizontal_alignment = 1
+
+[node name="WeaponIcon1" type="TextureRect" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot1" unique_id=1411380100]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -55.0
+offset_top = -30.0
+offset_right = 55.0
+offset_bottom = 24.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="AmmoLabel1" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot1" unique_id=2121385499]
+layout_mode = 0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -38.0
+offset_bottom = -8.0
+theme_override_colors/font_color = Color(1, 0.55, 0, 1)
+theme_override_font_sizes/font_size = 28
+text = "∞"
+horizontal_alignment = 1
+
+[node name="KeyLabel1" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot1" unique_id=2116581343]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -18.0
+offset_right = -7.0
+offset_bottom = -5.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.25)
+theme_override_font_sizes/font_size = 9
+text = "1"
+horizontal_alignment = 2
+
+[node name="Slot2" type="Panel" parent="Root/BottomBar/BottomContent/WeaponSlots" unique_id=1620612056]
+custom_minimum_size = Vector2(126, 130)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="SlotName2" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot2" unique_id=1394172618]
+layout_mode = 0
+anchor_right = 1.0
+offset_top = 8.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.7, 0.78, 0.94, 0.65)
+theme_override_font_sizes/font_size = 13
+text = "Plasma Pistol Std"
+horizontal_alignment = 1
+
+[node name="WeaponIcon2" type="TextureRect" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot2" unique_id=168236427]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -55.0
+offset_top = -30.0
+offset_right = 55.0
+offset_bottom = 24.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="AmmoLabel2" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot2" unique_id=273005996]
+layout_mode = 0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -38.0
+offset_bottom = -8.0
+theme_override_colors/font_color = Color(0.31, 0.59, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "50"
+horizontal_alignment = 1
+
+[node name="KeyLabel2" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot2" unique_id=1439267392]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -18.0
+offset_right = -7.0
+offset_bottom = -5.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.25)
+theme_override_font_sizes/font_size = 9
+text = "2"
+horizontal_alignment = 2
+
+[node name="Slot3" type="Panel" parent="Root/BottomBar/BottomContent/WeaponSlots" unique_id=1929193386]
+custom_minimum_size = Vector2(126, 130)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="SlotName3" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot3" unique_id=837440369]
+layout_mode = 0
+anchor_right = 1.0
+offset_top = 8.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.7, 0.78, 0.94, 0.65)
+theme_override_font_sizes/font_size = 13
+text = "Plasma Pistol Elite"
+horizontal_alignment = 1
+
+[node name="WeaponIcon3" type="TextureRect" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot3" unique_id=942780834]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -55.0
+offset_top = -30.0
+offset_right = 55.0
+offset_bottom = 24.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="AmmoLabel3" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot3" unique_id=174732184]
+layout_mode = 0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -38.0
+offset_bottom = -8.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "35"
+horizontal_alignment = 1
+
+[node name="KeyLabel3" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot3" unique_id=1675399649]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -18.0
+offset_right = -7.0
+offset_bottom = -5.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.25)
+theme_override_font_sizes/font_size = 9
+text = "3"
+horizontal_alignment = 2
+
+[node name="Slot4" type="Panel" parent="Root/BottomBar/BottomContent/WeaponSlots" unique_id=197044931]
+custom_minimum_size = Vector2(126, 130)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="SlotName4" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot4" unique_id=866109746]
+layout_mode = 0
+anchor_right = 1.0
+offset_top = 8.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.7, 0.78, 0.94, 0.65)
+theme_override_font_sizes/font_size = 13
+text = "Teal Sniper"
+horizontal_alignment = 1
+
+[node name="WeaponIcon4" type="TextureRect" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot4" unique_id=1723024954]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -55.0
+offset_top = -30.0
+offset_right = 55.0
+offset_bottom = 24.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="AmmoLabel4" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot4" unique_id=1438554502]
+layout_mode = 0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -38.0
+offset_bottom = -8.0
+theme_override_colors/font_color = Color(0, 1, 0.83, 1)
+theme_override_font_sizes/font_size = 28
+text = "120"
+horizontal_alignment = 1
+
+[node name="KeyLabel4" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot4" unique_id=301850763]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -18.0
+offset_right = -7.0
+offset_bottom = -5.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.25)
+theme_override_font_sizes/font_size = 9
+text = "4"
+horizontal_alignment = 2
+
+[node name="Slot5" type="Panel" parent="Root/BottomBar/BottomContent/WeaponSlots" unique_id=1941603696]
+custom_minimum_size = Vector2(126, 130)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="SlotName5" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot5" unique_id=510176400]
+layout_mode = 0
+anchor_right = 1.0
+offset_top = 8.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.7, 0.78, 0.94, 0.65)
+theme_override_font_sizes/font_size = 13
+text = "Void Rifle"
+horizontal_alignment = 1
+
+[node name="WeaponIcon5" type="TextureRect" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot5" unique_id=738805249]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -55.0
+offset_top = -30.0
+offset_right = 55.0
+offset_bottom = 24.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="AmmoLabel5" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot5" unique_id=376016398]
+layout_mode = 0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -38.0
+offset_bottom = -8.0
+theme_override_colors/font_color = Color(0.69, 0.31, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "90"
+horizontal_alignment = 1
+
+[node name="KeyLabel5" type="Label" parent="Root/BottomBar/BottomContent/WeaponSlots/Slot5" unique_id=2116158435]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -18.0
+offset_right = -7.0
+offset_bottom = -5.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.25)
+theme_override_font_sizes/font_size = 9
+text = "5"
+horizontal_alignment = 2
+
+[node name="Sep3" type="VSeparator" parent="Root/BottomBar/BottomContent" unique_id=444811301]
+custom_minimum_size = Vector2(1, 120)
+layout_mode = 2
+
+[node name="TorchBlock" type="VBoxContainer" parent="Root/BottomBar/BottomContent" unique_id=444811302]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="DeathScreen" type="ColorRect" parent="Root" unique_id=1876721644]
+visible = false
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.85)
+
+[node name="DeathContent" type="VBoxContainer" parent="Root/DeathScreen" unique_id=185788928]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+mouse_filter = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="DeathTitle" type="Label" parent="Root/DeathScreen/DeathContent" unique_id=1798550614]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0, 0, 1)
+theme_override_font_sizes/font_size = 72
+text = "VOUS ÊTES MORT"
+horizontal_alignment = 1
+
+[node name="DeathSubtitle" type="Label" parent="Root/DeathScreen/DeathContent" unique_id=1932223729]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.39, 0.39, 0.7)
+theme_override_font_sizes/font_size = 16
+text = "NEUROSYSTÈME COMPROMIS"
+horizontal_alignment = 1
+
+[node name="DeathCountdown" type="Label" parent="Root/DeathScreen/DeathContent" unique_id=1534835876]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.267, 0.267, 1)
+theme_override_font_sizes/font_size = 28
+text = "RELANCE DANS 5s..."
+horizontal_alignment = 1
+
+[node name="StartOverlay" type="ColorRect" parent="Root" unique_id=726266324]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.8)
+
+[node name="StatusLabel" type="Label" parent="Root/StartOverlay" unique_id=1130077131]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -60.0
+offset_right = 400.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(0, 0.898, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "CHARGEMENT DU NIVEAU..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScopeOverlay" type="ColorRect" parent="Root" unique_id=426277099]
+visible = false
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="ScopeCanvas" type="Control" parent="Root/ScopeOverlay" unique_id=1490075389]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("3")

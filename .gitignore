@@ -1,0 +1,12 @@
+# Godot — fichiers générés, ne pas committer
+.godot/
+*.import
+*.translation
+
+# Templates d'export (téléchargés par le CI)
+android/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

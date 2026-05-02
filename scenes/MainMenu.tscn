@@ -1,0 +1,250 @@
+[gd_scene format=3 uid="uid://6i2xj07ampq1"]
+
+[ext_resource type="Script" uid="uid://duk7kq57lxudh" path="res://scripts/main_menu.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://bpqfk5w6di530" path="res://assets/images/textures/gothic_metal/albedo.jpg" id="2"]
+[ext_resource type="VideoStream" uid="uid://cpia4c7ioqni4" path="res://assets/videos/NeuroHell-Intro.ogv" id="3"]
+[ext_resource type="FontFile" uid="uid://bwylrwl2t7gl3" path="res://assets/font/Orbitron/Orbitron-VariableFont_wght.ttf" id="4"]
+[ext_resource type="FontFile" uid="uid://bdkvdrgp58mdw" path="res://assets/font/Exo_2/Exo2-VariableFont_wght.ttf" id="5"]
+
+[sub_resource type="StyleBoxFlat" id="PanelStyle"]
+content_margin_left = 18.0
+content_margin_top = 18.0
+content_margin_right = 18.0
+content_margin_bottom = 18.0
+bg_color = Color(0.035, 0.035, 0.035, 0.84)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.35, 0.35, 0.28)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+bg_color = Color(1, 1, 1, 0.04)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+bg_color = Color(1, 1, 1, 0.08)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.48, 0.48, 0.45)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="SkipLabelStyle"]
+bg_color = Color(0.05, 0.05, 0.08, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.9, 0.9, 0.30)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 10.0
+content_margin_right = 10.0
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+
+[node name="MainMenu" type="Control" unique_id=362891798]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="TextureRect" parent="." unique_id=1484367216]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="DarkOverlay" type="ColorRect" parent="." unique_id=1227797904]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="RootMargin" type="MarginContainer" parent="." unique_id=858168655]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 28
+
+[node name="Center" type="CenterContainer" parent="RootMargin" unique_id=734118538]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="RootMargin/Center" unique_id=21106138]
+custom_minimum_size = Vector2(1180, 820)
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="HeaderBox" type="VBoxContainer" parent="RootMargin/Center/VBox" unique_id=1737605276]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="RootMargin/Center/VBox/HeaderBox" unique_id=956601688]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 64
+text = "NEUROHELL"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="RootMargin/Center/VBox/HeaderBox" unique_id=1519412162]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 18
+text = "Dark sci-fi horror - prototype"
+horizontal_alignment = 1
+
+[node name="MainContent" type="HBoxContainer" parent="RootMargin/Center/VBox" unique_id=229127860]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="MenuPanel" type="PanelContainer" parent="RootMargin/Center/VBox/MainContent" unique_id=716616587]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("PanelStyle")
+
+[node name="MenuVBox" type="VBoxContainer" parent="RootMargin/Center/VBox/MainContent/MenuPanel" unique_id=2104233609]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="MenuTitle" type="Label" parent="RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox" unique_id=1298819735]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 16
+text = "Menu principal"
+
+[node name="ButtonPlay" type="Button" parent="RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox" unique_id=29205588]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5")
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/hover = SubResource("ButtonHover")
+text = "Lancer le jeu"
+
+[node name="ButtonStory" type="Button" parent="RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox" unique_id=78767540]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5")
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/hover = SubResource("ButtonHover")
+text = "Histoire"
+
+[node name="ButtonScreenshots" type="Button" parent="RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox" unique_id=2006415062]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5")
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/hover = SubResource("ButtonHover")
+text = "Captures"
+
+[node name="ButtonDownload" type="Button" parent="RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox" unique_id=1459342385]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5")
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/hover = SubResource("ButtonHover")
+text = "Télécharger"
+
+[node name="ButtonQuit" type="Button" parent="RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox" unique_id=1832016539]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5")
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/hover = SubResource("ButtonHover")
+text = "Quitter"
+
+[node name="ContentPanel" type="PanelContainer" parent="RootMargin/Center/VBox/MainContent" unique_id=641027202]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("PanelStyle")
+
+[node name="ContentLabel" type="RichTextLabel" parent="RootMargin/Center/VBox/MainContent/ContentPanel" unique_id=1261271469]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_fonts/normal_font = ExtResource("5")
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+
+[node name="Footer" type="Label" parent="RootMargin/Center/VBox" unique_id=479217959]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 14
+text = "NeuroHell - prototype"
+horizontal_alignment = 1
+
+[node name="IntroOverlay" type="ColorRect" parent="." unique_id=752159779]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.95)
+
+[node name="IntroVideo" type="VideoStreamPlayer" parent="IntroOverlay" unique_id=1243183160]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("3")
+expand = true
+
+[node name="SkipLabel" type="Label" parent="IntroOverlay" unique_id=150549921]
+layout_mode = 1
+anchor_left = 0.0
+anchor_right = 1.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -52.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 1
+theme_override_styles/normal = SubResource("SkipLabelStyle")
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 14
+text = "[ ESC TO SKIP ]"
+horizontal_alignment = 1

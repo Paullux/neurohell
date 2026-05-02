@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://cgj7e27s8os72"]
+
+[ext_resource type="Script" uid="uid://dhiiw0hwveb25" path="res://scripts/player.gd" id="1"]
+[ext_resource type="Script" uid="uid://drhpw5s1iwajk" path="res://scripts/weapon_manager.gd" id="2"]
+[ext_resource type="Script" uid="uid://cw285kvpaht2u" path="res://scripts/plasma_system.gd" id="3"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.35
+height = 1.15
+
+[node name="Player" type="CharacterBody3D" unique_id=297456662 groups=["player"]]
+floor_snap_length = 0.5
+script = ExtResource("1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1771804791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.925, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="Head" type="Node3D" parent="." unique_id=1362948630]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Head" unique_id=1936161654]
+fov = 65.0
+near = 0.01
+far = 1000.0
+
+[node name="WeaponLight" type="OmniLight3D" parent="Head/Camera3D" unique_id=1913630595]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, -0.1)
+light_color = Color(1, 0.93, 0.87, 1)
+light_energy = 2.5
+omni_range = 2.5
+
+[node name="Flashlight" type="SpotLight3D" parent="Head/Camera3D" unique_id=192837465]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.22, -0.12, -0.15)
+visible = false
+light_color = Color(1, 0.96, 0.88, 1)
+light_energy = 4.0
+shadow_enabled = true
+spot_range = 20.0
+spot_angle = 14.0
+spot_angle_attenuation = 0.5
+
+[node name="WeaponHolder" type="Node3D" parent="Head/Camera3D" unique_id=735853872]
+
+[node name="WeaponManager" type="Node3D" parent="Head/Camera3D/WeaponHolder" unique_id=388586659]
+script = ExtResource("2")
+
+[node name="PlasmaSystem" type="Node" parent="Head/Camera3D/WeaponHolder/WeaponManager" unique_id=603610338]
+script = ExtResource("3")
