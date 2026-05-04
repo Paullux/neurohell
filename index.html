@@ -722,23 +722,10 @@
 
         <div class="screen" id="screen-screenshots">
           <h2>Captures d'écran</h2>
-          <div class="screenshot-grid" id="screenshot-grid">
-            <!-- Les captures seront ajoutées ici.
-                 Format attendu : ./assets/images/screenshots/screenshot_01.jpg etc.
-                 Exemple de structure à décommenter quand les captures sont disponibles :
-
-            <div class="screenshot-item" data-full="./assets/images/screenshots/screenshot_01.jpg">
-              <img src="./assets/images/screenshots/screenshot_01.jpg" alt="Niveau 1 — couloir" loading="lazy" />
-              <div class="screenshot-caption">Niveau 1 — couloir principal</div>
-            </div>
-            -->
-          </div>
+          <div class="screenshot-grid" id="screenshot-grid"></div>
           <div class="hero-card" style="margin-top:18px;" id="no-screenshots-msg">
             <h3>Captures à venir</h3>
-            <p>
-              Les captures d'écran de la version desktop seront ajoutées ici au fil du développement.
-              Place les fichiers dans <code>./assets/images/screenshots/</code> et décommente les entrées dans le HTML.
-            </p>
+            <p>Les captures d'écran seront ajoutées ici au fil du développement.</p>
           </div>
         </div>
 
@@ -977,6 +964,34 @@
 
     // Lancer la vérification dès que la page est prête
     fetchLatestRelease();
+
+    // ── Screenshots : chargement depuis screenshots.json ──────
+    async function loadScreenshots() {
+      const grid   = document.getElementById('screenshot-grid');
+      const noMsg  = document.getElementById('no-screenshots-msg');
+      try {
+        const resp = await fetch('./assets/images/screenshots/screenshots.json');
+        if (!resp.ok) return;
+        const list = await resp.json();
+        if (!Array.isArray(list) || list.length === 0) return;
+
+        noMsg.style.display = 'none';
+        list.forEach(item => {
+          const path = './assets/images/screenshots/' + item.file;
+          const div  = document.createElement('div');
+          div.className    = 'screenshot-item';
+          div.dataset.full = path;
+          div.innerHTML    = `
+            <img src="${path}" alt="${item.caption ?? ''}" loading="lazy" />
+            <div class="screenshot-caption">${item.caption ?? ''}</div>
+          `;
+          grid.appendChild(div);
+        });
+      } catch (e) {
+        // pas de screenshots disponibles, on garde le message par défaut
+      }
+    }
+    loadScreenshots();
   </script>
 </body>
 
