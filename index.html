@@ -1001,9 +1001,7 @@
       const reqCard     = document.getElementById('dl-requirements');
 
       try {
-        const resp = await fetch(GITHUB_RELEASES_API, {
-          headers: { 'Accept': 'application/vnd.github+json' }
-        });
+        const resp = await fetch(GITHUB_RELEASES_API);
 
         // Aucune release encore publiée
         if (resp.status === 404) {
@@ -1011,7 +1009,16 @@
           return;
         }
 
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        // Rate-limit GitHub (60 req/h sans token)
+        if (resp.status === 403 || resp.status === 429) {
+          infoEl.textContent = 'Informations de version temporairement indisponibles.';
+          return;
+        }
+
+        if (!resp.ok) {
+          infoEl.textContent = 'Aucune version disponible pour l\'instant.';
+          return;
+        }
 
         const data = await resp.json();
         const version     = data.tag_name   ?? '';
@@ -1055,9 +1062,9 @@
           reqCard.style.display = '';
         }
 
-      } catch (err) {
-        infoEl.textContent = 'Impossible de récupérer les informations de la dernière version.';
-        console.warn('[NeuroHell] GitHub Releases fetch failed:', err);
+      } catch {
+        // Fetch bloqué (extension, réseau) — on masque silencieusement
+        infoEl.textContent = 'Aucune version disponible pour l\'instant.';
       }
     }
 
