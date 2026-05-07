@@ -1126,6 +1126,11 @@
         }
       );
 
+      // DEBUG: lister tous les objets nommés du niveau (à retirer après)
+      gltf.scene.traverse(obj => {
+        if (obj.name) console.log('[GLB]', obj.type, ':', obj.name);
+      });
+
       // Try to find a spawn point, or set a default player position
       let spawnPos = new THREE.Vector3(0, 2, 0);
       const spawnNode = gltf.scene.getObjectByName('Spawn');
