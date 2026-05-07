@@ -17,6 +17,16 @@ jobs:
           lfs: false
           fetch-depth: 1
 
+      - name: Fetch docs from game branch
+        run: |
+          git fetch origin game --depth=1
+          mkdir -p assets/docs/game
+          git checkout origin/game -- docs/
+          cp -r docs/* assets/docs/game/
+          rm -rf docs/
+          echo "=== Docs récupérées ==="
+          ls assets/docs/game/
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

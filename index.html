@@ -280,6 +280,50 @@
       font-size: 1rem;
     }
 
+    /* ── Documentation markdown ── */
+    .doc-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .doc-nav-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 7px 13px;
+      font: inherit;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .doc-nav-btn:hover {
+      border-color: rgba(255,124,124,0.45);
+      color: var(--text);
+    }
+    .doc-nav-btn.active {
+      background: linear-gradient(90deg, rgba(120,0,0,0.45), rgba(255,77,77,0.12));
+      border-color: rgba(255,111,111,0.55);
+      color: #fff;
+    }
+    .doc-body { line-height: 1.75; color: #e8e8e8; }
+    .doc-body h1 { font-family: 'OrbitronLocal', Arial, sans-serif; font-size: 1.3rem; color: #fff; margin: 0 0 18px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .doc-body h2 { font-family: 'OrbitronLocal', Arial, sans-serif; font-size: 1rem; color: #ffd7d7; margin: 24px 0 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .doc-body h3 { font-size: 0.95rem; color: #ffaaaa; margin: 18px 0 8px; }
+    .doc-body p  { margin: 0 0 12px; }
+    .doc-body ul, .doc-body ol { margin: 0 0 12px; padding-left: 22px; }
+    .doc-body li { margin-bottom: 4px; }
+    .doc-body code { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 1px 6px; font-size: 0.88em; color: #00e5ff; }
+    .doc-body pre { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 0 0 14px; }
+    .doc-body pre code { background: none; border: none; padding: 0; color: #e8e8e8; }
+    .doc-body table { width: 100%; border-collapse: collapse; margin: 0 0 14px; font-size: 0.9rem; }
+    .doc-body th { background: rgba(255,77,77,0.12); color: #ffd7d7; padding: 7px 12px; text-align: left; border-bottom: 1px solid rgba(255,120,120,0.3); }
+    .doc-body td { padding: 7px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .doc-body tr:hover td { background: rgba(255,255,255,0.03); }
+    .doc-body hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 20px 0; }
+    .doc-body strong { color: #fff; }
+
     .story h3 {
       margin: 28px 0 10px;
       font-family: 'OrbitronLocal', Arial, sans-serif;
@@ -509,6 +553,7 @@
           <button class="menu-button" data-target="story">Histoire du jeu</button>
           <button class="menu-button" data-target="screenshots">Captures d'écran</button>
           <button class="menu-button" data-target="download">Télécharger</button>
+          <button class="menu-button" data-target="docs">Documentation</button>
           <button class="menu-button" data-target="preview">Menu preview</button>
         </div>
 
@@ -779,6 +824,14 @@
           </div>
         </div>
 
+        <div class="screen" id="screen-docs">
+          <h2>Documentation</h2>
+          <div class="doc-nav" id="doc-nav"></div>
+          <div class="doc-body" id="doc-body">
+            <p style="color:var(--muted);">Sélectionne un document ci-dessus.</p>
+          </div>
+        </div>
+
         <div class="screen" id="screen-preview">
           <h2>Menu preview</h2>
           <div class="hero">
@@ -964,6 +1017,67 @@
 
     // Lancer la vérification dès que la page est prête
     fetchLatestRelease();
+
+    // ── Documentation markdown ────────────────────────────────
+    const DOCS = [
+      { key: 'architecture', label: 'Architecture' },
+      { key: 'player',       label: 'Joueur' },
+      { key: 'combat',       label: 'Combat' },
+      { key: 'hud',          label: 'HUD' },
+      { key: 'ai',           label: 'IA démons' },
+      { key: 'levels',       label: 'Niveaux' },
+      { key: 'audio',        label: 'Audio' },
+      { key: 'cicd',         label: 'CI/CD' },
+    ];
+
+    let _markedLoaded = false;
+    let _activeDoc    = null;
+
+    function _loadMarked(cb) {
+      if (_markedLoaded) { cb(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/marked@12/marked.min.js';
+      s.onload = () => { _markedLoaded = true; cb(); };
+      document.head.appendChild(s);
+    }
+
+    function _buildDocNav() {
+      const nav = document.getElementById('doc-nav');
+      if (!nav || nav.childElementCount > 0) return;
+      DOCS.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className   = 'doc-nav-btn';
+        btn.textContent = d.label;
+        btn.addEventListener('click', () => _openDoc(d.key, btn));
+        nav.appendChild(btn);
+      });
+    }
+
+    async function _openDoc(key, btn) {
+      if (_activeDoc === key) return;
+      _activeDoc = key;
+      document.querySelectorAll('.doc-nav-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const body = document.getElementById('doc-body');
+      body.innerHTML = '<p style="color:var(--muted);">Chargement…</p>';
+      _loadMarked(async () => {
+        try {
+          const resp = await fetch('./assets/docs/game/' + key + '.md');
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const md   = await resp.text();
+          body.innerHTML = marked.parse(md);
+        } catch {
+          body.innerHTML = '<p style="color:var(--accent);">Document non disponible — rebuild Docker requis.</p>';
+        }
+      });
+    }
+
+    // Construire la nav docs quand on affiche la section
+    const _origShowScreen = showScreen;
+    showScreen = function(target) {
+      _origShowScreen(target);
+      if (target === 'docs') _buildDocNav();
+    };
 
     // ── Screenshots : chargement depuis screenshots.json ──────
     async function loadScreenshots() {
