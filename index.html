@@ -918,7 +918,7 @@
         _buildDocNav();
         setTimeout(() => {
           const btn = document.querySelector(`.doc-nav-btn[data-key="${key}"]`);
-          _openDoc(key, btn);
+          _openDoc(key, btn, false);   // false = ne pas dupliquer l'entrée historique
         }, 50);
         return;
       }
@@ -1100,22 +1100,32 @@
       });
     }
 
+    let _docLoading = false;
+
     async function _openDoc(key, btn, push = true) {
-      if (_activeDoc === key) return;
-      _activeDoc = key;
+      if (_docLoading) return;
+      // Permet de cliquer à nouveau sur le même doc (retry après erreur)
+      if (_activeDoc === key && btn && btn.classList.contains('active')) return;
+      _docLoading = true;
+      _activeDoc  = key;
       document.querySelectorAll('.doc-nav-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
-      const body = document.getElementById('doc-body');
-      body.innerHTML = '<p style="color:var(--muted);">Chargement…</p>';
       if (push) history.pushState({ target: 'docs', doc: key }, '', '/docs/' + key);
+      const body = document.getElementById('doc-body');
+      // Fondu doux : on baisse l'opacité sans vider le contenu précédent
+      body.style.transition = 'opacity 0.15s ease';
+      body.style.opacity    = '0.3';
       _loadMarked(async () => {
         try {
-          const resp = await fetch('./assets/docs/game/' + key + '.md');
+          const resp = await fetch('./assets/docs/game/' + key + '.md', { cache: 'no-store' });
           if (!resp.ok) throw new Error('HTTP ' + resp.status);
           const md   = await resp.text();
-          body.innerHTML = marked.parse(md);
+          body.innerHTML    = marked.parse(md);
         } catch {
-          body.innerHTML = '<p style="color:var(--accent);">Document non disponible — rebuild Docker requis.</p>';
+          body.innerHTML    = `<p style="color:var(--accent);">Document non disponible (${key}.md introuvable).<br><small style="color:var(--muted);">Vérifier que le build Docker s'est bien terminé.</small></p>`;
+        } finally {
+          body.style.opacity = '1';
+          _docLoading        = false;
         }
       });
     }
