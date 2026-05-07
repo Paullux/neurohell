@@ -5,19 +5,61 @@
 <title>NeuroHell — Prévisualisation Assets</title>
 <link rel="icon" type="image/x-icon" href="assets/images/favicon/favicon.ico">
 <style>
+  @font-face {
+    font-family: 'OrbitronLocal';
+    src: url('./assets/font/Orbitron/Orbitron-VariableFont_wght.ttf') format('truetype');
+    font-weight: 400 900;
+  }
+  @font-face {
+    font-family: 'Exo2Local';
+    src: url('./assets/font/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Courier New', monospace; overflow: hidden; }
+  body {
+    background: #090909;
+    background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)),
+      url('./assets/images/textures/gothic_metal/albedo.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #e0e0e0;
+    font-family: 'Exo2Local', 'Courier New', monospace;
+    overflow: hidden;
+  }
 
   #ui {
     position: fixed; top: 0; left: 0; right: 0;
-    background: rgba(0,0,0,0.85);
-    border-bottom: 1px solid #333;
+    background: rgba(8, 8, 18, 0.92);
+    border-bottom: 1px solid rgba(255, 120, 120, 0.28);
     padding: 10px 16px;
     display: flex; align-items: center; gap: 16px;
     z-index: 100;
+    backdrop-filter: blur(4px);
   }
-  #ui h1 { font-size: 14px; color: #ff4400; letter-spacing: 2px; text-transform: uppercase; }
-  #ui span { font-size: 11px; color: #666; }
+  #ui h1 {
+    font-family: 'OrbitronLocal', monospace;
+    font-size: 13px; color: #ffd7d7; letter-spacing: 0.14em; text-transform: uppercase;
+    text-shadow: 0 0 12px rgba(255,77,77,0.4);
+  }
+  #ui span { font-size: 11px; color: #666; font-family: 'Exo2Local', monospace; }
+  .back-btn {
+    margin-left: auto;
+    font-family: 'OrbitronLocal', monospace;
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #ffd7d7;
+    background: linear-gradient(90deg, rgba(120,0,0,0.6), rgba(255,77,77,0.15));
+    border: 1px solid rgba(255,111,111,0.5);
+    border-radius: 8px;
+    padding: 6px 14px; cursor: pointer;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.18s ease; white-space: nowrap;
+  }
+  .back-btn:hover {
+    background: linear-gradient(90deg, rgba(180,0,0,0.7), rgba(255,100,100,0.2));
+    border-color: rgba(255,140,140,0.8);
+  }
 
   #filters {
     position: fixed; left: 0; top: 48px; bottom: 0;
@@ -108,9 +150,10 @@
 </div>
 
 <div id="ui">
-  <h1>⬡ NeuroHell — Assets Preview</h1>
+  <h1>NeuroHell — Démons Preview</h1>
   <span>Clic gauche : orbiter · Molette : zoom · Clic droit : pan</span>
   <button id="grid-toggle">Grille ON</button>
+  <a class="back-btn" href="./index.html">← Accueil</a>
 </div>
 
 <div id="filters">

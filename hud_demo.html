@@ -16,6 +16,22 @@
     src: url('assets/font/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
     font-weight: 100 900;
   }
+  #hud-back-btn {
+    position: fixed; top: 14px; right: 18px; z-index: 9999;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #ffd7d7;
+    background: linear-gradient(90deg, rgba(120,0,0,0.7), rgba(255,77,77,0.2));
+    border: 1px solid rgba(255,111,111,0.55); border-radius: 8px;
+    padding: 7px 16px; cursor: pointer;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.18s ease;
+    backdrop-filter: blur(4px);
+  }
+  #hud-back-btn:hover {
+    background: linear-gradient(90deg, rgba(180,0,0,0.8), rgba(255,100,100,0.25));
+    border-color: rgba(255,140,140,0.9);
+  }
 
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -527,6 +543,8 @@
 <!-- ============================================================
      HUD ROOT
      ============================================================ -->
+<a id="hud-back-btn" href="./index.html">← Accueil</a>
+
 <div id="hud-root">
   <div id="hud">
 
