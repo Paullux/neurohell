@@ -452,6 +452,13 @@
       color: var(--muted);
     }
 
+    .dl-count {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.03em;
+    }
+    .dl-count:empty { display: none; }
+
     .dl-badge {
       margin-left: auto;
       font-size: 0.75rem;
@@ -794,6 +801,7 @@
                 <div class="dl-info">
                   <span class="dl-name">Windows</span>
                   <span class="dl-meta">Windows 10 / 11 — 64 bit</span>
+                  <span class="dl-count" id="dl-win-count"></span>
                 </div>
                 <span class="dl-badge soon" id="dl-win-badge">Bientôt</span>
               </a>
@@ -802,6 +810,7 @@
                 <div class="dl-info">
                   <span class="dl-name">Linux</span>
                   <span class="dl-meta">x86_64 — Ubuntu, Debian, Arch…</span>
+                  <span class="dl-count" id="dl-linux-count"></span>
                 </div>
                 <span class="dl-badge soon" id="dl-linux-badge">Bientôt</span>
               </a>
@@ -1042,8 +1051,9 @@
           winBadge.classList.remove('soon');
           const mb = (winAsset.size / 1048576).toFixed(1);
           const dlWin = winAsset.download_count ?? 0;
-          winBtn.querySelector('.dl-meta').textContent =
-            `Windows 10 / 11 — 64 bit — ${mb} Mo — ↓ ${dlWin.toLocaleString('fr-FR')} téléchargement${dlWin > 1 ? 's' : ''}`;
+          winBtn.querySelector('.dl-meta').textContent = `Windows 10 / 11 — 64 bit — ${mb} Mo`;
+          document.getElementById('dl-win-count').textContent =
+            dlWin > 0 ? `↓ ${dlWin.toLocaleString('fr-FR')} téléchargement${dlWin > 1 ? 's' : ''}` : '';
         } else {
           infoEl.textContent += ' · Build Windows en cours…';
         }
@@ -1056,8 +1066,9 @@
           linuxBadge.classList.remove('soon');
           const mb = (linuxAsset.size / 1048576).toFixed(1);
           const dlLinux = linuxAsset.download_count ?? 0;
-          linuxBtn.querySelector('.dl-meta').textContent =
-            `x86_64 — Ubuntu, Debian, Arch… — ${mb} Mo — ↓ ${dlLinux.toLocaleString('fr-FR')} téléchargement${dlLinux > 1 ? 's' : ''}`;
+          linuxBtn.querySelector('.dl-meta').textContent = `x86_64 — Ubuntu, Debian, Arch… — ${mb} Mo`;
+          document.getElementById('dl-linux-count').textContent =
+            dlLinux > 0 ? `↓ ${dlLinux.toLocaleString('fr-FR')} téléchargement${dlLinux > 1 ? 's' : ''}` : '';
         }
 
         // Afficher la config minimale si au moins un lien dispo
