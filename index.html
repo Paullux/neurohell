@@ -1040,9 +1040,10 @@
           winBtn.removeAttribute('aria-disabled');
           winBadge.textContent = version;
           winBadge.classList.remove('soon');
-          // Afficher la taille
           const mb = (winAsset.size / 1048576).toFixed(1);
-          winBtn.querySelector('.dl-meta').textContent = `Windows 10 / 11 — 64 bit — ${mb} Mo`;
+          const dlWin = winAsset.download_count ?? 0;
+          winBtn.querySelector('.dl-meta').textContent =
+            `Windows 10 / 11 — 64 bit — ${mb} Mo — ↓ ${dlWin.toLocaleString('fr-FR')} téléchargement${dlWin > 1 ? 's' : ''}`;
         } else {
           infoEl.textContent += ' · Build Windows en cours…';
         }
@@ -1054,7 +1055,9 @@
           linuxBadge.textContent = version;
           linuxBadge.classList.remove('soon');
           const mb = (linuxAsset.size / 1048576).toFixed(1);
-          linuxBtn.querySelector('.dl-meta').textContent = `x86_64 — Ubuntu, Debian, Arch… — ${mb} Mo`;
+          const dlLinux = linuxAsset.download_count ?? 0;
+          linuxBtn.querySelector('.dl-meta').textContent =
+            `x86_64 — Ubuntu, Debian, Arch… — ${mb} Mo — ↓ ${dlLinux.toLocaleString('fr-FR')} téléchargement${dlLinux > 1 ? 's' : ''}`;
         }
 
         // Afficher la config minimale si au moins un lien dispo
