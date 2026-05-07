@@ -1079,11 +1079,12 @@
     let _markedLoaded = false;
     let _activeDoc    = null;
 
-    function _loadMarked(cb) {
+    function _loadMarked(cb, onErr) {
       if (_markedLoaded) { cb(); return; }
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/marked@12/marked.min.js';
-      s.onload = () => { _markedLoaded = true; cb(); };
+      s.onload  = () => { _markedLoaded = true; cb(); };
+      s.onerror = () => { if (onErr) onErr(); };
       document.head.appendChild(s);
     }
 
@@ -1112,22 +1113,40 @@
       if (btn) btn.classList.add('active');
       if (push) history.pushState({ target: 'docs', doc: key }, '', '/docs/' + key);
       const body = document.getElementById('doc-body');
-      // Fondu doux : on baisse l'opacité sans vider le contenu précédent
       body.style.transition = 'opacity 0.15s ease';
       body.style.opacity    = '0.3';
-      _loadMarked(async () => {
-        try {
-          const resp = await fetch('./assets/docs/game/' + key + '.md', { cache: 'no-store' });
-          if (!resp.ok) throw new Error('HTTP ' + resp.status);
-          const md   = await resp.text();
-          body.innerHTML    = marked.parse(md);
-        } catch {
-          body.innerHTML    = `<p style="color:var(--accent);">Document non disponible (${key}.md introuvable).<br><small style="color:var(--muted);">Vérifier que le build Docker s'est bien terminé.</small></p>`;
-        } finally {
-          body.style.opacity = '1';
-          _docLoading        = false;
+
+      const _done = (html) => {
+        body.innerHTML     = html;
+        body.style.opacity = '1';
+        _docLoading        = false;
+      };
+
+      // Timeout de sécurité : si tout est bloqué, on débloque après 8s
+      const watchdog = setTimeout(() => {
+        _docLoading = false;
+        body.style.opacity = '1';
+      }, 8000);
+
+      _loadMarked(
+        async () => {
+          clearTimeout(watchdog);
+          try {
+            const resp = await fetch('./assets/docs/game/' + key + '.md', { cache: 'no-store' });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const md = await resp.text();
+            _done(marked.parse(md));
+          } catch {
+            _done(`<p style="color:var(--accent);">Document non disponible — <code>${key}.md</code> introuvable.<br>
+                   <small style="color:var(--muted);">Le build Docker doit se terminer, puis vide le cache (Ctrl+Shift+R).</small></p>`);
+          }
+        },
+        () => {
+          // marked.js n'a pas pu se charger (CDN inaccessible)
+          clearTimeout(watchdog);
+          _done('<p style="color:var(--accent);">Impossible de charger le moteur Markdown (CDN inaccessible).</p>');
         }
-      });
+      );
     }
 
     // ── Screenshots : chargement depuis screenshots.json ──────
