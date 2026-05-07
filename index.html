@@ -870,14 +870,60 @@
     const overlay = document.getElementById('videoOverlay');
     const introVideo = document.getElementById('introVideo');
 
-    function showScreen(target) {
-      buttons.forEach(button => {
-        button.classList.toggle('active', button.dataset.target === target);
-      });
+    // ── Routing ──────────────────────────────────────────────────
+    const TARGET_TO_PATH = {
+      'play':        '/in_game',
+      'story':       '/story',
+      'screenshots': '/screenshots',
+      'download':    '/download',
+      'docs':        '/docs',
+      'preview':     '/preview',
+    };
+    const PATH_TO_TARGET = Object.fromEntries(
+      Object.entries(TARGET_TO_PATH).map(([k, v]) => [v, k])
+    );
 
-      screens.forEach(screen => {
-        screen.classList.toggle('active', screen.id === `screen-${target}`);
-      });
+    function showScreen(target, push = true) {
+      buttons.forEach(b => b.classList.toggle('active', b.dataset.target === target));
+      screens.forEach(s => s.classList.toggle('active', s.id === `screen-${target}`));
+      if (push && TARGET_TO_PATH[target]) {
+        history.pushState({ target }, '', TARGET_TO_PATH[target]);
+      }
+      if (target === 'docs') _buildDocNav();
+    }
+
+    // Bouton retour navigateur
+    window.addEventListener('popstate', e => {
+      const path   = location.pathname;
+      const target = e.state?.target
+        || PATH_TO_TARGET[path]
+        || (path.startsWith('/docs/') ? 'docs' : 'play');
+      showScreen(target, false);
+      if (target === 'docs' && path.startsWith('/docs/')) {
+        const key = e.state?.doc || path.replace('/docs/', '').replace(/\.md$/, '');
+        _buildDocNav();
+        setTimeout(() => {
+          const btn = document.querySelector(`.doc-nav-btn[data-key="${key}"]`);
+          _openDoc(key, btn, false);
+        }, 50);
+      }
+    });
+
+    // Init depuis l'URL courante
+    function initRoute() {
+      const path = location.pathname;
+      if (path.startsWith('/docs/')) {
+        const key = path.replace('/docs/', '').replace(/\.md$/, '');
+        showScreen('docs', false);
+        _buildDocNav();
+        setTimeout(() => {
+          const btn = document.querySelector(`.doc-nav-btn[data-key="${key}"]`);
+          _openDoc(key, btn);
+        }, 50);
+        return;
+      }
+      const target = PATH_TO_TARGET[path] || 'play';
+      showScreen(target, false);
     }
 
     buttons.forEach(button => {
@@ -1046,20 +1092,22 @@
       if (!nav || nav.childElementCount > 0) return;
       DOCS.forEach(d => {
         const btn = document.createElement('button');
-        btn.className   = 'doc-nav-btn';
-        btn.textContent = d.label;
+        btn.className    = 'doc-nav-btn';
+        btn.textContent  = d.label;
+        btn.dataset.key  = d.key;
         btn.addEventListener('click', () => _openDoc(d.key, btn));
         nav.appendChild(btn);
       });
     }
 
-    async function _openDoc(key, btn) {
+    async function _openDoc(key, btn, push = true) {
       if (_activeDoc === key) return;
       _activeDoc = key;
       document.querySelectorAll('.doc-nav-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
       const body = document.getElementById('doc-body');
       body.innerHTML = '<p style="color:var(--muted);">Chargement…</p>';
+      if (push) history.pushState({ target: 'docs', doc: key }, '', '/docs/' + key);
       _loadMarked(async () => {
         try {
           const resp = await fetch('./assets/docs/game/' + key + '.md');
@@ -1071,13 +1119,6 @@
         }
       });
     }
-
-    // Construire la nav docs quand on affiche la section
-    const _origShowScreen = showScreen;
-    showScreen = function(target) {
-      _origShowScreen(target);
-      if (target === 'docs') _buildDocNav();
-    };
 
     // ── Screenshots : chargement depuis screenshots.json ──────
     async function loadScreenshots() {
@@ -1106,6 +1147,9 @@
       }
     }
     loadScreenshots();
+
+    // ── Init route depuis l'URL courante ──────────────────────────
+    initRoute();
   </script>
 </body>
 
