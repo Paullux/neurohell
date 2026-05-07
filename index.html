@@ -24,11 +24,11 @@
   <meta name="twitter:description" content="Un soldat damné traverse l'enfer pour atteindre le purgatoire. Dark sci-fi horror FPS roguelite — développé sous Godot 4." />
   <meta name="twitter:image"       content="https://neurohell.com/assets/images/image_illustration/reveil_en_enfer.jpg" />
 
-  <link rel="icon" type="image/x-icon" href="./assets/images/favicon/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/assets/images/favicon/favicon.ico">
   <style>
     @font-face {
       font-family: 'OrbitronLocal';
-      src: url('./assets/font/Orbitron/Orbitron-VariableFont_wght.ttf') format('truetype');
+      src: url('/assets/font/Orbitron/Orbitron-VariableFont_wght.ttf') format('truetype');
       font-weight: 400 900;
       font-style: normal;
       font-display: swap;
@@ -36,7 +36,7 @@
 
     @font-face {
       font-family: 'Exo2Local';
-      src: url('./assets/font/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
+      src: url('/assets/font/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
       font-weight: 100 900;
       font-style: normal;
       font-display: swap;
@@ -70,7 +70,7 @@
     body {
       background-image:
         linear-gradient(rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.78)),
-        url('./assets/images/textures/gothic_metal/albedo.jpg');
+        url('/assets/images/textures/gothic_metal/albedo.jpg');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
@@ -576,8 +576,8 @@
               </p>
               <button class="action-button primary" id="startGameButton">Commencer</button>
               <p class="small-note">
-                L'intro utilisée est <code>./assets/videos/NeuroHell-Intro.mp4</code>, puis redirection automatique vers
-                <code>./games_level_1.html</code>.
+                L'intro utilisée est <code>/assets/videos/NeuroHell-Intro.mp4</code>, puis redirection automatique vers
+                <code>/games_level_1.html</code>.
               </p>
             </div>
 
@@ -859,7 +859,7 @@
   </div>
 
   <div class="overlay" id="videoOverlay" aria-hidden="true">
-    <video id="introVideo" class="intro-video" src="./assets/videos/NeuroHell-Intro.mp4" preload="auto"
+    <video id="introVideo" class="intro-video" src="/assets/videos/NeuroHell-Intro.mp4" preload="auto"
       playsinline></video>
   </div>
 
@@ -931,7 +931,7 @@
     });
 
     function goToLevelOne() {
-      window.location.href = './games_level_1.html';
+      window.location.href = '/games_level_1.html';
     }
 
     function launchIntroThenGame() {
@@ -1132,7 +1132,7 @@
         async () => {
           clearTimeout(watchdog);
           try {
-            const resp = await fetch('./assets/docs/game/' + key + '.md', { cache: 'no-store' });
+            const resp = await fetch('/assets/docs/game/' + key + '.md', { cache: 'no-store' });
             if (!resp.ok) throw new Error('HTTP ' + resp.status);
             const md = await resp.text();
             _done(marked.parse(md));
@@ -1154,14 +1154,14 @@
       const grid   = document.getElementById('screenshot-grid');
       const noMsg  = document.getElementById('no-screenshots-msg');
       try {
-        const resp = await fetch('./assets/images/screenshots/screenshots.json');
+        const resp = await fetch('/assets/images/screenshots/screenshots.json');
         if (!resp.ok) return;
         const list = await resp.json();
         if (!Array.isArray(list) || list.length === 0) return;
 
         noMsg.style.display = 'none';
         list.forEach(item => {
-          const path = './assets/images/screenshots/' + item.file;
+          const path = '/assets/images/screenshots/' + item.file;
           const div  = document.createElement('div');
           div.className    = 'screenshot-item';
           div.dataset.full = path;
