@@ -990,6 +990,34 @@
 
     let levelLoaded = false;
 
+    // ── Portail de fin de niveau ──────────────────────────────────
+    const portalPosition   = new THREE.Vector3();
+    let   portalMesh       = null;
+    let   portalTriggered  = false;
+    const PORTAL_RADIUS    = 2.5;
+
+    function triggerPortal() {
+      if (portalTriggered) return;
+      portalTriggered = true;
+
+      // Flash blanc progressif → redirection /download
+      const overlay = document.createElement('div');
+      overlay.style.cssText = [
+        'position:fixed', 'inset:0', 'background:rgba(255,255,255,0)',
+        'pointer-events:none', 'z-index:999',
+        'transition:background 1.2s ease-in'
+      ].join(';');
+      document.body.appendChild(overlay);
+
+      requestAnimationFrame(() => {
+        overlay.style.background = 'rgba(255,255,255,1)';
+      });
+
+      setTimeout(() => {
+        window.location.href = '/download';
+      }, 1300);
+    }
+
     const controls = new PointerLockControls(camera, document.body);
     const instructions = document.getElementById('instructions');
 
@@ -1126,11 +1154,6 @@
         }
       );
 
-      // DEBUG: lister tous les objets nommés du niveau (à retirer après)
-      gltf.scene.traverse(obj => {
-        if (obj.name) console.log('[GLB]', obj.type, ':', obj.name);
-      });
-
       // Try to find a spawn point, or set a default player position
       let spawnPos = new THREE.Vector3(0, 2, 0);
       const spawnNode = gltf.scene.getObjectByName('Spawn');
@@ -1139,6 +1162,14 @@
       }
       playerCollider.start.copy(spawnPos);
       playerCollider.end.copy(spawnPos).setY(spawnPos.y + 1.15); // capsule height
+
+      // Portail de fin de niveau
+      const portalNode = gltf.scene.getObjectByName('MARKER_Portal_Final');
+      if (portalNode) {
+        portalNode.getWorldPosition(portalPosition);
+        // Rotation lente du disque comme indice visuel
+        portalMesh = portalNode;
+      }
 
       levelLoaded = true;
       document.getElementById('status-text').innerHTML = 'CLICK TO START<div style="font-size:12px;opacity:0.6;margin-top:10px;">WASD to Move | SPACE to Jump | 1-5 to Switch Weapons | L-CLICK to Fire</div>';
@@ -1711,6 +1742,13 @@
       }
 
       plasma.update(dt, targets);
+
+      // ── Portail fin de niveau ─────────────────────────────────
+      if (portalMesh && !portalTriggered) {
+        portalMesh.rotation.y += dt * 1.2;   // rotation lente
+        const dist = camera.position.distanceTo(portalPosition);
+        if (dist < PORTAL_RADIUS) triggerPortal();
+      }
 
       if (minimap) {
         minimap.updatePlayer(camera.position, camera.rotation.y);
