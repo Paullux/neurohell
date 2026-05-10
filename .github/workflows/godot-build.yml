@@ -45,10 +45,9 @@ jobs:
             zip_name: "NeuroHell-Linux"
 
     steps:
-      - name: "📥 Checkout (code uniquement, sans LFS)"
+      - name: "📥 Checkout"
         uses: actions/checkout@v4
         with:
-          lfs: false
           fetch-depth: 0
 
       - name: "📦 Pull assets depuis MinIO (CDN)"

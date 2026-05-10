@@ -1,24 +1,4 @@
-# ── Modèles 3D ──────────────────────────────────────────────
-*.glb  filter=lfs diff=lfs merge=lfs -text
-*.gltf filter=lfs diff=lfs merge=lfs -text
-*.fbx  filter=lfs diff=lfs merge=lfs -text
-*.obj  filter=lfs diff=lfs merge=lfs -text
-
-# ── Vidéos ──────────────────────────────────────────────────
-*.mp4  filter=lfs diff=lfs merge=lfs -text
-*.webm filter=lfs diff=lfs merge=lfs -text
-*.mov  filter=lfs diff=lfs merge=lfs -text
-*.ogv  filter=lfs diff=lfs merge=lfs -text
-# ── Audio ────────────────────────────────────────────────────
-*.wav  filter=lfs diff=lfs merge=lfs -text
-*.ogg  filter=lfs diff=lfs merge=lfs -text
-*.mp3  filter=lfs diff=lfs merge=lfs -text
-*.flac filter=lfs diff=lfs merge=lfs -text
-# ── Textures / Images — git standard (embarquées dans le binaire Godot) ──
-# *.png *.jpg *.jpeg *.webp *.tga *.bmp *.dds *.ktx *.exr *.hdr → pas LFS
-# ── Godot ressources binaires ────────────────────────────────
-*.res  filter=lfs diff=lfs merge=lfs -text
-*.scn  filter=lfs diff=lfs merge=lfs -text
-# ── Polices — fichiers normaux (pas LFS, trop petits) ────────
-# *.ttf *.otf *.woff *.woff2 → git standard
-*.ogv filter=lfs diff=lfs merge=lfs -text
+# NeuroHell — Git Attributes
+# LFS complètement désactivé.
+# Les gros assets (GLB, OGV, OGG…) sont gitignorés et servis par MinIO.
+# Les images/textures embarquées dans le binaire Godot sont en git standard.
