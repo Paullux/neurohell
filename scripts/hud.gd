@@ -481,26 +481,28 @@ func show_narration(text: String) -> void:
 		.set_ease(Tween.EASE_IN)
 
 func _build_narration_label() -> Label:
-	var root := get_node_or_null("Root")
-	if root == null:
-		root = self
+	# CanvasLayer dédié layer 50 → toujours au-dessus du HUD (layer ~10)
+	var cl := CanvasLayer.new()
+	cl.layer = 50
+	get_tree().root.add_child(cl)
 
 	var lbl := Label.new()
 	lbl.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	lbl.offset_top    = -160.0
-	lbl.offset_bottom = -100.0
+	lbl.offset_top    = -230.0
+	lbl.offset_bottom = -160.0
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	lbl.add_theme_font_override("font",      _FONT_ORB_REG)
-	lbl.add_theme_font_size_override("font_size", 14)
-	lbl.add_theme_color_override("font_color",        Color(0.63, 0.94, 0.88, 1.0))
-	lbl.add_theme_color_override("font_shadow_color", Color(0.0,  0.86, 0.71, 0.9))
-	lbl.add_theme_constant_override("shadow_offset_x",  0)
-	lbl.add_theme_constant_override("shadow_offset_y",  0)
-	lbl.add_theme_constant_override("shadow_outline_size", 8)
+	lbl.add_theme_font_size_override("font_size", 17)
+	# Texte blanc, glow bordeaux prononcé
+	lbl.add_theme_color_override("font_color",        Color(1.0,  1.0,  1.0,  1.0))
+	lbl.add_theme_color_override("font_shadow_color", Color(0.52, 0.0,  0.10, 1.0))
+	lbl.add_theme_constant_override("shadow_offset_x",    0)
+	lbl.add_theme_constant_override("shadow_offset_y",    0)
+	lbl.add_theme_constant_override("shadow_outline_size", 14)
 	lbl.mouse_filter  = Control.MOUSE_FILTER_IGNORE
 	lbl.modulate.a    = 0.0
-	root.add_child(lbl)
+	cl.add_child(lbl)
 	return lbl
 
 # ── Écran fin de niveau ───────────────────────────────────────
