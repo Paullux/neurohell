@@ -667,10 +667,38 @@
         text-shadow: 0 0 20px rgba(200, 0, 0, 0.5);
       }
     }
+
+    /* ── Narration ─────────────────────────────────────────── */
+    #narration {
+      position: fixed;
+      bottom: 12%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      pointer-events: none;
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: #a0f0e0;
+      text-shadow: 0 0 12px rgba(0, 220, 180, 0.7), 0 0 30px rgba(0, 180, 140, 0.3);
+      text-align: center;
+      max-width: 640px;
+      padding: 10px 24px;
+      border-left: 2px solid rgba(0, 220, 180, 0.4);
+      border-right: 2px solid rgba(0, 220, 180, 0.4);
+      background: rgba(0, 10, 8, 0.55);
+      opacity: 0;
+      transition: opacity 0.7s ease;
+      white-space: nowrap;
+    }
+    #narration.visible { opacity: 1; }
   </style>
 </head>
 
 <body>
+
+  <div id="narration"></div>
 
   <div id="canvas-wrap">
     <canvas id="c"></canvas>
@@ -995,6 +1023,39 @@
     let   portalMesh       = null;
     let   portalTriggered  = false;
     const PORTAL_RADIUS    = 2.5;
+
+    // ── Narration ─────────────────────────────────────────────────
+    const NARRATION_LINES = [
+      { z: -6,  text: "Signal perdu. Aucun retour en arrière." },
+      { z: -20, text: "Ces créatures ont été forgées dans la douleur." },
+      { z: -36, text: "Tu n'es pas le premier à descendre ici." },
+      { z: -50, text: "L'âme qui alimente ce portail... c'était la mienne." },
+    ];
+    let _narrTimer = null;
+
+    function showNarration(text) {
+      const el = document.getElementById('narration');
+      if (!el) return;
+      if (_narrTimer) { clearTimeout(_narrTimer); }
+
+      el.textContent = text;
+      el.classList.add('visible');
+
+      _narrTimer = setTimeout(() => {
+        el.classList.remove('visible');
+      }, 4000);
+    }
+
+    function checkNarrationTriggers() {
+      if (!levelLoaded) return;
+      const pz = camera.position.z;
+      for (const line of NARRATION_LINES) {
+        if (!line._done && pz < line.z) {
+          line._done = true;
+          showNarration(line.text);
+        }
+      }
+    }
 
     function triggerPortal() {
       if (portalTriggered) return;
@@ -1749,6 +1810,9 @@
         const dist = camera.position.distanceTo(portalPosition);
         if (dist < PORTAL_RADIUS) triggerPortal();
       }
+
+      // ── Narration ─────────────────────────────────────────────
+      checkNarrationTriggers();
 
       if (minimap) {
         minimap.updatePlayer(camera.position, camera.rotation.y);
