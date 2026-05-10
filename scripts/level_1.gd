@@ -12,6 +12,24 @@ extends Node3D
 
 var _demons: Array = []
 
+# ── Narration ─────────────────────────────────────────────────
+const _NARRATION_LINES := [
+	{ "dist": 8.0,  "text": "Signal perdu. Aucun retour en arrière." },
+	{ "dist": 22.0, "text": "Ces créatures ont été forgées dans la douleur." },
+	{ "dist": 38.0, "text": "Tu n'es pas le premier à descendre ici." },
+	{ "dist": 58.0, "text": "L'âme qui alimente ce portail... c'était la mienne." },
+]
+var _narr_done: Array[bool] = [false, false, false, false]
+var _spawn_pos := Vector3.ZERO
+
+func _process(_delta: float) -> void:
+	if not player: return
+	var dist := player.global_position.distance_to(_spawn_pos)
+	for i in _NARRATION_LINES.size():
+		if not _narr_done[i] and dist >= _NARRATION_LINES[i]["dist"]:
+			_narr_done[i] = true
+			hud.show_narration(_NARRATION_LINES[i]["text"])
+
 func _ready() -> void:
 	# Joueur → HUD
 	player.health_changed.connect(hud.set_health)
@@ -53,6 +71,7 @@ func _ready() -> void:
 		spawn_pos = spawn.global_position + Vector3(0, 0.5, 0)
 	player.global_position = spawn_pos
 	player._spawn_position = spawn_pos
+	_spawn_pos = spawn_pos
 
 	# Restaurer vie & armure du niveau précédent
 	if GameData.has_saved:

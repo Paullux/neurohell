@@ -426,6 +426,51 @@ func show_start_overlay(msg: String) -> void:
 func hide_start_overlay() -> void:
 	if start_overlay: start_overlay.visible = false
 
+# ── Narration ─────────────────────────────────────────────────
+var _narr_label: Label = null
+var _narr_tween: Tween = null
+
+func show_narration(text: String) -> void:
+	if _narr_label == null:
+		_narr_label = _build_narration_label()
+
+	if _narr_tween:
+		_narr_tween.kill()
+
+	_narr_label.text    = text
+	_narr_label.visible = true
+	_narr_label.modulate.a = 0.0
+
+	_narr_tween = create_tween()
+	_narr_tween.tween_property(_narr_label, "modulate:a", 1.0, 0.7) \
+		.set_ease(Tween.EASE_OUT)
+	_narr_tween.tween_interval(4.0)
+	_narr_tween.tween_property(_narr_label, "modulate:a", 0.0, 0.9) \
+		.set_ease(Tween.EASE_IN)
+
+func _build_narration_label() -> Label:
+	var root := get_node_or_null("Root")
+	if root == null:
+		root = self
+
+	var lbl := Label.new()
+	lbl.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	lbl.offset_top    = -160.0
+	lbl.offset_bottom = -100.0
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_override("font",      _FONT_ORB_REG)
+	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.add_theme_color_override("font_color",        Color(0.63, 0.94, 0.88, 1.0))
+	lbl.add_theme_color_override("font_shadow_color", Color(0.0,  0.86, 0.71, 0.9))
+	lbl.add_theme_constant_override("shadow_offset_x",  0)
+	lbl.add_theme_constant_override("shadow_offset_y",  0)
+	lbl.add_theme_constant_override("shadow_outline_size", 8)
+	lbl.mouse_filter  = Control.MOUSE_FILTER_IGNORE
+	lbl.modulate.a    = 0.0
+	root.add_child(lbl)
+	return lbl
+
 # ── Fondu depuis le blanc (transition entre niveaux) ─────────
 func fade_in_from_white(duration: float = 1.5) -> void:
 	var cl := CanvasLayer.new()
