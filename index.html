@@ -793,6 +793,7 @@
               <p id="dl-release-info" style="font-size:0.88rem;color:var(--muted);margin-top:6px;">
                 Vérification de la dernière version…
               </p>
+              <p id="dl-total-count" style="font-size:0.82rem;color:var(--muted);margin-top:2px;"></p>
             </div>
             <div class="dl-grid" id="dl-grid">
               <!-- Rempli dynamiquement par fetchLatestRelease() -->
@@ -994,7 +995,7 @@
     });
 
     // ── Téléchargements : fetch de la dernière GitHub Release ──────────────
-    const GITHUB_RELEASES_API = 'https://api.github.com/repos/Paullux/neurohell/releases/latest';
+    const GITHUB_RELEASES_API = 'https://api.github.com/repos/Paullux/neurohell/releases';
 
     function formatReleaseDate(isoString) {
       const d = new Date(isoString);
@@ -1029,10 +1030,27 @@
           return;
         }
 
-        const data = await resp.json();
-        const version     = data.tag_name   ?? '';
+        const releases    = await resp.json();
+        if (!Array.isArray(releases) || releases.length === 0) {
+          infoEl.textContent = 'Aucune version compilée disponible pour l\'instant.';
+          return;
+        }
+
+        // Dernière release = première du tableau
+        const data        = releases[0];
+        const version     = data.tag_name    ?? '';
         const publishedAt = data.published_at ?? '';
-        const assets      = data.assets      ?? [];
+        const assets      = data.assets       ?? [];
+
+        // Total téléchargements toutes versions confondues
+        const totalDl = releases
+          .flatMap(r => r.assets ?? [])
+          .reduce((sum, a) => sum + (a.download_count ?? 0), 0);
+        const totalEl = document.getElementById('dl-total-count');
+        if (totalEl && totalDl > 0) {
+          totalEl.textContent =
+            `↓ ${totalDl.toLocaleString('fr-FR')} téléchargement${totalDl > 1 ? 's' : ''} au total (toutes versions)`;
+        }
 
         const dateStr = publishedAt ? formatReleaseDate(publishedAt) : '';
         infoEl.innerHTML =
