@@ -15,6 +15,7 @@ extends Area3D
 var _activated: bool = false
 var _spin_target: Node3D = null
 var _warning_shown: bool = false
+var _waiting_input: bool = false   # attend clic/touche avant de changer de scène
 
 func _ready() -> void:
 	monitoring = true
@@ -72,13 +73,21 @@ func _activate_portal(_player: Node3D) -> void:
 		GameData.armor     = _player.armor
 		GameData.has_saved = true
 
-	# Afficher les stats de fin de niveau
+	# Afficher les stats de fin de niveau, attendre input avant transition
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
 	var hud := get_tree().current_scene.find_child("HUD", true, false)
 	if hud and hud.has_method("show_end_stats"):
 		hud.show_end_stats(GameData.kills, GameData.soul_points, elapsed)
+	_waiting_input = true
 
-	_do_transition()
+func _input(event: InputEvent) -> void:
+	if not _waiting_input:
+		return
+	var valid := (event is InputEventKey and event.pressed) \
+		or (event is InputEventMouseButton and event.pressed)
+	if valid:
+		_waiting_input = false
+		_do_transition()
 
 func _change_scene_safe() -> void:
 	print("PORTAL - next_scene = ", next_scene)

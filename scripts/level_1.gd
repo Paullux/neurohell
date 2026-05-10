@@ -14,10 +14,10 @@ var _demons: Array = []
 
 # ── Narration ─────────────────────────────────────────────────
 const _NARRATION_LINES := [
-	{ "dist": 8.0,  "text": "Signal perdu. Aucun retour en arrière." },
-	{ "dist": 22.0, "text": "Ces créatures ont été forgées dans la douleur." },
-	{ "dist": 38.0, "text": "Tu n'es pas le premier à descendre ici." },
-	{ "dist": 58.0, "text": "L'âme qui alimente ce portail... c'était la mienne." },
+	{ "dist": 4.0,  "text": "Signal perdu. Aucun retour en arrière." },
+	{ "dist": 12.0, "text": "Ces créatures ont été forgées dans la douleur." },
+	{ "dist": 25.0, "text": "Tu n'es pas le premier à descendre ici." },
+	{ "dist": 40.0, "text": "L'âme qui alimente ce portail... c'était la mienne." },
 ]
 var _narr_done: Array[bool] = [false, false, false, false]
 var _spawn_pos := Vector3.ZERO

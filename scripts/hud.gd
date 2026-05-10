@@ -546,6 +546,19 @@ func show_end_stats(kills: int, souls: int, time_secs: float) -> void:
 		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		vbox.add_child(lbl)
 
+	# Hint "continuer"
+	var hint := Label.new()
+	hint.text = "[ CLIC ou TOUCHE pour continuer ]"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_font_override("font", _FONT_EXO2)
+	hint.add_theme_font_size_override("font_size", 11)
+	hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 0.8))
+	hint.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	hint.offset_top    = -50.0
+	hint.offset_bottom = -20.0
+	hint.mouse_filter  = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(hint)
+
 	# Fade in → tenu → la transition de scène arrive après
 	var tw := create_tween()
 	tw.tween_property(overlay, "color:a", 0.85, 0.6).set_ease(Tween.EASE_OUT)

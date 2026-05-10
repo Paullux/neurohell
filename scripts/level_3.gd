@@ -12,6 +12,23 @@ extends Node3D
 
 var _demons: Array = []
 
+# ── Narration ─────────────────────────────────────────────────
+const _NARRATION_LINES := [
+	{ "dist": 6.0,  "text": "Le dernier niveau. Ici tout s'achève." },
+	{ "dist": 20.0, "text": "Tu sens leur présence. Ils t'attendaient." },
+	{ "dist": 40.0, "text": "Le portail final absorbe tout. Même toi." },
+]
+var _narr_done: Array[bool] = [false, false, false]
+var _spawn_pos := Vector3.ZERO
+
+func _process(_delta: float) -> void:
+	if not player: return
+	var dist := player.global_position.distance_to(_spawn_pos)
+	for i in _NARRATION_LINES.size():
+		if not _narr_done[i] and dist >= _NARRATION_LINES[i]["dist"]:
+			_narr_done[i] = true
+			hud.show_narration(_NARRATION_LINES[i]["text"])
+
 func _ready() -> void:
 	# Supprimer l'overlay de transition du niveau précédent
 	for child in get_tree().root.get_children():
@@ -35,11 +52,18 @@ func _ready() -> void:
 		wm.ammo_changed.connect(hud.set_ammo)
 		wm.scope_toggled.connect(hud.set_scope)
 
+	# Stats de session
+	GameData.soul_points  = 0
+	GameData.kills        = 0
+	GameData.damage_dealt = 0.0
+	GameData.level_start_time = Time.get_ticks_msec() / 1000.0
+
 	# Démons
 	for demon: Node in demons_root.get_children():
 		if demon.has_method("set_player"):
 			demon.set_player(player)
 			demon.demon_hit_player.connect(_on_demon_hit_player)
+			demon.demon_died.connect(_on_demon_died)
 			_demons.append(demon)
 
 	game_manager.register_player(player)
@@ -55,6 +79,7 @@ func _ready() -> void:
 		spawn_pos = spawn.global_position + Vector3(0, 0.5, 0)
 	player.global_position = spawn_pos
 	player._spawn_position = spawn_pos
+	_spawn_pos = spawn_pos
 
 	# Restaurer vie & armure du niveau précédent
 	if GameData.has_saved:
@@ -132,6 +157,11 @@ func _create_simple_collider(mesh_inst: MeshInstance3D) -> void:
 func _on_demon_hit_player(damage: float) -> void:
 	player.take_damage(damage)
 	hud.show_hit_flash(Color(1.0, 0.0, 0.0, 0.35))
+
+func _on_demon_died(demon: Node) -> void:
+	GameData.kills       += 1
+	GameData.soul_points += demon.soul_value
+	hud.update_souls(GameData.soul_points)
 
 func _on_player_died() -> void:
 	hud.show_death_screen()
