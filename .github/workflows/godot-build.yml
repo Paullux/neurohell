@@ -73,7 +73,8 @@ jobs:
 
       - name: "⚙️  Installer Godot ${{ env.GODOT_VERSION }}"
         run: |
-          FULL="${GODOT_VERSION}-${GODOT_STABILITY}"
+          FULL="${GODOT_VERSION}-${GODOT_STABILITY}"          # tag GitHub : 4.6.2-stable
+          TPL_NAME="${GODOT_VERSION}.${GODOT_STABILITY}"      # dossier Godot : 4.6.2.stable
           BASE="https://github.com/godotengine/godot/releases/download/${FULL}"
 
           echo "→ Téléchargement de Godot headless…"
@@ -84,7 +85,7 @@ jobs:
           godot --version
 
           echo "→ Téléchargement des templates d'export…"
-          TPL_DIR="${HOME}/.local/share/godot/export_templates/${FULL}"
+          TPL_DIR="${HOME}/.local/share/godot/export_templates/${TPL_NAME}"
           mkdir -p "${TPL_DIR}"
           wget -q "${BASE}/Godot_v${FULL}_export_templates.tpz" -O templates.tpz
           unzip -q templates.tpz -d tpl_tmp
