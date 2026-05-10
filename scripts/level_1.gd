@@ -45,11 +45,18 @@ func _ready() -> void:
 		wm.ammo_changed.connect(hud.set_ammo)
 		wm.scope_toggled.connect(hud.set_scope)
 
+	# Stats de session — reset au début du niveau
+	GameData.soul_points  = 0
+	GameData.kills        = 0
+	GameData.damage_dealt = 0.0
+	GameData.level_start_time = Time.get_ticks_msec() / 1000.0
+
 	# Collecter les démons
 	for demon: Node in demons_root.get_children():
 		if demon.has_method("set_player"):
 			demon.set_player(player)
 			demon.demon_hit_player.connect(_on_demon_hit_player)
+			demon.demon_died.connect(_on_demon_died)
 			_demons.append(demon)
 
 	# Game manager
@@ -81,6 +88,7 @@ func _ready() -> void:
 		player.armor_changed.emit(player.armor)
 
 	hud.show_start_overlay("CLIQUEZ POUR COMMENCER\n[WASD] Déplacer  [ESPACE] Sauter  [1-5] Armes  [CLIC] Tirer  [F] Torche")
+	_spawn_collectibles()
 
 # ── Génération colliders GLB ──────────────────────────────
 var _collider_count := 0
@@ -100,9 +108,32 @@ func _generate_colliders(node: Node) -> void:
 	for child: Node in node.get_children():
 		_generate_colliders(child)
 
+func _spawn_collectibles() -> void:
+	const CollectibleScript := preload("res://scripts/collectible.gd")
+	# { position, type(0=HEALTH 1=ARMOR 2=AMMO), value }
+	var items := [
+		{ "pos": Vector3(-8,  0.5, -15), "type": 0, "val": 30.0 },  # vie
+		{ "pos": Vector3( 8,  0.5, -25), "type": 2, "val": 20.0 },  # ammo
+		{ "pos": Vector3(-5,  0.5, -38), "type": 1, "val": 25.0 },  # armure
+		{ "pos": Vector3( 5,  0.5, -48), "type": 2, "val": 15.0 },  # ammo
+		{ "pos": Vector3( 0,  0.5, -55), "type": 0, "val": 20.0 },  # vie
+	]
+	for item in items:
+		var c := Area3D.new()
+		c.set_script(CollectibleScript)
+		c.type  = item["type"]
+		c.value = item["val"]
+		c.global_position = item["pos"]
+		add_child(c)
+
 func _on_demon_hit_player(damage: float) -> void:
 	player.take_damage(damage)
 	hud.show_hit_flash(Color(1.0, 0.0, 0.0, 0.35))
+
+func _on_demon_died(demon: Node) -> void:
+	GameData.kills       += 1
+	GameData.soul_points += demon.soul_value
+	hud.update_souls(GameData.soul_points)
 
 func _on_player_died() -> void:
 	hud.show_death_screen()

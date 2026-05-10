@@ -9,10 +9,12 @@ extends Area3D
 @export var next_scene: String = "res://scenes/level_2.tscn"
 @export var spin_node: NodePath = NodePath("")
 @export var spin_speed: float = 140.0
-@export var trigger_radius: float = 2.2 # rayon horizontal XZ
+@export var trigger_radius: float = 2.2  # rayon déclenchement
+@export var warning_radius: float = 6.0  # rayon message d'approche
 
 var _activated: bool = false
 var _spin_target: Node3D = null
+var _warning_shown: bool = false
 
 func _ready() -> void:
 	monitoring = true
@@ -42,10 +44,17 @@ func _check_player_distance_xz() -> void:
 
 		var player := node as Node3D
 		var player_xz := Vector2(player.global_position.x, player.global_position.z)
+		var dist := disc_xz.distance_to(player_xz)
 
-		if disc_xz.distance_to(player_xz) <= trigger_radius:
+		if dist <= trigger_radius:
 			_activate_portal(player)
 			return
+
+		if not _warning_shown and dist <= warning_radius:
+			_warning_shown = true
+			var hud := get_tree().current_scene.find_child("HUD", true, false)
+			if hud and hud.has_method("show_narration"):
+				hud.show_narration("SORTIE DÉTECTÉE — Approchez du disque")
 
 func _on_body_entered(body: Node3D) -> void:
 	if body.is_in_group("player"):
@@ -62,6 +71,12 @@ func _activate_portal(_player: Node3D) -> void:
 		GameData.health    = _player.health
 		GameData.armor     = _player.armor
 		GameData.has_saved = true
+
+	# Afficher les stats de fin de niveau
+	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
+	var hud := get_tree().current_scene.find_child("HUD", true, false)
+	if hud and hud.has_method("show_end_stats"):
+		hud.show_end_stats(GameData.kills, GameData.soul_points, elapsed)
 
 	_do_transition()
 

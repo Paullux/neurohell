@@ -426,6 +426,38 @@ func show_start_overlay(msg: String) -> void:
 func hide_start_overlay() -> void:
 	if start_overlay: start_overlay.visible = false
 
+# ── Points d'âme ──────────────────────────────────────────────
+var _souls_label: Label = null
+
+func update_souls(points: int) -> void:
+	if _souls_label == null:
+		_souls_label = _build_souls_label()
+	_souls_label.text = "✦ %d" % points
+	# Flash bref à chaque gain
+	var tw := create_tween()
+	tw.tween_property(_souls_label, "modulate", Color(1.0, 0.85, 0.2, 1.0), 0.0)
+	tw.tween_property(_souls_label, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.4)
+
+func _build_souls_label() -> Label:
+	var root := get_node_or_null("Root")
+	if root == null: root = self
+	var lbl := Label.new()
+	lbl.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	lbl.offset_left   = -160.0
+	lbl.offset_top    =  28.0
+	lbl.offset_right  =  -28.0
+	lbl.offset_bottom =  60.0
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	lbl.add_theme_font_override("font", _FONT_ORB_REG)
+	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.add_theme_color_override("font_color", Color(0.95, 0.82, 0.15, 1.0))
+	lbl.add_theme_color_override("font_shadow_color", Color(0.8, 0.5, 0.0, 0.9))
+	lbl.add_theme_constant_override("shadow_outline_size", 6)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.text = "✦ 0"
+	root.add_child(lbl)
+	return lbl
+
 # ── Narration ─────────────────────────────────────────────────
 var _narr_label: Label = null
 var _narr_tween: Tween = null
@@ -470,6 +502,53 @@ func _build_narration_label() -> Label:
 	lbl.modulate.a    = 0.0
 	root.add_child(lbl)
 	return lbl
+
+# ── Écran fin de niveau ───────────────────────────────────────
+func show_end_stats(kills: int, souls: int, time_secs: float) -> void:
+	var root := get_node_or_null("Root")
+	if root == null: root = self
+
+	var mins := int(time_secs) / 60
+	var secs := int(time_secs) % 60
+
+	var overlay := ColorRect.new()
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.color        = Color(0.0, 0.0, 0.0, 0.0)
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(overlay)
+
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_preset(Control.PRESET_CENTER)
+	vbox.offset_left   = -220.0
+	vbox.offset_top    = -120.0
+	vbox.offset_right  =  220.0
+	vbox.offset_bottom =  120.0
+	vbox.alignment     = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 18)
+	overlay.add_child(vbox)
+
+	var lines := [
+		["NIVEAU TERMINÉ",        _FONT_ORB_BOLD, 22, Color(0.0, 0.9, 1.0, 1.0)],
+		["",                      _FONT_EXO2,      8, Color.WHITE],
+		["%02d:%02d" % [mins, secs], _FONT_ORB_REG, 32, Color.WHITE],
+		["temps",                 _FONT_EXO2,     11, Color(0.6, 0.6, 0.6, 1.0)],
+		["",                      _FONT_EXO2,     8,  Color.WHITE],
+		["%d kills" % kills,      _FONT_ORB_REG,  18, Color(1.0, 0.4, 0.4, 1.0)],
+		["✦ %d âmes" % souls,     _FONT_ORB_REG,  18, Color(0.95, 0.82, 0.15, 1.0)],
+	]
+	for line in lines:
+		var lbl := Label.new()
+		lbl.text = line[0]
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_override("font", line[1])
+		lbl.add_theme_font_size_override("font_size", line[2])
+		lbl.add_theme_color_override("font_color", line[3])
+		lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vbox.add_child(lbl)
+
+	# Fade in → tenu → la transition de scène arrive après
+	var tw := create_tween()
+	tw.tween_property(overlay, "color:a", 0.85, 0.6).set_ease(Tween.EASE_OUT)
 
 # ── Fondu depuis le blanc (transition entre niveaux) ─────────
 func fade_in_from_white(duration: float = 1.5) -> void:

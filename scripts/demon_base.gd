@@ -13,6 +13,7 @@ extends CharacterBody3D
 
 @export var float_amplitude: float = 0.0   # > 0 → vole directement (Voidborn)
 @export var float_freq: float      = 1.0
+@export var soul_value: int        = 10    # points d'âme accordés à la mort
 
 # ── Noms d'animations (visibles dans l'Inspector) ────────────
 @export var anim_idle:        String = "Idle"
