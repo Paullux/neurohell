@@ -102,12 +102,8 @@ func _activate_portal(player: Node3D) -> void:
 	tw.tween_callback(_on_white_done)
 
 func _on_white_done() -> void:
-	# Écran de fin de jeu → pas de stats inter-niveau, transition directe
-	if next_scene.ends_with("game_win.tscn"):
-		_change_scene_safe()
-		return
-
 	# Stats par-dessus le blanc (layer 100) puis attente d'un input
+	# (vaut pour tous les niveaux y compris la transition vers game_win)
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
 	var hud := get_tree().current_scene.find_child("HUD", true, false)
 	if hud and hud.has_method("show_end_stats"):
