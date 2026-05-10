@@ -14,18 +14,8 @@
 *.ogg  filter=lfs diff=lfs merge=lfs -text
 *.mp3  filter=lfs diff=lfs merge=lfs -text
 *.flac filter=lfs diff=lfs merge=lfs -text
-# ── Textures / Images ───────────────────────────────────────
-*.png  filter=lfs diff=lfs merge=lfs -text
-*.jpg  filter=lfs diff=lfs merge=lfs -text
-*.jpeg filter=lfs diff=lfs merge=lfs -text
-*.webp filter=lfs diff=lfs merge=lfs -text
-*.tga  filter=lfs diff=lfs merge=lfs -text
-*.bmp  filter=lfs diff=lfs merge=lfs -text
-*.dds  filter=lfs diff=lfs merge=lfs -text
-*.ktx  filter=lfs diff=lfs merge=lfs -text
-# ── HDRI / EXR ──────────────────────────────────────────────
-*.exr  filter=lfs diff=lfs merge=lfs -text
-*.hdr  filter=lfs diff=lfs merge=lfs -text
+# ── Textures / Images — git standard (embarquées dans le binaire Godot) ──
+# *.png *.jpg *.jpeg *.webp *.tga *.bmp *.dds *.ktx *.exr *.hdr → pas LFS
 # ── Godot ressources binaires ────────────────────────────────
 *.res  filter=lfs diff=lfs merge=lfs -text
 *.scn  filter=lfs diff=lfs merge=lfs -text
