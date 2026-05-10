@@ -61,12 +61,12 @@ jobs:
           ./mc alias set neurohell "$MINIO_URL" "$MC_USER" "$MC_PASS"
 
           echo "→ Téléchargement des assets…"
-          ./mc cp --recursive "neurohell/$MINIO_BUCKET/levels/"  assets/levels/
-          ./mc cp --recursive "neurohell/$MINIO_BUCKET/demons/"  assets/demons/
-          ./mc cp --recursive "neurohell/$MINIO_BUCKET/weapons/" assets/weapons/
-          ./mc cp --recursive "neurohell/$MINIO_BUCKET/decor/"   assets/decor/
-          ./mc cp --recursive "neurohell/$MINIO_BUCKET/videos/"  assets/videos/
-          ./mc cp --recursive "neurohell/$MINIO_BUCKET/audio/"   assets/audio/musics/
+          ./mc cp --recursive "$MINIO_BUCKET/levels/"  assets/levels/
+          ./mc cp --recursive "$MINIO_BUCKET/demons/"  assets/demons/
+          ./mc cp --recursive "$MINIO_BUCKET/weapons/" assets/weapons/
+          ./mc cp --recursive "$MINIO_BUCKET/decor/"   assets/decor/
+          ./mc cp --recursive "$MINIO_BUCKET/videos/"  assets/videos/
+          ./mc cp --recursive "$MINIO_BUCKET/audio/"   assets/audio/musics/
 
           echo "→ Assets téléchargés :"
           du -sh assets/*/
