@@ -65,7 +65,7 @@ jobs:
           ./mc cp --recursive "$MINIO_BUCKET/weapons/" assets/weapons/
           ./mc cp --recursive "$MINIO_BUCKET/decor/"   assets/decor/
           ./mc cp --recursive "$MINIO_BUCKET/videos/"  assets/videos/
-          ./mc cp --recursive "$MINIO_BUCKET/audio/"   assets/audio/musics/
+          # audio/musics/ est en git direct — pas besoin de MinIO
 
           echo "→ Assets téléchargés :"
           du -sh assets/*/

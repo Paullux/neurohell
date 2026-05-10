@@ -13,7 +13,7 @@ assets/decor/
 assets/demons/
 assets/videos/
 assets/weapons/
-assets/audio/musics/
+# assets/audio/musics/ → en git direct (11 Mo, pas de LFS nécessaire)
 
 # OS
 .DS_Store
