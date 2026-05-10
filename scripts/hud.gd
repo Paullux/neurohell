@@ -505,17 +505,19 @@ func _build_narration_label() -> Label:
 
 # ── Écran fin de niveau ───────────────────────────────────────
 func show_end_stats(kills: int, souls: int, time_secs: float) -> void:
-	var root := get_node_or_null("Root")
-	if root == null: root = self
-
 	var mins := int(time_secs) / 60
 	var secs := int(time_secs) % 60
 
+	# Layer 100 : au-dessus du blanc (layer 99)
+	var cl := CanvasLayer.new()
+	cl.layer = 100
+	get_tree().root.add_child(cl)
+
 	var overlay := ColorRect.new()
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	overlay.color        = Color(0.0, 0.0, 0.0, 0.0)
+	overlay.color        = Color(0.0, 0.0, 0.0, 0.82)
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(overlay)
+	cl.add_child(overlay)
 
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
