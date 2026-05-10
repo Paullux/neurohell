@@ -6,6 +6,15 @@
 # Templates d'export (téléchargés par le CI)
 android/
 
+# Assets binaires lourds — stockés sur MinIO (assets.neurohell.com)
+# Ne pas versionner dans Git ni LFS
+assets/levels/
+assets/decor/
+assets/demons/
+assets/videos/
+assets/weapons/
+assets/audio/musics/
+
 # OS
 .DS_Store
 Thumbs.db
