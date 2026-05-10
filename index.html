@@ -793,7 +793,6 @@
               <p id="dl-release-info" style="font-size:0.88rem;color:var(--muted);margin-top:6px;">
                 Vérification de la dernière version…
               </p>
-              <p id="dl-total-count" style="font-size:0.82rem;color:var(--muted);margin-top:2px;"></p>
             </div>
             <div class="dl-grid" id="dl-grid">
               <!-- Rempli dynamiquement par fetchLatestRelease() -->
@@ -1042,15 +1041,14 @@
         const publishedAt = data.published_at ?? '';
         const assets      = data.assets       ?? [];
 
-        // Total téléchargements toutes versions confondues
-        const totalDl = releases
-          .flatMap(r => r.assets ?? [])
+        // Total téléchargements par plateforme, toutes versions confondues
+        const allAssets  = releases.flatMap(r => r.assets ?? []);
+        const totalWin   = allAssets
+          .filter(a => a.name.toLowerCase().includes('windows'))
           .reduce((sum, a) => sum + (a.download_count ?? 0), 0);
-        const totalEl = document.getElementById('dl-total-count');
-        if (totalEl && totalDl > 0) {
-          totalEl.textContent =
-            `↓ ${totalDl.toLocaleString('fr-FR')} téléchargement${totalDl > 1 ? 's' : ''} au total (toutes versions)`;
-        }
+        const totalLinux = allAssets
+          .filter(a => a.name.toLowerCase().includes('linux'))
+          .reduce((sum, a) => sum + (a.download_count ?? 0), 0);
 
         const dateStr = publishedAt ? formatReleaseDate(publishedAt) : '';
         infoEl.innerHTML =
@@ -1068,10 +1066,9 @@
           winBadge.textContent = version;
           winBadge.classList.remove('soon');
           const mb = (winAsset.size / 1048576).toFixed(1);
-          const dlWin = winAsset.download_count ?? 0;
           winBtn.querySelector('.dl-meta').textContent = `Windows 10 / 11 — 64 bit — ${mb} Mo`;
           document.getElementById('dl-win-count').textContent =
-            dlWin > 0 ? `↓ ${dlWin.toLocaleString('fr-FR')} téléchargement${dlWin > 1 ? 's' : ''}` : '';
+            totalWin > 0 ? `↓ ${totalWin.toLocaleString('fr-FR')} téléchargement${totalWin > 1 ? 's' : ''} (toutes versions)` : '';
         } else {
           infoEl.textContent += ' · Build Windows en cours…';
         }
@@ -1083,10 +1080,9 @@
           linuxBadge.textContent = version;
           linuxBadge.classList.remove('soon');
           const mb = (linuxAsset.size / 1048576).toFixed(1);
-          const dlLinux = linuxAsset.download_count ?? 0;
           linuxBtn.querySelector('.dl-meta').textContent = `x86_64 — Ubuntu, Debian, Arch… — ${mb} Mo`;
           document.getElementById('dl-linux-count').textContent =
-            dlLinux > 0 ? `↓ ${dlLinux.toLocaleString('fr-FR')} téléchargement${dlLinux > 1 ? 's' : ''}` : '';
+            totalLinux > 0 ? `↓ ${totalLinux.toLocaleString('fr-FR')} téléchargement${totalLinux > 1 ? 's' : ''} (toutes versions)` : '';
         }
 
         // Afficher la config minimale si au moins un lien dispo
