@@ -52,8 +52,8 @@ func _ready() -> void:
 		wm.ammo_changed.connect(hud.set_ammo)
 		wm.scope_toggled.connect(hud.set_scope)
 
-	# Stats de session
-	GameData.soul_points  = 0
+	# Stats de session — kills et temps remis à zéro par niveau
+	# soul_points conservés (cumul entre niveaux)
 	GameData.kills        = 0
 	GameData.damage_dealt = 0.0
 	GameData.level_start_time = Time.get_ticks_msec() / 1000.0
@@ -88,6 +88,9 @@ func _ready() -> void:
 		player.armor  = GameData.armor
 		player.health_changed.emit(player.health)
 		player.armor_changed.emit(player.armor)
+
+	# Afficher le total d'âmes cumulé sur le nouveau HUD
+	hud.update_souls(GameData.soul_points)
 
 	# Générer les colliders
 	if world:

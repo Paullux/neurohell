@@ -44,7 +44,7 @@ func _process(delta: float) -> void:
 
 	# ── Détection joueur (XZ uniquement) ──────────────────────
 	var center_xz := Vector2(_portal_center.global_position.x,
-	                          _portal_center.global_position.z)
+							  _portal_center.global_position.z)
 
 	for node in get_tree().get_nodes_in_group("player"):
 		if not node is Node3D:
@@ -102,7 +102,12 @@ func _activate_portal(player: Node3D) -> void:
 	tw.tween_callback(_on_white_done)
 
 func _on_white_done() -> void:
-	# Afficher les stats par-dessus le blanc (layer 100 dans hud.gd)
+	# Écran de fin de jeu → pas de stats inter-niveau, transition directe
+	if next_scene.ends_with("game_win.tscn"):
+		_change_scene_safe()
+		return
+
+	# Stats par-dessus le blanc (layer 100) puis attente d'un input
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
 	var hud := get_tree().current_scene.find_child("HUD", true, false)
 	if hud and hud.has_method("show_end_stats"):
@@ -113,7 +118,7 @@ func _input(event: InputEvent) -> void:
 	if not _waiting_input:
 		return
 	var valid: bool = (event is InputEventKey        and event.pressed) \
-	              or (event is InputEventMouseButton and event.pressed)
+				  or (event is InputEventMouseButton and event.pressed)
 	if valid:
 		_waiting_input = false
 		_change_scene_safe()
