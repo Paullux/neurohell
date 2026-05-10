@@ -38,6 +38,12 @@ var _lbl_press:   Label = null
 var _btn_video:   Button = null
 
 func _ready() -> void:
+	# Supprimer les overlays de transition hérités du niveau précédent
+	# (blanc layer 99, stats layer 100 créés par portal_disc / hud)
+	for child in get_tree().root.get_children():
+		if child is CanvasLayer and child.layer >= 99:
+			child.free()
+
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
