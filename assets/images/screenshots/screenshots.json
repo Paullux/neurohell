@@ -1,0 +1,15 @@
+[
+  { "file": "Menu_Principal.jpg",  "caption": "Menu principal" },
+  { "file": "Video_Intro.jpg",     "caption": "Cinématique d'intro" },
+  { "file": "Video_Intro_2.jpg",   "caption": "Cinématique d'intro — réveil en enfer" },
+  { "file": "In_game.jpg",         "caption": "Niveau 1 — exploration" },
+  { "file": "In_Game_2.jpg",       "caption": "Niveau 1 — combat" },
+  { "file": "In_Game_3.jpg",       "caption": "Niveau 1 — couloir" },
+  { "file": "In_Game_4.jpg",       "caption": "Niveau 1 — arène" },
+  { "file": "In_Game_5.jpg",       "caption": "Niveau 1 — démon en approche" },
+  { "file": "In_Game_6.jpg",       "caption": "Niveau 2 — exploration" },
+  { "file": "In_Game_7.jpg",       "caption": "Niveau 2 — combat" },
+  { "file": "End_Level_1.jpg",     "caption": "Portail de fin de niveau" },
+  { "file": "End_of_Game.jpg",     "caption": "Écran de victoire" },
+  { "file": "Video_Outro.jpg",     "caption": "Cinématique de fin" }
+]

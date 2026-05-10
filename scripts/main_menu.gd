@@ -17,6 +17,10 @@ var _btn_base_texts:  Dictionary = {}  # texte original de chaque bouton
 var _latest_version:  String = ""      # rempli par le fetch GitHub
 var _http:            HTTPRequest = null
 
+# ── Grille captures ──────────────────────────────────────────
+var _screenshot_scroll: ScrollContainer = null
+var _screenshots_built: bool = false
+
 # ── Style actif (rouge + crânes permanent) ───────────────────
 var _style_active: StyleBoxFlat = null
 var _style_normal: StyleBoxFlat = null
@@ -110,7 +114,13 @@ func _on_version_fetched(result: int, code: int, _headers: PackedStringArray, bo
 
 
 # ── Contenus ─────────────────────────────────────────────────
+func _hide_screenshot_grid() -> void:
+	if _screenshot_scroll:
+		_screenshot_scroll.visible = false
+	content_label.visible = true
+
 func _show_home() -> void:
+	_hide_screenshot_grid()
 	content_label.text = """
 [center][font_size=28][b]Entrée en enfer[/b][/font_size][/center]
 
@@ -121,6 +131,7 @@ func _show_home() -> void:
 
 
 func _show_story() -> void:
+	_hide_screenshot_grid()
 	content_label.text = """
 [font_size=24][b]Histoire du jeu[/b][/font_size]
 
@@ -148,14 +159,91 @@ Traverser l'enfer pour atteindre le purgatoire, sauver son âme, et peut-être r
 
 
 func _show_screenshots() -> void:
-	content_label.text = """
-[font_size=24][b]Captures d'écran[/b][/font_size]
+	content_label.visible = false
+	if not _screenshots_built:
+		_build_screenshot_grid()
+	if _screenshot_scroll:
+		_screenshot_scroll.visible = true
 
-Les captures de la version desktop seront ajoutées plus tard.
-"""
+func _build_screenshot_grid() -> void:
+	_screenshots_built = true
+
+	# Lire screenshots.json
+	const JSON_PATH := "res://assets/images/screenshots/screenshots.json"
+	if not FileAccess.file_exists(JSON_PATH):
+		return
+	var f := FileAccess.open(JSON_PATH, FileAccess.READ)
+	if f == null:
+		return
+	var list: Variant = JSON.parse_string(f.get_as_text())
+	f.close()
+	if not list is Array or list.is_empty():
+		return
+
+	# ScrollContainer dans le même parent que content_label
+	var panel := content_label.get_parent()
+	_screenshot_scroll = ScrollContainer.new()
+	_screenshot_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_screenshot_scroll.size_flags_vertical   = Control.SIZE_EXPAND_FILL
+	_screenshot_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(_screenshot_scroll)
+
+	var outer := VBoxContainer.new()
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_theme_constant_override("separation", 14)
+	_screenshot_scroll.add_child(outer)
+
+	# Titre
+	var title := Label.new()
+	title.text = "Captures d'écran"
+	title.add_theme_font_override("font", $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonPlay.get_theme_font("font"))
+	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_color_override("font_color", Color(1.0, 0.44, 0.44, 1.0))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	outer.add_child(title)
+
+	# Grille 3 colonnes
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	outer.add_child(grid)
+
+	for item in list:
+		var fname: String = item.get("file", "")
+		var caption: String = item.get("caption", "")
+		if fname == "":
+			continue
+
+		var tex: Texture2D = load("res://assets/images/screenshots/" + fname)
+		if tex == null:
+			continue
+
+		var cell := VBoxContainer.new()
+		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+		var tr := TextureRect.new()
+		tr.texture      = tex
+		tr.expand_mode  = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		tr.custom_minimum_size = Vector2(0, 90)
+		tr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		cell.add_child(tr)
+
+		var lbl := Label.new()
+		lbl.text = caption
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 11)
+		lbl.add_theme_color_override("font_color", Color(0.72, 0.72, 0.72, 1.0))
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cell.add_child(lbl)
+
+		grid.add_child(cell)
 
 
 func _show_download() -> void:
+	_hide_screenshot_grid()
 	var current   := GameVersion.VERSION
 	var build_date := GameVersion.BUILD_DATE
 	var os_name   := OS.get_name()
