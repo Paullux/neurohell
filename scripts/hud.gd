@@ -481,9 +481,9 @@ func show_narration(text: String) -> void:
 		.set_ease(Tween.EASE_IN)
 
 func _build_narration_label() -> Label:
-	# CanvasLayer dédié layer 50 → toujours au-dessus du HUD (layer ~10)
+	# CanvasLayer layer 98 → au-dessus du HUD, nettoyé avec le blanc/stats au changement de scène
 	var cl := CanvasLayer.new()
-	cl.layer = 50
+	cl.layer = 98
 	get_tree().root.add_child(cl)
 
 	var lbl := Label.new()

@@ -32,7 +32,7 @@ func _process(_delta: float) -> void:
 func _ready() -> void:
 	# Supprimer l'overlay de transition du niveau précédent
 	for child in get_tree().root.get_children():
-		if child is CanvasLayer and child.layer >= 99:
+		if child is CanvasLayer and child.layer >= 98:
 			child.queue_free()
 
 	# Fondu depuis le blanc

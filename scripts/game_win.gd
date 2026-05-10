@@ -41,7 +41,7 @@ func _ready() -> void:
 	# Supprimer les overlays de transition hérités du niveau précédent
 	# (blanc layer 99, stats layer 100 créés par portal_disc / hud)
 	for child in get_tree().root.get_children():
-		if child is CanvasLayer and child.layer >= 99:
+		if child is CanvasLayer and child.layer >= 98:
 			child.free()
 
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
