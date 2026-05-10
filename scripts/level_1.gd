@@ -48,6 +48,7 @@ func _ready() -> void:
 	# Stats de session — reset au début du niveau
 	GameData.soul_points  = 0
 	GameData.kills        = 0
+	GameData.deaths       = 0
 	GameData.damage_dealt = 0.0
 	GameData.level_start_time = Time.get_ticks_msec() / 1000.0
 
@@ -136,6 +137,7 @@ func _on_demon_died(demon: Node) -> void:
 	hud.update_souls(GameData.soul_points)
 
 func _on_player_died() -> void:
+	GameData.deaths += 1
 	hud.show_death_screen()
 
 func _input(event: InputEvent) -> void:

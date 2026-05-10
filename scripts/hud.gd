@@ -506,7 +506,7 @@ func _build_narration_label() -> Label:
 	return lbl
 
 # ── Écran fin de niveau ───────────────────────────────────────
-func show_end_stats(kills: int, souls: int, time_secs: float) -> void:
+func show_end_stats(kills: int, souls: int, time_secs: float, deaths: int = 0) -> void:
 	var mins := int(time_secs) / 60
 	var secs := int(time_secs) % 60
 
@@ -524,21 +524,25 @@ func show_end_stats(kills: int, souls: int, time_secs: float) -> void:
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_CENTER)
 	vbox.offset_left   = -220.0
-	vbox.offset_top    = -120.0
+	vbox.offset_top    = -145.0
 	vbox.offset_right  =  220.0
-	vbox.offset_bottom =  120.0
+	vbox.offset_bottom =  145.0
 	vbox.alignment     = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 18)
+	vbox.add_theme_constant_override("separation", 16)
 	overlay.add_child(vbox)
 
+	var death_label: String = "0 mort" if deaths == 0 else \
+							  "%d mort" % deaths if deaths == 1 else \
+							  "%d morts" % deaths
 	var lines := [
-		["NIVEAU TERMINÉ",        _FONT_ORB_BOLD, 22, Color(0.0, 0.9, 1.0, 1.0)],
-		["",                      _FONT_EXO2,      8, Color.WHITE],
-		["%02d:%02d" % [mins, secs], _FONT_ORB_REG, 32, Color.WHITE],
-		["temps",                 _FONT_EXO2,     11, Color(0.6, 0.6, 0.6, 1.0)],
-		["",                      _FONT_EXO2,     8,  Color.WHITE],
-		["%d kills" % kills,      _FONT_ORB_REG,  18, Color(1.0, 0.4, 0.4, 1.0)],
-		["✦ %d âmes" % souls,     _FONT_ORB_REG,  18, Color(0.95, 0.82, 0.15, 1.0)],
+		["NIVEAU TERMINÉ",           _FONT_ORB_BOLD, 22, Color(0.0, 0.9, 1.0, 1.0)],
+		["",                         _FONT_EXO2,      8, Color.WHITE],
+		["%02d:%02d" % [mins, secs], _FONT_ORB_REG,  32, Color.WHITE],
+		["temps",                    _FONT_EXO2,     11, Color(0.6, 0.6, 0.6, 1.0)],
+		["",                         _FONT_EXO2,      8, Color.WHITE],
+		["%d kills" % kills,         _FONT_ORB_REG,  18, Color(1.0, 0.4, 0.4, 1.0)],
+		[death_label,                _FONT_ORB_REG,  18, Color(0.85, 0.55, 1.0, 1.0)],
+		["✦ %d âmes" % souls,        _FONT_ORB_REG,  18, Color(0.95, 0.82, 0.15, 1.0)],
 	]
 	for line in lines:
 		var lbl := Label.new()

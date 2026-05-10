@@ -10,5 +10,6 @@ static var has_saved: bool  = false
 # ── Stats de session ─────────────────────────────────────────
 static var soul_points:   int   = 0
 static var kills:         int   = 0
+static var deaths:        int   = 0   # morts joueur, cumulées sur toute la partie
 static var damage_dealt:  float = 0.0
 static var level_start_time: float = 0.0  # Time.get_ticks_msec() au spawn

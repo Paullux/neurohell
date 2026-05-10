@@ -107,7 +107,7 @@ func _on_white_done() -> void:
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
 	var hud := get_tree().current_scene.find_child("HUD", true, false)
 	if hud and hud.has_method("show_end_stats"):
-		hud.show_end_stats(GameData.kills, GameData.soul_points, elapsed)
+		hud.show_end_stats(GameData.kills, GameData.soul_points, elapsed, GameData.deaths)
 	_waiting_input = true
 
 func _input(event: InputEvent) -> void:
