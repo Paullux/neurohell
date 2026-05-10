@@ -9,7 +9,7 @@ extends Area3D
 @export var next_scene:     String   = "res://scenes/level_2.tscn"
 @export var spin_node:      NodePath = NodePath("")
 @export var spin_speed:     float    = 140.0
-@export var trigger_radius: float    = 2.2
+@export var trigger_radius: float    = 2.8
 @export var warning_radius: float    = 6.0
 
 var _activated:    bool    = false
@@ -20,8 +20,10 @@ var _player_ref:   Node3D  = null
 var _cl:           CanvasLayer = null   # canvas du blanc + stats
 
 func _ready() -> void:
-	monitoring = true
-	monitorable = true
+	monitoring     = true
+	monitorable    = true
+	# Joueur sur collision_layer=4 → le mask doit inclure ce bit
+	collision_mask = 4
 	if not body_entered.is_connected(_on_body_entered):
 		body_entered.connect(_on_body_entered)
 	if spin_node != NodePath(""):
@@ -87,7 +89,8 @@ func _activate_portal(player: Node3D) -> void:
 	white.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_cl.add_child(white)
 
-	var tw := create_tween()
+	# Tween rattaché au SceneTree (pas au nœud) → ne s'arrête pas si le nœud est figé
+	var tw := get_tree().create_tween()
 	tw.tween_property(white, "color:a", 1.0, 1.2) \
 		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	tw.tween_callback(_on_white_done)
