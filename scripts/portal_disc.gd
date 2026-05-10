@@ -112,8 +112,8 @@ func _on_white_done() -> void:
 func _input(event: InputEvent) -> void:
 	if not _waiting_input:
 		return
-	var valid := (event is InputEventKey        and event.pressed) \
-	          or (event is InputEventMouseButton and event.pressed)
+	var valid: bool = (event is InputEventKey        and event.pressed) \
+	              or (event is InputEventMouseButton and event.pressed)
 	if valid:
 		_waiting_input = false
 		_change_scene_safe()
