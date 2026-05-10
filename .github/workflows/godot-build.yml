@@ -52,19 +52,21 @@ jobs:
           fetch-depth: 0
 
       - name: "📦 Pull assets depuis MinIO (CDN)"
+        env:
+          MC_USER: ${{ secrets.MINIO_USER }}
+          MC_PASS: ${{ secrets.MINIO_PASS }}
         run: |
           wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
-          ./mc alias set neurohell ${{ env.MINIO_URL }} \
-            ${{ secrets.MINIO_USER }} ${{ secrets.MINIO_PASS }}
+          ./mc alias set neurohell "$MINIO_URL" "$MC_USER" "$MC_PASS"
 
           echo "→ Téléchargement des assets…"
-          ./mc cp --recursive neurohell/${{ env.MINIO_BUCKET }}/levels/  assets/levels/
-          ./mc cp --recursive neurohell/${{ env.MINIO_BUCKET }}/demons/  assets/demons/
-          ./mc cp --recursive neurohell/${{ env.MINIO_BUCKET }}/weapons/ assets/weapons/
-          ./mc cp --recursive neurohell/${{ env.MINIO_BUCKET }}/decor/   assets/decor/
-          ./mc cp --recursive neurohell/${{ env.MINIO_BUCKET }}/videos/  assets/videos/
-          ./mc cp --recursive neurohell/${{ env.MINIO_BUCKET }}/audio/   assets/audio/musics/
+          ./mc cp --recursive "neurohell/$MINIO_BUCKET/levels/"  assets/levels/
+          ./mc cp --recursive "neurohell/$MINIO_BUCKET/demons/"  assets/demons/
+          ./mc cp --recursive "neurohell/$MINIO_BUCKET/weapons/" assets/weapons/
+          ./mc cp --recursive "neurohell/$MINIO_BUCKET/decor/"   assets/decor/
+          ./mc cp --recursive "neurohell/$MINIO_BUCKET/videos/"  assets/videos/
+          ./mc cp --recursive "neurohell/$MINIO_BUCKET/audio/"   assets/audio/musics/
 
           echo "→ Assets téléchargés :"
           du -sh assets/*/
