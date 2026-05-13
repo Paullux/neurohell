@@ -10,7 +10,7 @@ extends Area3D
 ## Scène suivante à charger
 @export var next_scene: String = "res://scenes/level_2.tscn"
 
-## ID de la transition pour le cinématique Sonya (1=lvl1→2, 2=lvl2→3, 3=lvl3→win, 0=aucun)
+## Forcer un ID de cinématique Sonya (0 = auto-détecté depuis next_scene)
 @export var sonya_level_id: int = 0
 
 ## Rayon de déclenchement dans le plan XZ (mètres)
@@ -104,13 +104,26 @@ func _activate_portal(player: Node3D) -> void:
 		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	tw.tween_callback(_on_white_done)
 
-func _on_white_done() -> void:
-	# Cinématique Sonya avant les stats (si sonya_level_id > 0 dans l'inspecteur)
+func _get_sonya_id() -> int:
+	# sonya_level_id > 0 dans l'inspecteur = forçage manuel
 	if sonya_level_id > 0:
+		return sonya_level_id
+	# Auto-détection depuis next_scene
+	if next_scene.ends_with("level_2.tscn"):
+		return 1
+	if next_scene.ends_with("level_3.tscn"):
+		return 2
+	if next_scene.ends_with("game_win.tscn"):
+		return 3
+	return 0
+
+func _on_white_done() -> void:
+	var sid := _get_sonya_id()
+	if sid > 0:
 		var cin: Node = load("res://scripts/sonya_cinematic.gd").new()
 		get_tree().root.add_child(cin)
 		cin.cinematic_finished.connect(_on_cinematic_done)
-		cin.play(sonya_level_id)
+		cin.play(sid)
 		return
 	# Chemin normal — inchangé
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
