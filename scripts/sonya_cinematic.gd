@@ -149,12 +149,13 @@ func _build_scene() -> void:
     fill.omni_range      = 6.0
     _viewport.add_child(fill)
 
-    # ── Caméra — légèrement en contre-plongée, Sonya décentrée ──
-    # Style G-Man : caméra à hauteur de poitrine regardant légèrement vers le haut
+    # ── Caméra — corps entier, légèrement décentrée (style G-Man) ──
+    # Sonya ~1.75m (pieds à Y=0, tête à Y≈1.75)
+    # Caméra à hauteur hanche, recule à Z=4 pour voir les pieds jusqu'à la tête
     var cam := Camera3D.new()
-    cam.position        = Vector3(0.18, 0.85, 2.4)   # légèrement à droite
-    cam.rotation_degrees = Vector3(4, -4, 0)          # contre-plongée douce
-    cam.fov             = 44.0
+    cam.position         = Vector3(0.15, 0.78, 4.0)  # reculée, légèrement à droite
+    cam.rotation_degrees = Vector3(2.0, -2.0, 0.0)   # très légère contre-plongée
+    cam.fov              = 52.0                        # FOV plus large = plein corps confortable
     _viewport.add_child(cam)
 
     # ── Sonya GLB ──────────────────────────────────────────────
