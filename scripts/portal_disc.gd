@@ -105,16 +105,21 @@ func _activate_portal(player: Node3D) -> void:
 	tw.tween_callback(_on_white_done)
 
 func _on_white_done() -> void:
-	# Cinématique Sonya avant les stats (si configuré)
+	# Cinématique Sonya avant les stats (si sonya_level_id > 0 dans l'inspecteur)
 	if sonya_level_id > 0:
-		var cin := load("res://scripts/sonya_cinematic.gd").new()
+		var cin: Node = load("res://scripts/sonya_cinematic.gd").new()
 		get_tree().root.add_child(cin)
-		cin.cinematic_finished.connect(_show_end_stats)
+		cin.cinematic_finished.connect(_on_cinematic_done)
 		cin.play(sonya_level_id)
-	else:
-		_show_end_stats()
+		return
+	# Chemin normal — inchangé
+	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
+	var hud := get_tree().current_scene.find_child("HUD", true, false)
+	if hud and hud.has_method("show_end_stats"):
+		hud.show_end_stats(GameData.kills, GameData.soul_points, elapsed, GameData.deaths)
+	_waiting_input = true
 
-func _show_end_stats() -> void:
+func _on_cinematic_done() -> void:
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
 	var hud := get_tree().current_scene.find_child("HUD", true, false)
 	if hud and hud.has_method("show_end_stats"):

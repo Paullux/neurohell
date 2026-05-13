@@ -191,10 +191,12 @@ func _build_scene() -> void:
     _subtitle_lbl.add_theme_constant_override("shadow_outline_size", 4)
     _canvas_layer.add_child(_subtitle_lbl)
 
-    # Sonya commence invisible (scale 0.9)
+    # Sonya commence invisible — le fade se fait via _viewport_cont.modulate (CanvasItem)
     if _sonya_inst:
         _sonya_inst.scale = Vector3(0.9, 0.9, 0.9)
-        _sonya_inst.modulate = Color(1, 1, 1, 0) if _sonya_inst.has_method("set_modulate") else Color(1,1,1,1)
+    # SubViewportContainer commence transparent (CanvasItem → modulate OK)
+    if _viewport_cont:
+        _viewport_cont.modulate = Color(1.0, 1.0, 1.0, 0.0)
 
 
 func _find_mesh(node: Node) -> MeshInstance3D:
