@@ -10,6 +10,9 @@ extends Area3D
 ## Scène suivante à charger
 @export var next_scene: String = "res://scenes/level_2.tscn"
 
+## ID de la transition pour le cinématique Sonya (1=lvl1→2, 2=lvl2→3, 3=lvl3→win, 0=aucun)
+@export var sonya_level_id: int = 0
+
 ## Rayon de déclenchement dans le plan XZ (mètres)
 @export var trigger_radius: float = 1.5
 
@@ -102,8 +105,16 @@ func _activate_portal(player: Node3D) -> void:
 	tw.tween_callback(_on_white_done)
 
 func _on_white_done() -> void:
-	# Stats par-dessus le blanc (layer 100) puis attente d'un input
-	# (vaut pour tous les niveaux y compris la transition vers game_win)
+	# Cinématique Sonya avant les stats (si configuré)
+	if sonya_level_id > 0:
+		var cin := load("res://scripts/sonya_cinematic.gd").new()
+		get_tree().root.add_child(cin)
+		cin.cinematic_finished.connect(_show_end_stats)
+		cin.play(sonya_level_id)
+	else:
+		_show_end_stats()
+
+func _show_end_stats() -> void:
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
 	var hud := get_tree().current_scene.find_child("HUD", true, false)
 	if hud and hud.has_method("show_end_stats"):

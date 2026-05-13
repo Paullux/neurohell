@@ -1,0 +1,343 @@
+extends Node
+
+# ============================================================
+#  SonyaCinematic
+#  Apparition de Sonya sur fond blanc entre deux niveaux.
+#  Flow : fade_in (0.5s) → parle + lip sync → fade_out (0.5s)
+#  Émet cinematic_finished quand terminé.
+#
+#  Usage (depuis portal_disc.gd) :
+#    var cin = SonyaCinematic.new()
+#    add_child(cin)
+#    cin.cinematic_finished.connect(_after_cinematic)
+#    cin.play(1)   # 1 = transition level1→2, 2 = level2→3, 3 = level3→win
+# ============================================================
+
+signal cinematic_finished
+
+const SONYA_SCENE := "res://assets/characters/sonya/sonya_cinematic.glb"
+const AUDIO_BASE  := "res://assets/audio/sonya/"
+const JSON_BASE   := "res://assets/audio/sonya/"
+
+# Durée des transitions
+const FADE_IN_DURATION  := 0.5
+const FADE_OUT_DURATION := 0.6
+
+# Mapping Rhubarb letter → nom du morph target Godot
+const RHUBARB_MAP := {
+    "X": "viseme_sil",
+    "A": "viseme_PP",
+    "B": "viseme_DD",
+    "C": "viseme_kk",
+    "D": "viseme_SS",
+    "E": "viseme_CH",
+    "F": "viseme_FF",
+    "G": "viseme_I",
+    "H": "viseme_AA",
+}
+
+# Données de niveau
+const LEVEL_DATA := {
+    1: {
+        "audio": "level1_to_2.ogg",
+        "json":  "level1_to_2.json",
+        "subtitle": "Continue...\nL'enfer te regarde avancer.\nChaque pas te rapproche d'elle.\nDu purgatoire.\nContinue.",
+    },
+    2: {
+        "audio": "level2_to_3.ogg",
+        "json":  "level2_to_3.json",
+        "subtitle": "Tu résistes mieux que je ne le pensais.\nCe qui t'attend...\nc'est plus qu'un purgatoire.\nC'est une réponse.",
+    },
+    3: {
+        "audio": "level3_to_win.ogg",
+        "json":  "level3_to_win.json",
+        "subtitle": "Tu l'as traversé.\nTout ça... pour elle.\nAvance.\nElle est là.",
+    },
+}
+
+# ── Nœuds ──────────────────────────────────────────────────────
+var _canvas_layer:  CanvasLayer        = null
+var _viewport_cont: SubViewportContainer = null
+var _viewport:      SubViewport        = null
+var _sonya_inst:    Node3D             = null
+var _mesh_inst:     MeshInstance3D     = null
+var _audio:         AudioStreamPlayer  = null
+var _subtitle_lbl:  Label              = null
+var _fade_rect:     ColorRect          = null   # overlay noir pour fade
+
+# ── Lip sync ───────────────────────────────────────────────────
+var _mouth_cues:    Array              = []
+var _cue_index:     int                = 0
+var _morphs:        Dictionary         = {}     # nom → index dans MeshInstance3D
+var _active_morph:  String             = ""
+var _playing:       bool               = false
+var _audio_started: bool               = false
+
+
+# ────────────────────────────────────────────────────────────────
+func play(level_id: int) -> void:
+    var data: Dictionary = LEVEL_DATA.get(level_id, {})
+    if data.is_empty():
+        push_error("SonyaCinematic: level_id invalide : " + str(level_id))
+        cinematic_finished.emit()
+        return
+
+    _build_scene()
+    _load_audio(AUDIO_BASE + data["audio"])
+    _load_lipsync(JSON_BASE + data["json"])
+    _set_subtitle(data["subtitle"])
+    _fade_in()
+
+
+# ────────────────────────────────────────────────────────────────
+func _build_scene() -> void:
+    # ── CanvasLayer par-dessus tout ───────────────────────────
+    _canvas_layer = CanvasLayer.new()
+    _canvas_layer.layer = 101
+    get_tree().root.add_child(_canvas_layer)
+
+    # ── Fond légèrement teinté (le blanc vient de portal_disc) ─
+    _fade_rect = ColorRect.new()
+    _fade_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _fade_rect.color = Color(0.0, 0.0, 0.0, 0.0)
+    _fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _canvas_layer.add_child(_fade_rect)
+
+    # ── SubViewport transparent pour Sonya 3D ─────────────────
+    _viewport_cont = SubViewportContainer.new()
+    _viewport_cont.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _viewport_cont.stretch = true
+    _viewport_cont.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _canvas_layer.add_child(_viewport_cont)
+
+    _viewport = SubViewport.new()
+    _viewport.transparent_bg = true
+    _viewport.size = Vector2i(
+        ProjectSettings.get_setting("display/window/size/viewport_width", 1920),
+        ProjectSettings.get_setting("display/window/size/viewport_height", 1080)
+    )
+    _viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+    _viewport_cont.add_child(_viewport)
+
+    # ── Environnement (lumière ambiante blanche) ───────────────
+    var world_env := WorldEnvironment.new()
+    var env := Environment.new()
+    env.background_mode = Environment.BG_COLOR
+    env.background_color = Color(0, 0, 0, 0)
+    env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+    env.ambient_light_color  = Color(1.0, 0.95, 0.92)
+    env.ambient_light_energy = 1.6
+    world_env.environment = env
+    _viewport.add_child(world_env)
+
+    # ── Lumière directionnelle (rim dramatique) ────────────────
+    var light := DirectionalLight3D.new()
+    light.rotation_degrees = Vector3(-35, 15, 0)
+    light.light_color  = Color(1.0, 0.95, 0.85)
+    light.light_energy = 1.2
+    _viewport.add_child(light)
+
+    # ── Caméra (cadre corps entier) ────────────────────────────
+    var cam := Camera3D.new()
+    cam.position = Vector3(0.0, 0.9, 2.6)
+    cam.rotation_degrees = Vector3(-6, 0, 0)
+    cam.fov = 42.0
+    _viewport.add_child(cam)
+
+    # ── Sonya GLB ──────────────────────────────────────────────
+    if ResourceLoader.exists(SONYA_SCENE):
+        var packed: PackedScene = load(SONYA_SCENE)
+        _sonya_inst = packed.instantiate() as Node3D
+        _sonya_inst.position = Vector3(0.0, 0.0, 0.0)
+        _sonya_inst.rotation_degrees = Vector3(0, 0, 0)
+        _sonya_inst.scale = Vector3(1, 1, 1)
+        _viewport.add_child(_sonya_inst)
+
+        # Trouver le MeshInstance3D et construire la map morph
+        _mesh_inst = _find_mesh(_sonya_inst)
+        if _mesh_inst:
+            _build_morph_map()
+
+        # Jouer l'animation Idle sur l'AnimationPlayer si disponible
+        var anim_player := _sonya_inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
+        if anim_player and anim_player.has_animation("Idle"):
+            anim_player.play("Idle")
+        elif anim_player and anim_player.get_animation_list().size() > 0:
+            anim_player.play(anim_player.get_animation_list()[0])
+    else:
+        push_error("SonyaCinematic: GLB introuvable : " + SONYA_SCENE)
+
+    # ── Audio ──────────────────────────────────────────────────
+    _audio = AudioStreamPlayer.new()
+    _audio.finished.connect(_on_audio_finished)
+    _canvas_layer.add_child(_audio)
+
+    # ── Sous-titres ────────────────────────────────────────────
+    _subtitle_lbl = Label.new()
+    _subtitle_lbl.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+    _subtitle_lbl.offset_top    = -200.0
+    _subtitle_lbl.offset_bottom = -30.0
+    _subtitle_lbl.offset_left   = 80.0
+    _subtitle_lbl.offset_right  = -80.0
+    _subtitle_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _subtitle_lbl.vertical_alignment   = VERTICAL_ALIGNMENT_BOTTOM
+    _subtitle_lbl.autowrap_mode  = TextServer.AUTOWRAP_WORD_SMART
+    _subtitle_lbl.modulate       = Color(1, 1, 1, 0)
+    _subtitle_lbl.add_theme_font_size_override("font_size", 20)
+    _subtitle_lbl.add_theme_color_override("font_color",        Color(1.0, 1.0, 1.0, 1.0))
+    _subtitle_lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 1.0))
+    _subtitle_lbl.add_theme_constant_override("shadow_offset_x", 2)
+    _subtitle_lbl.add_theme_constant_override("shadow_offset_y", 2)
+    _subtitle_lbl.add_theme_constant_override("shadow_outline_size", 4)
+    _canvas_layer.add_child(_subtitle_lbl)
+
+    # Sonya commence invisible (scale 0.9)
+    if _sonya_inst:
+        _sonya_inst.scale = Vector3(0.9, 0.9, 0.9)
+        _sonya_inst.modulate = Color(1, 1, 1, 0) if _sonya_inst.has_method("set_modulate") else Color(1,1,1,1)
+
+
+func _find_mesh(node: Node) -> MeshInstance3D:
+    if node is MeshInstance3D:
+        return node as MeshInstance3D
+    for child in node.get_children():
+        var found := _find_mesh(child)
+        if found:
+            return found
+    return null
+
+
+func _build_morph_map() -> void:
+    if _mesh_inst == null:
+        return
+    var mesh: Mesh = _mesh_inst.mesh
+    if mesh == null:
+        return
+    _morphs.clear()
+    for i in range(mesh.get_blend_shape_count()):
+        var bname: String = mesh.get_blend_shape_name(i)
+        _morphs[bname] = i
+
+    # Pré-calculer les index pour le mapping Rhubarb → index
+    print("SonyaCinematic: ", _morphs.size(), " morph targets trouvés")
+
+
+# ────────────────────────────────────────────────────────────────
+func _load_audio(path: String) -> void:
+    if ResourceLoader.exists(path):
+        _audio.stream = load(path)
+    else:
+        push_error("SonyaCinematic: audio introuvable : " + path)
+
+
+func _load_lipsync(path: String) -> void:
+    _mouth_cues = []
+    _cue_index  = 0
+    if not FileAccess.file_exists(path):
+        push_error("SonyaCinematic: JSON lipsync introuvable : " + path)
+        return
+    var f := FileAccess.open(path, FileAccess.READ)
+    if f == null:
+        return
+    var parsed: Variant = JSON.parse_string(f.get_as_text())
+    f.close()
+    if parsed is Dictionary and parsed.has("mouthCues"):
+        _mouth_cues = parsed["mouthCues"]
+
+
+func _set_subtitle(text: String) -> void:
+    if _subtitle_lbl:
+        _subtitle_lbl.text = text
+
+
+# ── Fade in → démarre audio ───────────────────────────────────
+func _fade_in() -> void:
+    var tw := get_tree().create_tween()
+    # Fade modulate de Sonya (via _viewport_cont alpha)
+    tw.tween_method(_set_viewport_alpha, 0.0, 1.0, FADE_IN_DURATION) \
+        .set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+    # Scale Sonya légèrement
+    if _sonya_inst:
+        tw.parallel().tween_property(_sonya_inst, "scale",
+            Vector3(1.0, 1.0, 1.0), FADE_IN_DURATION) \
+            .set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+    # Fade sous-titres
+    tw.parallel().tween_property(_subtitle_lbl, "modulate",
+        Color(1, 1, 1, 1), FADE_IN_DURATION)
+    tw.tween_callback(_start_audio)
+
+
+func _set_viewport_alpha(a: float) -> void:
+    if _viewport_cont:
+        _viewport_cont.modulate = Color(1, 1, 1, a)
+
+
+func _start_audio() -> void:
+    _playing = true
+    _audio_started = true
+    if _audio.stream:
+        _audio.play()
+    else:
+        # Pas d'audio → attendre 2s puis terminer
+        get_tree().create_timer(2.0).timeout.connect(_begin_fade_out)
+
+
+func _on_audio_finished() -> void:
+    _playing = false
+    # Pause d'une seconde après la fin des dialogues
+    get_tree().create_timer(0.8).timeout.connect(_begin_fade_out)
+
+
+func _begin_fade_out() -> void:
+    var tw := get_tree().create_tween()
+    tw.tween_method(_set_viewport_alpha, 1.0, 0.0, FADE_OUT_DURATION) \
+        .set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+    tw.parallel().tween_property(_subtitle_lbl, "modulate",
+        Color(1, 1, 1, 0), FADE_OUT_DURATION)
+    tw.tween_callback(_cleanup)
+
+
+func _cleanup() -> void:
+    _reset_morphs()
+    if _canvas_layer:
+        _canvas_layer.queue_free()
+    cinematic_finished.emit()
+
+
+# ── Lip sync ─ mis à jour chaque frame ───────────────────────
+func _process(_delta: float) -> void:
+    if not _playing or not _audio_started:
+        return
+    if _mouth_cues.is_empty() or _mesh_inst == null:
+        return
+
+    var t: float = _audio.get_playback_position()
+
+    # Avancer dans les cues
+    while _cue_index + 1 < _mouth_cues.size() \
+          and _mouth_cues[_cue_index + 1]["start"] <= t:
+        _cue_index += 1
+
+    if _cue_index >= _mouth_cues.size():
+        return
+
+    var cue: Dictionary = _mouth_cues[_cue_index]
+    var rhubarb_letter: String = cue.get("value", "X")
+    var morph_name: String = RHUBARB_MAP.get(rhubarb_letter, "viseme_sil")
+
+    if morph_name == _active_morph:
+        return
+
+    # Transition douce : atténuer l'ancien, activer le nouveau
+    _reset_morphs()
+    _active_morph = morph_name
+    if morph_name in _morphs:
+        _mesh_inst.set_blend_shape_value(_morphs[morph_name], 1.0)
+
+
+func _reset_morphs() -> void:
+    if _mesh_inst == null:
+        return
+    for idx in _morphs.values():
+        _mesh_inst.set_blend_shape_value(idx, 0.0)
+    _active_morph = ""

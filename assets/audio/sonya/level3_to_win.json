@@ -1,0 +1,238 @@
+{
+  "metadata": {
+    "soundFile": "level3_to_win.wav",
+    "duration": 8.85
+  },
+  "mouthCues": [
+    {
+      "start": 0.0,
+      "end": 0.1,
+      "value": "X"
+    },
+    {
+      "start": 0.1,
+      "end": 0.286,
+      "value": "B"
+    },
+    {
+      "start": 0.286,
+      "end": 0.471,
+      "value": "A"
+    },
+    {
+      "start": 0.471,
+      "end": 0.571,
+      "value": "X"
+    },
+    {
+      "start": 0.571,
+      "end": 0.757,
+      "value": "B"
+    },
+    {
+      "start": 0.757,
+      "end": 0.943,
+      "value": "H"
+    },
+    {
+      "start": 0.943,
+      "end": 1.129,
+      "value": "D"
+    },
+    {
+      "start": 1.129,
+      "end": 1.229,
+      "value": "X"
+    },
+    {
+      "start": 1.229,
+      "end": 1.414,
+      "value": "B"
+    },
+    {
+      "start": 1.414,
+      "end": 1.6,
+      "value": "E"
+    },
+    {
+      "start": 1.6,
+      "end": 1.786,
+      "value": "H"
+    },
+    {
+      "start": 1.786,
+      "end": 1.971,
+      "value": "F"
+    },
+    {
+      "start": 1.971,
+      "end": 2.157,
+      "value": "G"
+    },
+    {
+      "start": 2.157,
+      "end": 2.343,
+      "value": "E"
+    },
+    {
+      "start": 2.343,
+      "end": 2.529,
+      "value": "D"
+    },
+    {
+      "start": 2.529,
+      "end": 2.714,
+      "value": "G"
+    },
+    {
+      "start": 2.714,
+      "end": 2.9642857142857135,
+      "value": "X"
+    },
+    {
+      "start": 2.964,
+      "end": 3.15,
+      "value": "B"
+    },
+    {
+      "start": 3.15,
+      "end": 3.382,
+      "value": "A"
+    },
+    {
+      "start": 3.382,
+      "end": 3.568,
+      "value": "B"
+    },
+    {
+      "start": 3.568,
+      "end": 3.668,
+      "value": "X"
+    },
+    {
+      "start": 3.761,
+      "end": 3.946,
+      "value": "H"
+    },
+    {
+      "start": 3.946,
+      "end": 4.49642857142857,
+      "value": "X"
+    },
+    {
+      "start": 4.496,
+      "end": 4.914285714285713,
+      "value": "A"
+    },
+    {
+      "start": 4.914,
+      "end": 5.1,
+      "value": "E"
+    },
+    {
+      "start": 5.1,
+      "end": 5.2,
+      "value": "X"
+    },
+    {
+      "start": 5.2,
+      "end": 5.386,
+      "value": "G"
+    },
+    {
+      "start": 5.386,
+      "end": 5.757142857142856,
+      "value": "B"
+    },
+    {
+      "start": 5.757,
+      "end": 5.943,
+      "value": "G"
+    },
+    {
+      "start": 5.943,
+      "end": 6.192857142857142,
+      "value": "X"
+    },
+    {
+      "start": 6.193,
+      "end": 6.379,
+      "value": "H"
+    },
+    {
+      "start": 6.379,
+      "end": 6.564,
+      "value": "F"
+    },
+    {
+      "start": 6.564,
+      "end": 6.796,
+      "value": "H"
+    },
+    {
+      "start": 6.796,
+      "end": 6.982,
+      "value": "D"
+    },
+    {
+      "start": 6.982,
+      "end": 7.168,
+      "value": "G"
+    },
+    {
+      "start": 7.168,
+      "end": 7.417857142857143,
+      "value": "X"
+    },
+    {
+      "start": 7.418,
+      "end": 7.604,
+      "value": "G"
+    },
+    {
+      "start": 7.604,
+      "end": 7.9750000000000005,
+      "value": "B"
+    },
+    {
+      "start": 7.975,
+      "end": 8.161,
+      "value": "G"
+    },
+    {
+      "start": 8.161,
+      "end": 8.261,
+      "value": "X"
+    },
+    {
+      "start": 8.261,
+      "end": 8.446,
+      "value": "G"
+    },
+    {
+      "start": 8.446,
+      "end": 8.632,
+      "value": "D"
+    },
+    {
+      "start": 8.632,
+      "end": 8.818,
+      "value": "B"
+    },
+    {
+      "start": 8.818,
+      "end": 8.918,
+      "value": "X"
+    },
+    {
+      "start": 8.918,
+      "end": 9.104,
+      "value": "B"
+    },
+    {
+      "start": 9.196,
+      "end": 9.346,
+      "value": "X"
+    }
+  ]
+}
