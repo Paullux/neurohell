@@ -96,14 +96,10 @@ func _build_scene() -> void:
     _canvas_layer.layer = 101
     get_tree().root.add_child(_canvas_layer)
 
-    # ── Fond légèrement teinté (le blanc vient de portal_disc) ─
-    _fade_rect = ColorRect.new()
-    _fade_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-    _fade_rect.color = Color(0.0, 0.0, 0.0, 0.0)
-    _fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    _canvas_layer.add_child(_fade_rect)
+    # (pas de fond supplémentaire : le blanc vient du WorldEnvironment du SubViewport)
 
-    # ── SubViewport transparent pour Sonya 3D ─────────────────
+    # ── SubViewport monde isolé (own_world_3d = true OBLIGATOIRE)
+    #    Sans ça, le SubViewport voit le monde du jeu (sky, décors, etc.)
     _viewport_cont = SubViewportContainer.new()
     _viewport_cont.set_anchors_preset(Control.PRESET_FULL_RECT)
     _viewport_cont.stretch = true
@@ -111,37 +107,54 @@ func _build_scene() -> void:
     _canvas_layer.add_child(_viewport_cont)
 
     _viewport = SubViewport.new()
-    _viewport.transparent_bg = true
+    _viewport.own_world_3d    = true   # ← ISOLATION : monde 3D dédié
+    _viewport.transparent_bg  = false  # fond opaque blanc géré par WorldEnvironment
     _viewport.size = Vector2i(
-        ProjectSettings.get_setting("display/window/size/viewport_width", 1920),
+        ProjectSettings.get_setting("display/window/size/viewport_width",  1920),
         ProjectSettings.get_setting("display/window/size/viewport_height", 1080)
     )
     _viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
     _viewport_cont.add_child(_viewport)
 
-    # ── Environnement (lumière ambiante blanche) ───────────────
+    # ── Environnement — fond blanc pur, ambiance froide (effet G-Man) ──
     var world_env := WorldEnvironment.new()
     var env := Environment.new()
-    env.background_mode = Environment.BG_COLOR
-    env.background_color = Color(0, 0, 0, 0)
+    env.background_mode  = Environment.BG_COLOR
+    env.background_color = Color(1.0, 1.0, 1.0, 1.0)   # blanc pur
+    # Ambient froid/bleuté — donne le côté surréel
     env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    env.ambient_light_color  = Color(1.0, 0.95, 0.92)
-    env.ambient_light_energy = 1.6
+    env.ambient_light_color  = Color(0.82, 0.88, 1.0)
+    env.ambient_light_energy = 0.9
+    # Légère brume pour l'effet de profondeur (Sonya sort du blanc)
+    env.fog_enabled       = true
+    env.fog_density       = 0.012
+    env.fog_light_color   = Color(1.0, 1.0, 1.0)
+    env.fog_aerial_perspective = 0.15
     world_env.environment = env
     _viewport.add_child(world_env)
 
-    # ── Lumière directionnelle (rim dramatique) ────────────────
-    var light := DirectionalLight3D.new()
-    light.rotation_degrees = Vector3(-35, 15, 0)
-    light.light_color  = Color(1.0, 0.95, 0.85)
-    light.light_energy = 1.2
-    _viewport.add_child(light)
+    # ── Éclairage dramatique style G-Man ──────────────────────
+    # Key light : légèrement dessus-devant, légèrement décalé à gauche
+    var key := DirectionalLight3D.new()
+    key.rotation_degrees = Vector3(-40, 20, 0)
+    key.light_color      = Color(1.0, 0.97, 0.90)
+    key.light_energy     = 1.8
+    key.shadow_enabled   = true
+    _viewport.add_child(key)
+    # Fill light doux par le bas (évite les zones totalement noires)
+    var fill := OmniLight3D.new()
+    fill.position        = Vector3(0.6, 0.3, 1.5)
+    fill.light_color     = Color(0.75, 0.82, 1.0)
+    fill.light_energy    = 0.6
+    fill.omni_range      = 6.0
+    _viewport.add_child(fill)
 
-    # ── Caméra (cadre corps entier) ────────────────────────────
+    # ── Caméra — légèrement en contre-plongée, Sonya décentrée ──
+    # Style G-Man : caméra à hauteur de poitrine regardant légèrement vers le haut
     var cam := Camera3D.new()
-    cam.position = Vector3(0.0, 0.9, 2.6)
-    cam.rotation_degrees = Vector3(-6, 0, 0)
-    cam.fov = 42.0
+    cam.position        = Vector3(0.18, 0.85, 2.4)   # légèrement à droite
+    cam.rotation_degrees = Vector3(4, -4, 0)          # contre-plongée douce
+    cam.fov             = 44.0
     _viewport.add_child(cam)
 
     # ── Sonya GLB ──────────────────────────────────────────────
