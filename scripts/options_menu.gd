@@ -201,37 +201,33 @@ func _build_sound_page() -> Control:
 	_music_check = _make_checkbox("Activer la musique")
 	_music_check.toggled.connect(func(on: bool) -> void: GameOptions.music_on = on; GameOptions._apply_audio())
 	page.add_child(_music_check)
-	_music_slider = _make_slider("Volume musique", func(v: float) -> void:
+	page.add_child(_make_slider("Volume musique", func(v: float) -> void:
 		GameOptions.music_vol = v / 100.0; GameOptions._apply_audio()
-	)
-	page.add_child(_music_slider)
+	))
 
 	_section(page, "BRUITAGE")
 	_sfx_check = _make_checkbox("Activer les bruitages")
 	_sfx_check.toggled.connect(func(on: bool) -> void: GameOptions.sfx_on = on; GameOptions._apply_audio())
 	page.add_child(_sfx_check)
-	_sfx_slider = _make_slider("Volume bruitage", func(v: float) -> void:
+	page.add_child(_make_slider("Volume bruitage", func(v: float) -> void:
 		GameOptions.sfx_vol = v / 100.0; GameOptions._apply_audio()
-	)
-	page.add_child(_sfx_slider)
+	))
 
 	_section(page, "VOIX")
 	_voice_check = _make_checkbox("Activer les voix (Sonya…)")
 	_voice_check.toggled.connect(func(on: bool) -> void: GameOptions.voice_on = on; GameOptions._apply_audio())
 	page.add_child(_voice_check)
-	_voice_slider = _make_slider("Volume voix", func(v: float) -> void:
+	page.add_child(_make_slider("Volume voix", func(v: float) -> void:
 		GameOptions.voice_vol = v / 100.0; GameOptions._apply_audio()
-	)
-	page.add_child(_voice_slider)
+	))
 
 	_section(page, "BRUITS DÉMONS")
 	_demons_check = _make_checkbox("Activer les bruits de démons")
 	_demons_check.toggled.connect(func(on: bool) -> void: GameOptions.demons_on = on; GameOptions._apply_audio())
 	page.add_child(_demons_check)
-	_demons_slider = _make_slider("Volume bruits démons", func(v: float) -> void:
+	page.add_child(_make_slider("Volume bruits démons", func(v: float) -> void:
 		GameOptions.demons_vol = v / 100.0; GameOptions._apply_audio()
-	)
-	page.add_child(_demons_slider)
+	))
 
 	_section(page, "")
 	page.add_child(_apply_btn())
