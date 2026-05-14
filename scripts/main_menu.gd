@@ -4,6 +4,7 @@ extends Control
 @onready var button_story:       Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonStory
 @onready var button_screenshots: Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonScreenshots
 @onready var button_download:    Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonDownload
+@onready var button_options:     Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonOptions
 @onready var button_quit:        Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonQuit
 @onready var content_label:      RichTextLabel = $RootMargin/Center/VBox/MainContent/ContentPanel/ContentLabel
 @onready var intro_overlay:      ColorRect     = $IntroOverlay
@@ -49,12 +50,13 @@ func _ready() -> void:
 	button_story.pressed.connect(func() -> void: _select(button_story); _show_story())
 	button_screenshots.pressed.connect(func() -> void: _select(button_screenshots); _show_screenshots())
 	button_download.pressed.connect(func() -> void: _select(button_download); _show_download())
+	button_options.pressed.connect(_on_options_pressed)
 	button_quit.pressed.connect(_on_quit_pressed)
 
 	intro_video.finished.connect(_go_to_level_1)
 
 	# Mémoriser textes originaux + setup hover
-	for btn: Button in [button_play, button_story, button_screenshots, button_download, button_quit]:
+	for btn: Button in [button_play, button_story, button_screenshots, button_download, button_options, button_quit]:
 		_btn_base_texts[btn] = btn.text
 		_setup_skull_hover(btn)
 
@@ -350,6 +352,14 @@ func _go_to_level_1() -> void:
 
 func _on_link_clicked(meta: Variant) -> void:
 	OS.shell_open(str(meta))
+
+func _on_options_pressed() -> void:
+	_select(button_options)
+	# Créer le menu Options à la volée (overlay CanvasLayer)
+	var om: Node = load("res://scripts/options_menu.gd").new()
+	get_tree().root.add_child(om)
+	om.closed.connect(func() -> void: om.queue_free())
+	om.open()
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()

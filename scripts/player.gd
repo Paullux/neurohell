@@ -66,10 +66,14 @@ var _prev_xz:     Vector2 = Vector2.ZERO
 # ── entrée souris ──────────────────────────────────────────
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
 	collision_layer = 4
 	collision_mask = 1
 	add_to_group("player")
+	# Appliquer la sensibilité depuis les options + écouter les changements
+	mouse_sensitivity = GameOptions.mouse_sensitivity
+	GameOptions.options_applied.connect(func() -> void:
+		mouse_sensitivity = GameOptions.mouse_sensitivity
+	)
 
 func _input(event: InputEvent) -> void:
 	if dead: return

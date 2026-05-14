@@ -21,6 +21,7 @@ var _player_ref: CharacterBody3D = null
 var _demons_ref: Array           = []
 
 func _ready() -> void:
+	bgm_player.bus = "Music"   # routé vers le bus Music de GameOptions
 	_play_bgm(MusicContext.IDLE)
 
 func register_player(p: CharacterBody3D) -> void:
