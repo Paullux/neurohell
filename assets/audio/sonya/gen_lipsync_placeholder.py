@@ -22,16 +22,16 @@ import json, re, os
 
 DIALOGUES = {
     "level1_to_2": {
-        "text": "Continue... L'enfer te regarde avancer. Chaque pas te rapproche d'elle. Du purgatoire. Continue.",
-        "duration": 12.70
+        "text": "Continue, mon amour... L'enfer te regarde avancer. Chaque pas te rapproche de moi. Du purgatoire. Continue.",
+        "duration": 12.227
     },
     "level2_to_3": {
-        "text": "Tu résistes mieux que je ne le pensais. Ce qui t'attend... c'est plus qu'un purgatoire. C'est une réponse.",
-        "duration": 10.70
+        "text": "Tu résistes mieux que je ne le pensais. Ce qui t'attend... c'est plus qu'un purgatoire. C'est une réponse. Tiens bon, mon amour.",
+        "duration": 12.654
     },
     "level3_to_win": {
-        "text": "Tu l'as traversé. Tout ça... pour elle. Avance. Elle est là.",
-        "duration": 8.85
+        "text": "Tu l'as traversé. Tout ça... pour moi. Avance. Je suis là.",
+        "duration": 8.984
     },
 }
 

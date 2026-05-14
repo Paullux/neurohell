@@ -1,7 +1,7 @@
 {
   "metadata": {
     "soundFile": "level3_to_win.wav",
-    "duration": 8.85
+    "duration": 8.984
   },
   "mouthCues": [
     {
@@ -11,227 +11,227 @@
     },
     {
       "start": 0.1,
-      "end": 0.286,
+      "end": 0.299,
       "value": "B"
     },
     {
-      "start": 0.286,
-      "end": 0.471,
+      "start": 0.299,
+      "end": 0.498,
       "value": "A"
     },
     {
-      "start": 0.471,
-      "end": 0.571,
+      "start": 0.498,
+      "end": 0.598,
       "value": "X"
     },
     {
-      "start": 0.571,
-      "end": 0.757,
+      "start": 0.598,
+      "end": 0.797,
       "value": "B"
     },
     {
-      "start": 0.757,
-      "end": 0.943,
+      "start": 0.797,
+      "end": 0.996,
       "value": "H"
     },
     {
-      "start": 0.943,
-      "end": 1.129,
+      "start": 0.996,
+      "end": 1.195,
       "value": "D"
     },
     {
-      "start": 1.129,
-      "end": 1.229,
+      "start": 1.195,
+      "end": 1.295,
       "value": "X"
     },
     {
-      "start": 1.229,
-      "end": 1.414,
+      "start": 1.295,
+      "end": 1.494,
       "value": "B"
     },
     {
-      "start": 1.414,
-      "end": 1.6,
+      "start": 1.494,
+      "end": 1.693,
       "value": "E"
     },
     {
-      "start": 1.6,
-      "end": 1.786,
+      "start": 1.693,
+      "end": 1.892,
       "value": "H"
     },
     {
-      "start": 1.786,
-      "end": 1.971,
+      "start": 1.892,
+      "end": 2.091,
       "value": "F"
     },
     {
-      "start": 1.971,
-      "end": 2.157,
+      "start": 2.091,
+      "end": 2.29,
       "value": "G"
     },
     {
-      "start": 2.157,
-      "end": 2.343,
+      "start": 2.29,
+      "end": 2.489,
       "value": "E"
     },
     {
-      "start": 2.343,
-      "end": 2.529,
+      "start": 2.489,
+      "end": 2.688,
       "value": "D"
     },
     {
-      "start": 2.529,
-      "end": 2.714,
+      "start": 2.688,
+      "end": 2.887,
       "value": "G"
     },
     {
-      "start": 2.714,
-      "end": 2.9642857142857135,
+      "start": 2.887,
+      "end": 3.1372599999999995,
       "value": "X"
     },
     {
-      "start": 2.964,
-      "end": 3.15,
+      "start": 3.137,
+      "end": 3.336,
       "value": "B"
     },
     {
-      "start": 3.15,
-      "end": 3.382,
+      "start": 3.336,
+      "end": 3.585,
       "value": "A"
     },
     {
-      "start": 3.382,
-      "end": 3.568,
+      "start": 3.585,
+      "end": 3.784,
       "value": "B"
     },
     {
-      "start": 3.568,
-      "end": 3.668,
+      "start": 3.784,
+      "end": 3.884,
       "value": "X"
     },
     {
-      "start": 3.761,
-      "end": 3.946,
+      "start": 3.984,
+      "end": 4.183,
       "value": "H"
     },
     {
-      "start": 3.946,
-      "end": 4.49642857142857,
+      "start": 4.183,
+      "end": 4.7326049999999995,
       "value": "X"
     },
     {
-      "start": 4.496,
-      "end": 4.914285714285713,
+      "start": 4.733,
+      "end": 5.1804,
       "value": "A"
     },
     {
-      "start": 4.914,
-      "end": 5.1,
+      "start": 5.18,
+      "end": 5.379,
       "value": "E"
     },
     {
-      "start": 5.1,
-      "end": 5.2,
+      "start": 5.379,
+      "end": 5.479,
       "value": "X"
     },
     {
-      "start": 5.2,
-      "end": 5.386,
-      "value": "G"
+      "start": 5.479,
+      "end": 5.678,
+      "value": "A"
     },
     {
-      "start": 5.386,
-      "end": 5.757142857142856,
-      "value": "B"
-    },
-    {
-      "start": 5.757,
-      "end": 5.943,
-      "value": "G"
-    },
-    {
-      "start": 5.943,
-      "end": 6.192857142857142,
-      "value": "X"
-    },
-    {
-      "start": 6.193,
-      "end": 6.379,
+      "start": 5.678,
+      "end": 5.877,
       "value": "H"
     },
     {
-      "start": 6.379,
-      "end": 6.564,
+      "start": 5.877,
+      "end": 6.076,
+      "value": "G"
+    },
+    {
+      "start": 6.076,
+      "end": 6.326479999999999,
+      "value": "X"
+    },
+    {
+      "start": 6.326,
+      "end": 6.525,
+      "value": "H"
+    },
+    {
+      "start": 6.525,
+      "end": 6.725,
       "value": "F"
     },
     {
-      "start": 6.564,
-      "end": 6.796,
+      "start": 6.725,
+      "end": 6.973,
       "value": "H"
     },
     {
-      "start": 6.796,
-      "end": 6.982,
+      "start": 6.973,
+      "end": 7.172,
       "value": "D"
     },
     {
-      "start": 6.982,
-      "end": 7.168,
+      "start": 7.172,
+      "end": 7.371,
       "value": "G"
     },
     {
-      "start": 7.168,
-      "end": 7.417857142857143,
+      "start": 7.371,
+      "end": 7.621334999999999,
       "value": "X"
     },
     {
-      "start": 7.418,
-      "end": 7.604,
+      "start": 7.621,
+      "end": 7.82,
+      "value": "E"
+    },
+    {
+      "start": 7.82,
+      "end": 8.019,
       "value": "G"
     },
     {
-      "start": 7.604,
-      "end": 7.9750000000000005,
-      "value": "B"
-    },
-    {
-      "start": 7.975,
-      "end": 8.161,
-      "value": "G"
-    },
-    {
-      "start": 8.161,
-      "end": 8.261,
+      "start": 8.019,
+      "end": 8.119,
       "value": "X"
     },
     {
-      "start": 8.261,
-      "end": 8.446,
-      "value": "G"
-    },
-    {
-      "start": 8.446,
-      "end": 8.632,
+      "start": 8.119,
+      "end": 8.318,
       "value": "D"
     },
     {
-      "start": 8.632,
-      "end": 8.818,
-      "value": "B"
+      "start": 8.318,
+      "end": 8.517,
+      "value": "A"
     },
     {
-      "start": 8.818,
-      "end": 8.918,
+      "start": 8.517,
+      "end": 8.716,
+      "value": "G"
+    },
+    {
+      "start": 8.716,
+      "end": 8.915,
+      "value": "D"
+    },
+    {
+      "start": 8.915,
+      "end": 9.015,
       "value": "X"
     },
     {
-      "start": 8.918,
-      "end": 9.104,
+      "start": 9.015,
+      "end": 9.214,
       "value": "B"
     },
     {
-      "start": 9.196,
-      "end": 9.346,
+      "start": 9.314,
+      "end": 9.464,
       "value": "X"
     }
   ]
