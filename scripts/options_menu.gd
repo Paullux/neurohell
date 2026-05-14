@@ -169,6 +169,7 @@ func _build_display_page() -> Control:
 	_res_option.item_selected.connect(func(idx: int) -> void:
 		var res: Vector2i = _res_option.get_item_metadata(idx)
 		GameOptions.resolution = res
+		GameOptions._apply_display()
 	)
 
 	_section(page, "RAPPORT D'AFFICHAGE")
@@ -180,12 +181,16 @@ func _build_display_page() -> Control:
 	page.add_child(_ratio_option)
 	_ratio_option.item_selected.connect(func(idx: int) -> void:
 		GameOptions.aspect_ratio = _ratio_option.get_item_metadata(idx)
+		GameOptions._apply_display()
 	)
 	page.add_child(_note("[color=#888888]En 21:9 / 32:9, les cinématiques affichent des bandes noires (format 16:9 préservé).[/color]"))
 
 	_section(page, "PLEIN ÉCRAN")
 	_fs_check = _make_checkbox("Activer le plein écran")
-	_fs_check.toggled.connect(func(on: bool) -> void: GameOptions.fullscreen = on)
+	_fs_check.toggled.connect(func(on: bool) -> void:
+		GameOptions.fullscreen = on
+		GameOptions._apply_display()
+	)
 	page.add_child(_fs_check)
 
 	_section(page, "")
@@ -224,7 +229,7 @@ func _build_sound_page() -> Control:
 		GameOptions.voice_vol = v / 100.0; GameOptions._apply_audio()
 	))
 
-	_section(page, "BRUITS DÉMONS")
+	_section(page, "BRUITS DE DÉMONS")
 	_demons_check = _make_checkbox("Activer les bruits de démons")
 	_demons_check.toggled.connect(func(on: bool) -> void: GameOptions.demons_on = on; GameOptions._apply_audio())
 	page.add_child(_demons_check)

@@ -240,8 +240,14 @@ func event_label(ev: InputEvent) -> String:
 	if ev == null:
 		return "—"
 	if ev is InputEventKey:
-		var kc := (ev as InputEventKey).physical_keycode
-		return OS.get_keycode_string(kc) if kc != 0 else "?"
+		var phys := (ev as InputEventKey).physical_keycode
+		if phys == 0:
+			return "?"
+		# Convertir le physical_keycode en keycode logique pour la disposition
+		# clavier actuelle (ex: KEY_W → KEY_Z sur AZERTY)
+		var logical := DisplayServer.keyboard_get_keycode_from_physical(phys)
+		var display_kc := logical if logical != KEY_NONE else phys
+		return OS.get_keycode_string(display_kc)
 	if ev is InputEventMouseButton:
 		match (ev as InputEventMouseButton).button_index:
 			MOUSE_BUTTON_LEFT:    return "Clic gauche"
