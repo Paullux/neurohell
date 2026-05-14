@@ -43,14 +43,17 @@ var _gamepad_label:  Label           = null
 # ────────────────────────────────────────────────────────────
 func _ready() -> void:
 	layer = 200   # au-dessus de tout
+	# PROCESS_MODE_ALWAYS : le menu reste interactif même quand le jeu est pausé
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_ui()
 	visible = false
 
 
-func open() -> void:
+func open(pause_game: bool = false) -> void:
 	_refresh_all()
 	visible = true
-	get_tree().paused = true
+	if pause_game:
+		get_tree().paused = true
 
 
 func _close() -> void:

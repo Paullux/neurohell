@@ -79,6 +79,10 @@ func apply_all() -> void:
 
 
 func _apply_display() -> void:
+	# En mode embarqué dans l'éditeur Godot, redimensionner/déplacer la fenêtre
+	# n'est pas possible — on saute silencieusement la partie affichage.
+	if OS.has_feature("editor"):
+		return
 	if fullscreen:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
