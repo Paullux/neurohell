@@ -144,7 +144,7 @@ func _try_load(path: String) -> AudioStream:
 
 func _setup_audio() -> void:
 	_audio = AudioStreamPlayer3D.new()
-	_audio.bus          = "SFX"
+	_audio.bus          = "Demons"
 	_audio.max_distance = 35.0   # audible jusqu'à ~35 m
 	_audio.unit_size    = 4.0    # atténuation progressive
 	_audio.panning_strength = 1.0

@@ -24,12 +24,14 @@ var _ratio_option: OptionButton   = null
 var _fs_check:     CheckBox       = null
 
 # Page Son
-var _music_check:  CheckBox = null
-var _music_slider: HSlider  = null
-var _sfx_check:    CheckBox = null
-var _sfx_slider:   HSlider  = null
-var _voice_check:  CheckBox = null
-var _voice_slider: HSlider  = null
+var _music_check:   CheckBox = null
+var _music_slider:  HSlider  = null
+var _sfx_check:     CheckBox = null
+var _sfx_slider:    HSlider  = null
+var _voice_check:   CheckBox = null
+var _voice_slider:  HSlider  = null
+var _demons_check:  CheckBox = null
+var _demons_slider: HSlider  = null
 
 # Page Contrôles
 var _sens_slider:    HSlider         = null
@@ -222,6 +224,15 @@ func _build_sound_page() -> Control:
 	)
 	page.add_child(_voice_slider)
 
+	_section(page, "BRUITS DÉMONS")
+	_demons_check = _make_checkbox("Activer les bruits de démons")
+	_demons_check.toggled.connect(func(on: bool) -> void: GameOptions.demons_on = on; GameOptions._apply_audio())
+	page.add_child(_demons_check)
+	_demons_slider = _make_slider("Volume bruits démons", func(v: float) -> void:
+		GameOptions.demons_vol = v / 100.0; GameOptions._apply_audio()
+	)
+	page.add_child(_demons_slider)
+
 	_section(page, "")
 	page.add_child(_apply_btn())
 
@@ -315,12 +326,14 @@ func _refresh_display() -> void:
 func _refresh_sound() -> void:
 	if _music_check == null:
 		return
-	_music_check.button_pressed   = GameOptions.music_on
-	_music_slider.value            = GameOptions.music_vol * 100.0
-	_sfx_check.button_pressed     = GameOptions.sfx_on
-	_sfx_slider.value              = GameOptions.sfx_vol * 100.0
-	_voice_check.button_pressed   = GameOptions.voice_on
-	_voice_slider.value            = GameOptions.voice_vol * 100.0
+	_music_check.button_pressed    = GameOptions.music_on
+	_music_slider.value             = GameOptions.music_vol * 100.0
+	_sfx_check.button_pressed      = GameOptions.sfx_on
+	_sfx_slider.value               = GameOptions.sfx_vol * 100.0
+	_voice_check.button_pressed    = GameOptions.voice_on
+	_voice_slider.value             = GameOptions.voice_vol * 100.0
+	_demons_check.button_pressed   = GameOptions.demons_on
+	_demons_slider.value            = GameOptions.demons_vol * 100.0
 
 
 func _refresh_controls() -> void:
@@ -525,9 +538,10 @@ func _make_slider(label_text: String, on_change: Callable) -> HBoxContainer:
 	row.add_child(slider)
 	# Stocker dans la variable membre selon le label
 	match label_text:
-		"Volume musique":  _music_slider = slider
-		"Volume bruitage": _sfx_slider   = slider
-		"Volume voix":     _voice_slider = slider
+		"Volume musique":        _music_slider  = slider
+		"Volume bruitage":       _sfx_slider    = slider
+		"Volume voix":           _voice_slider  = slider
+		"Volume bruits démons":  _demons_slider = slider
 	return row
 
 

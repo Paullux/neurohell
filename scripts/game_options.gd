@@ -16,12 +16,14 @@ var resolution:   Vector2i = Vector2i(1920, 1080)
 var aspect_ratio: String   = "auto"   # "auto" | "16:9" | "21:9" | "32:9"
 
 # ── Son ──────────────────────────────────────────────────────
-var music_on:  bool  = true
-var music_vol: float = 0.8   # 0.0 – 1.0
-var sfx_on:    bool  = true
-var sfx_vol:   float = 0.8
-var voice_on:  bool  = true
-var voice_vol: float = 0.9
+var music_on:   bool  = true
+var music_vol:  float = 0.8   # 0.0 – 1.0
+var sfx_on:     bool  = true
+var sfx_vol:    float = 0.8
+var voice_on:   bool  = true
+var voice_vol:  float = 0.9
+var demons_on:  bool  = true
+var demons_vol: float = 0.8
 
 # ── Contrôles ────────────────────────────────────────────────
 var mouse_sensitivity: float = 0.002   # même unité que player.gd
@@ -42,9 +44,10 @@ const REBINDABLE := {
 }
 
 # ── Indices buses (remplis dans _ensure_buses) ───────────────
-var bus_music: int = -1
-var bus_sfx:   int = -1
-var bus_voice: int = -1
+var bus_music:  int = -1
+var bus_sfx:    int = -1
+var bus_voice:  int = -1
+var bus_demons: int = -1
 
 
 # ────────────────────────────────────────────────────────────
@@ -56,15 +59,16 @@ func _ready() -> void:
 
 # ── Buses audio ──────────────────────────────────────────────
 func _ensure_buses() -> void:
-	for bname: String in ["Music", "SFX", "Voice"]:
+	for bname: String in ["Music", "SFX", "Voice", "Demons"]:
 		if AudioServer.get_bus_index(bname) == -1:
 			AudioServer.add_bus()
 			var idx := AudioServer.get_bus_count() - 1
 			AudioServer.set_bus_name(idx, bname)
 			AudioServer.set_bus_send(idx, "Master")
-	bus_music = AudioServer.get_bus_index("Music")
-	bus_sfx   = AudioServer.get_bus_index("SFX")
-	bus_voice = AudioServer.get_bus_index("Voice")
+	bus_music  = AudioServer.get_bus_index("Music")
+	bus_sfx    = AudioServer.get_bus_index("SFX")
+	bus_voice  = AudioServer.get_bus_index("Voice")
+	bus_demons = AudioServer.get_bus_index("Demons")
 
 
 # ── Appliquer tous les réglages ───────────────────────────────
@@ -96,6 +100,9 @@ func _apply_audio() -> void:
 	if bus_voice >= 0:
 		AudioServer.set_bus_volume_db(bus_voice, linear_to_db(voice_vol))
 		AudioServer.set_bus_mute(bus_voice, not voice_on)
+	if bus_demons >= 0:
+		AudioServer.set_bus_volume_db(bus_demons, linear_to_db(demons_vol))
+		AudioServer.set_bus_mute(bus_demons, not demons_on)
 
 
 # ── Sauvegarde ────────────────────────────────────────────────
@@ -107,12 +114,14 @@ func save_options() -> void:
 	cfg.set_value("display", "resolution_y",  resolution.y)
 	cfg.set_value("display", "aspect_ratio",  aspect_ratio)
 
-	cfg.set_value("audio", "music_on",   music_on)
-	cfg.set_value("audio", "music_vol",  music_vol)
-	cfg.set_value("audio", "sfx_on",     sfx_on)
-	cfg.set_value("audio", "sfx_vol",    sfx_vol)
-	cfg.set_value("audio", "voice_on",   voice_on)
-	cfg.set_value("audio", "voice_vol",  voice_vol)
+	cfg.set_value("audio", "music_on",    music_on)
+	cfg.set_value("audio", "music_vol",   music_vol)
+	cfg.set_value("audio", "sfx_on",      sfx_on)
+	cfg.set_value("audio", "sfx_vol",     sfx_vol)
+	cfg.set_value("audio", "voice_on",    voice_on)
+	cfg.set_value("audio", "voice_vol",   voice_vol)
+	cfg.set_value("audio", "demons_on",   demons_on)
+	cfg.set_value("audio", "demons_vol",  demons_vol)
 
 	cfg.set_value("controls", "mouse_sensitivity", mouse_sensitivity)
 
@@ -138,12 +147,14 @@ func load_options() -> void:
 	)
 	aspect_ratio  = cfg.get_value("display", "aspect_ratio", "auto")
 
-	music_on      = cfg.get_value("audio", "music_on",   true)
-	music_vol     = cfg.get_value("audio", "music_vol",  0.8)
-	sfx_on        = cfg.get_value("audio", "sfx_on",     true)
-	sfx_vol       = cfg.get_value("audio", "sfx_vol",    0.8)
-	voice_on      = cfg.get_value("audio", "voice_on",   true)
-	voice_vol     = cfg.get_value("audio", "voice_vol",  0.9)
+	music_on      = cfg.get_value("audio", "music_on",    true)
+	music_vol     = cfg.get_value("audio", "music_vol",   0.8)
+	sfx_on        = cfg.get_value("audio", "sfx_on",      true)
+	sfx_vol       = cfg.get_value("audio", "sfx_vol",     0.8)
+	voice_on      = cfg.get_value("audio", "voice_on",    true)
+	voice_vol     = cfg.get_value("audio", "voice_vol",   0.9)
+	demons_on     = cfg.get_value("audio", "demons_on",   true)
+	demons_vol    = cfg.get_value("audio", "demons_vol",  0.8)
 
 	mouse_sensitivity = cfg.get_value("controls", "mouse_sensitivity", 0.002)
 
