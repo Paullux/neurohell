@@ -144,9 +144,10 @@ func _try_load(path: String) -> AudioStream:
 
 func _setup_audio() -> void:
 	_audio = AudioStreamPlayer3D.new()
-	_audio.bus          = "Demons"
-	_audio.max_distance = 35.0   # audible jusqu'à ~35 m
-	_audio.unit_size    = 4.0    # atténuation progressive
+	_audio.bus              = "Demons"
+	_audio.max_distance     = 35.0
+	_audio.unit_size        = 8.0    # plus fort à proximité
+	_audio.volume_db        = 3.0    # +3 dB par défaut
 	_audio.panning_strength = 1.0
 	add_child(_audio)
 
@@ -348,6 +349,9 @@ func _die() -> void:
 	active   = false
 	visible  = false
 	velocity = Vector3.ZERO
+	# Coupure immédiate de tout son en cours (pas, activation…)
+	if _audio:
+		_audio.stop()
 	_play_snd(snd_die, true)
 	# Désactiver le collider pour ne pas bloquer les tirs/déplacements
 	if _col_shape:

@@ -23,7 +23,7 @@ var sfx_vol:    float = 0.8
 var voice_on:   bool  = true
 var voice_vol:  float = 0.9
 var demons_on:  bool  = true
-var demons_vol: float = 0.8
+var demons_vol: float = 1.0
 
 # ── Contrôles ────────────────────────────────────────────────
 var mouse_sensitivity: float = 0.002   # même unité que player.gd

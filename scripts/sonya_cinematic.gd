@@ -109,8 +109,12 @@ func _build_scene() -> void:
 	_viewport_cont.stretch      = true
 	_viewport_cont.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_canvas_layer.add_child(_viewport_cont)
-	# Letterboxing : maintenir le ratio 16:9 sur écrans ultrawide
-	_apply_letterbox()
+	# Plein écran toujours — pas de bandes noires
+	_viewport_cont.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_viewport_cont.offset_left   = 0
+	_viewport_cont.offset_right  = 0
+	_viewport_cont.offset_top    = 0
+	_viewport_cont.offset_bottom = 0
 
 	_viewport = SubViewport.new()
 	_viewport.own_world_3d    = true   # ← ISOLATION : monde 3D dédié
@@ -223,30 +227,6 @@ func _build_scene() -> void:
 	# SubViewportContainer commence transparent (CanvasItem → modulate OK)
 	if _viewport_cont:
 		_viewport_cont.modulate = Color(1.0, 1.0, 1.0, 0.0)
-
-
-func _apply_letterbox() -> void:
-	# Sur 16:9 : plein écran. Sur ultrawide : bandes noires latérales.
-	var win   := DisplayServer.window_get_size()
-	var win_r := float(win.x) / float(win.y) if win.y > 0 else 1.778
-	const CINEMATIC_RATIO := 16.0 / 9.0          # la cinématique est toujours 16:9
-
-	if win_r <= CINEMATIC_RATIO + 0.05:
-		# Ratio normal ou plus étroit → plein écran
-		_viewport_cont.set_anchors_preset(Control.PRESET_FULL_RECT)
-		_viewport_cont.offset_left   = 0
-		_viewport_cont.offset_right  = 0
-		_viewport_cont.offset_top    = 0
-		_viewport_cont.offset_bottom = 0
-	else:
-		# Ultrawide → centrer en 16:9 avec bandes noires
-		var h := float(win.y)
-		var w := h * CINEMATIC_RATIO
-		var x := (float(win.x) - w) * 0.5
-		_viewport_cont.set_anchor_and_offset(SIDE_LEFT,   0.0, x)
-		_viewport_cont.set_anchor_and_offset(SIDE_TOP,    0.0, 0.0)
-		_viewport_cont.set_anchor_and_offset(SIDE_RIGHT,  0.0, x + w)
-		_viewport_cont.set_anchor_and_offset(SIDE_BOTTOM, 0.0, h)
 
 
 func _find_mesh(node: Node) -> MeshInstance3D:

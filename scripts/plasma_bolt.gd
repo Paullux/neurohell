@@ -27,6 +27,11 @@ var _alive_time: float = 0.0
 var _hit := false
 var _fx_node: Node3D = null
 
+# Son du tir — AudioStreamPlayer (non-3D : le joueur est toujours le tireur)
+const _SND_SHOOT := preload("res://assets/audio/weapons/plasma_shoot.ogg")
+const _SND_HIT   := preload("res://assets/audio/weapons/plasma_hit.ogg")
+var _audio: AudioStreamPlayer = null
+
 func _ready() -> void:
 	monitoring = true
 	monitorable = true
@@ -42,6 +47,14 @@ func _ready() -> void:
 	_spawn_fx()
 	_apply_color()
 	_apply_color_to_fx(self)
+
+	# Son de tir : joué une seule fois à la création du bolt, bus SFX
+	_audio = AudioStreamPlayer.new()
+	_audio.bus    = "SFX"
+	_audio.stream = _SND_SHOOT
+	_audio.volume_db = 0.0
+	add_child(_audio)
+	_audio.play()
 
 func _on_area_entered(area: Area3D) -> void:
 	_handle_hit(area)
@@ -109,27 +122,6 @@ func _physics_process(delta: float) -> void:
 
 func _on_body_entered(body: Node3D) -> void:
 	_handle_hit(body)
-	if _hit: return
-	_hit = true
-
-	if body.is_in_group("demon"):
-		body.take_damage(damage)
-
-	# Burst impact
-	if _fx_node and _fx_node.has_method("restart"):
-		_fx_node.one_shot = true
-		_fx_node.restart()
-
-	if mesh_inst: mesh_inst.visible = false
-
-	# Lumière flash
-	for child in get_children():
-		if child is OmniLight3D:
-			var tw := create_tween()
-			tw.tween_property(child, "light_energy", 0.0, 0.12)
-
-	await get_tree().create_timer(0.5).timeout
-	queue_free()
 
 func _handle_hit(target: Node) -> void:
 	if _hit:
@@ -152,6 +144,11 @@ func _handle_hit(target: Node) -> void:
 	elif target.has_method("take_damage"):
 		target.take_damage(damage)
 		damaged = true
+
+	# Son d'impact
+	if _audio:
+		_audio.stream = _SND_HIT
+		_audio.play()
 
 	# Burst impact
 	if _fx_node and _fx_node.has_method("restart"):
