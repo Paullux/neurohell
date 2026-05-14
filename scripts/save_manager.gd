@@ -9,6 +9,11 @@ extends Node
 
 const SAVE_DIR := "user://saves/"
 
+# ── Restauration différée ────────────────────────────────────
+# Rempli depuis le menu principal avant de charger la scène ;
+# le script de niveau lit ce champ dans _ready() pour appliquer la save.
+var pending_filename: String = ""
+
 # ── Sauvegarde ────────────────────────────────────────────────
 func save_game(player: CharacterBody3D, level_scene: String, slot_name: String = "") -> String:
 	"""
@@ -142,6 +147,20 @@ func delete_save(filename: String) -> void:
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
 		print("[SaveManager] Supprimé : ", path)
+
+
+# ── Restauration différée ────────────────────────────────────
+func apply_pending_restore(player: CharacterBody3D) -> bool:
+	"""
+	Appelé par le script de niveau dans _ready() si pending_filename != "".
+	Applique la sauvegarde et remet pending_filename à vide.
+	Retourne true si une sauvegarde a été appliquée.
+	"""
+	if pending_filename == "":
+		return false
+	var result := apply_save(pending_filename, player)
+	pending_filename = ""
+	return result
 
 
 # ── Scène associée à une sauvegarde ──────────────────────────

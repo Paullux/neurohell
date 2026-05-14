@@ -91,6 +91,10 @@ func _ready() -> void:
 		player.health_changed.emit(player.health)
 		player.armor_changed.emit(player.armor)
 
+	# ── Restauration sauvegarde (depuis le menu principal) ───
+	if SaveManager.pending_filename != "":
+		SaveManager.apply_pending_restore(player)
+
 	hud.show_start_overlay("CLIQUEZ POUR COMMENCER\n[WASD] Déplacer  [ESPACE] Sauter  [1-5] Armes  [CLIC] Tirer  [F] Torche")
 	_spawn_collectibles()
 

@@ -109,6 +109,10 @@ func _ready() -> void:
 		nav_region.navigation_mesh   = nav_mesh
 	nav_region.bake_navigation_mesh.call_deferred()
 
+	# ── Restauration sauvegarde (depuis le menu principal) ───
+	if SaveManager.pending_filename != "":
+		SaveManager.apply_pending_restore(player)
+
 	hud.show_start_overlay("NIVEAU 3 — NIVEAU FINAL\n[WASD] Déplacer  [ESPACE] Sauter  [1-5] Armes  [CLIC] Tirer  [F] Torche")
 
 	# ── Menu Pause ───────────────────────────────────────────

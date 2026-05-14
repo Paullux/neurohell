@@ -5,6 +5,7 @@ extends Control
 @onready var button_screenshots: Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonScreenshots
 @onready var button_download:    Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonDownload
 @onready var button_options:     Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonOptions
+@onready var button_restore:     Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonRestore
 @onready var button_quit:        Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonQuit
 @onready var content_label:      RichTextLabel = $RootMargin/Center/VBox/MainContent/ContentPanel/ContentLabel
 @onready var intro_overlay:      ColorRect     = $IntroOverlay
@@ -24,6 +25,9 @@ var _http:            HTTPRequest = null
 # ── Grille captures ──────────────────────────────────────────
 var _screenshot_scroll: ScrollContainer = null
 var _screenshots_built: bool = false
+
+# ── Panneau restauration sauvegarde ──────────────────────────
+var _restore_scroll: ScrollContainer = null
 
 # ── Style actif (rouge + crânes permanent) ───────────────────
 var _style_active: StyleBoxFlat = null
@@ -51,12 +55,13 @@ func _ready() -> void:
 	button_screenshots.pressed.connect(func() -> void: _select(button_screenshots); _show_screenshots())
 	button_download.pressed.connect(func() -> void: _select(button_download); _show_download())
 	button_options.pressed.connect(_on_options_pressed)
+	button_restore.pressed.connect(func() -> void: _select(button_restore); _show_restore())
 	button_quit.pressed.connect(_on_quit_pressed)
 
 	intro_video.finished.connect(_go_to_level_1)
 
 	# Mémoriser textes originaux + setup hover
-	for btn: Button in [button_play, button_story, button_screenshots, button_download, button_options, button_quit]:
+	for btn: Button in [button_play, button_story, button_screenshots, button_download, button_options, button_restore, button_quit]:
 		_btn_base_texts[btn] = btn.text
 		_setup_skull_hover(btn)
 
@@ -146,6 +151,8 @@ func _on_releases_fetched(result: int, code: int, _headers: PackedStringArray, b
 func _hide_screenshot_grid() -> void:
 	if _screenshot_scroll:
 		_screenshot_scroll.visible = false
+	if _restore_scroll:
+		_restore_scroll.visible = false
 	content_label.visible = true
 
 func _show_home() -> void:
@@ -269,6 +276,132 @@ func _build_screenshot_grid() -> void:
 		cell.add_child(lbl)
 
 		grid.add_child(cell)
+
+
+func _show_restore() -> void:
+	_hide_screenshot_grid()
+	if _restore_scroll:
+		_restore_scroll.queue_free()
+		_restore_scroll = null
+
+	var saves := SaveManager.load_saves()
+	var panel := content_label.get_parent()
+
+	# Conteneur scrollable
+	_restore_scroll = ScrollContainer.new()
+	_restore_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_restore_scroll.size_flags_vertical   = Control.SIZE_EXPAND_FILL
+	_restore_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(_restore_scroll)
+
+	var outer := VBoxContainer.new()
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	outer.add_theme_constant_override("separation", 10)
+	_restore_scroll.add_child(outer)
+
+	# Titre
+	var title := Label.new()
+	title.text = "Restaurer une sauvegarde"
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color(1.0, 0.44, 0.44, 1.0))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	outer.add_child(title)
+
+	if saves.is_empty():
+		var empty := Label.new()
+		empty.text = "Aucune sauvegarde disponible."
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 1.0))
+		outer.add_child(empty)
+		content_label.visible = false
+		return
+
+	# Un item par sauvegarde
+	for save_data: Dictionary in saves:
+		var filename: String = save_data.get("filename", "")
+		var slot:     String = save_data.get("slot_name", "?")
+		var ts:       String = save_data.get("timestamp", "")
+		var scene:    String = save_data.get("level_scene", "")
+		var hp:       float  = float(save_data.get("health", 0.0))
+		var armor:    float  = float(save_data.get("armor", 0.0))
+		var souls:    int    = int(save_data.get("soul_points", 0))
+
+		# Nom de niveau lisible
+		var level_label := "?"
+		if "level_1" in scene:   level_label = "Niveau 1"
+		elif "level_2" in scene: level_label = "Niveau 2"
+		elif "level_3" in scene: level_label = "Niveau 3"
+
+		# Date lisible : "20250514_153022" → "14/05/2025 15:30"
+		var date_str := ts
+		if ts.length() >= 15:
+			date_str = "%s/%s/%s %s:%s" % [
+				ts.substr(6, 2), ts.substr(4, 2), ts.substr(0, 4),
+				ts.substr(9, 2), ts.substr(11, 2)
+			]
+
+		# Panneau de l'item
+		var item_panel := PanelContainer.new()
+		var item_style := StyleBoxFlat.new()
+		item_style.bg_color     = Color(0.08, 0.03, 0.08, 0.85)
+		item_style.border_color = Color(0.5, 0.0, 0.0, 0.5)
+		item_style.set_border_width_all(1)
+		item_style.set_corner_radius_all(6)
+		item_style.set_content_margin_all(10)
+		item_panel.add_theme_stylebox_override("panel", item_style)
+		outer.add_child(item_panel)
+
+		var hbox := HBoxContainer.new()
+		hbox.add_theme_constant_override("separation", 12)
+		item_panel.add_child(hbox)
+
+		# Infos textuelles
+		var info_vbox := VBoxContainer.new()
+		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info_vbox.add_theme_constant_override("separation", 2)
+		hbox.add_child(info_vbox)
+
+		var name_lbl := Label.new()
+		name_lbl.text = "💾  %s  —  %s" % [slot, level_label]
+		name_lbl.add_theme_font_size_override("font_size", 14)
+		name_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.85, 1.0))
+		info_vbox.add_child(name_lbl)
+
+		var detail_lbl := Label.new()
+		detail_lbl.text = "%s   ❤ %.0f%%  🛡 %.0f%%  ✦ %d âmes" % [date_str, hp, armor, souls]
+		detail_lbl.add_theme_font_size_override("font_size", 11)
+		detail_lbl.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65, 1.0))
+		info_vbox.add_child(detail_lbl)
+
+		# Bouton Charger
+		var load_btn := Button.new()
+		load_btn.text = "▶ Charger"
+		load_btn.custom_minimum_size = Vector2(90, 0)
+		load_btn.add_theme_font_size_override("font_size", 13)
+		# Copier le style des autres boutons du menu
+		load_btn.add_theme_stylebox_override("normal", _style_normal)
+		load_btn.add_theme_stylebox_override("hover",  _style_active)
+		hbox.add_child(load_btn)
+
+		# Capturer la variable locale pour la lambda
+		var captured_filename := filename
+		var captured_scene    := scene
+		load_btn.pressed.connect(func() -> void:
+			_restore_save(captured_filename, captured_scene)
+		)
+
+	content_label.visible = false
+
+
+func _restore_save(filename: String, scene: String) -> void:
+	if filename == "" or scene == "":
+		return
+	SaveManager.pending_filename = filename
+	GameData.deaths = 0   # pas de réinitialisation — les morts de la session précédente subsistent
+	var err := get_tree().change_scene_to_file(scene)
+	if err != OK:
+		push_error("MainMenu: impossible de charger la scène de sauvegarde : " + scene)
+		SaveManager.pending_filename = ""
 
 
 func _show_download() -> void:

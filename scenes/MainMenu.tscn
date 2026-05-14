@@ -191,6 +191,14 @@ theme_override_styles/normal = SubResource("ButtonNormal")
 theme_override_styles/hover = SubResource("ButtonHover")
 text = "Options"
 
+[node name="ButtonRestore" type="Button" parent="RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox" unique_id=1047382615]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5")
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/hover = SubResource("ButtonHover")
+text = "Restaurer"
+
 [node name="ButtonQuit" type="Button" parent="RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox" unique_id=1832016539]
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2

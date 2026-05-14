@@ -16,8 +16,9 @@ var player:      CharacterBody3D = null  # injecté par le script de niveau
 var level_scene: String          = ""   # "res://scenes/level_X.tscn"
 
 # ── État interne ──────────────────────────────────────────────
-var _is_open:     bool  = false
-var _save_status: Label = null
+var _is_open:       bool  = false
+var _options_open:  bool  = false   # true tant que options_menu est ouvert par-dessus
+var _save_status:   Label = null
 
 # ── Style bouton ──────────────────────────────────────────────
 var _btn_style_normal:  StyleBoxFlat = null
@@ -40,6 +41,10 @@ func _ready() -> void:
 #  Entrée clavier — Échap
 # ════════════════════════════════════════════════════════════
 func _unhandled_input(event: InputEvent) -> void:
+	# Bloquer pendant que options_menu est ouvert par-dessus :
+	# c'est options_menu._input qui gère Échap dans ce cas-là.
+	if _options_open:
+		return
 	if not event.is_action_pressed("ui_cancel"):
 		return
 	if _is_open:
@@ -197,14 +202,19 @@ func _on_save() -> void:
 
 
 func _on_options() -> void:
-	# Ouvrir les options par-dessus le menu pause (layer 200)
+	# Cacher le menu pause pendant que les options sont ouvertes
+	# (évite qu'il reste visible derrière et que Échap le ferme en même temps)
+	_options_open = true
+	visible = false
+
 	var om: Node = load("res://scripts/options_menu.gd").new()
 	get_tree().root.add_child(om)
 	om.closed.connect(func() -> void:
 		om.queue_free()
-		# options_menu._close() ne re-pauses pas (open(false) → _paused_by_me=false)
-		# Ré-appliquer la pause au cas où un bug l'aurait levée
-		get_tree().paused = true
+		_options_open = false
+		visible = true                              # ré-afficher le menu pause
+		get_tree().paused = true                    # s'assurer qu'on est encore pausé
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)  # restaurer le curseur
 	)
 	om.open(false)   # ne pas re-pauser — déjà pausé par ce menu
 
