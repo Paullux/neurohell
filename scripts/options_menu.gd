@@ -205,7 +205,7 @@ func _build_sound_page() -> Control:
 	page.add_child(_audio_group("🎵  MUSIQUE", _music_check,
 		_make_slider("Volume", func(v: float) -> void:
 			GameOptions.music_vol = v / 100.0; GameOptions._apply_audio()
-		, "music")
+			, "music")
 	))
 
 	# Bruitage armes / UI
@@ -214,7 +214,7 @@ func _build_sound_page() -> Control:
 	page.add_child(_audio_group("🔫  BRUITAGE", _sfx_check,
 		_make_slider("Volume", func(v: float) -> void:
 			GameOptions.sfx_vol = v / 100.0; GameOptions._apply_audio()
-		, "sfx")
+			, "sfx")
 	))
 
 	# Voix
@@ -223,7 +223,7 @@ func _build_sound_page() -> Control:
 	page.add_child(_audio_group("🎙  VOIX  (Sonya…)", _voice_check,
 		_make_slider("Volume", func(v: float) -> void:
 			GameOptions.voice_vol = v / 100.0; GameOptions._apply_audio()
-		, "voice")
+			, "voice")
 	))
 
 	# Bruits de démons
@@ -232,7 +232,7 @@ func _build_sound_page() -> Control:
 	page.add_child(_audio_group("👹  BRUITS DE DÉMONS", _demons_check,
 		_make_slider("Volume", func(v: float) -> void:
 			GameOptions.demons_vol = v / 100.0; GameOptions._apply_audio()
-		, "demons")
+			, "demons")
 	))
 
 	page.add_child(_apply_btn())
@@ -496,6 +496,7 @@ func _apply_btn() -> Button:
 	btn.pressed.connect(func() -> void:
 		GameOptions.apply_all()
 		GameOptions.save_options()
+		_close()
 	)
 	return btn
 
