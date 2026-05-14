@@ -43,17 +43,17 @@ const LEVEL_DATA := {
 	1: {
 		"audio": "level1_to_2.ogg",
 		"json":  "level1_to_2.json",
-		"subtitle": "Continue...\nL'enfer te regarde avancer.\nChaque pas te rapproche d'elle.\nDu purgatoire.\nContinue.",
+		"subtitle": "Continue, mon amour...\nL'enfer te regarde avancer.\nChaque pas te rapproche de moi.\nDu purgatoire.\nContinue.",
 	},
 	2: {
 		"audio": "level2_to_3.ogg",
 		"json":  "level2_to_3.json",
-		"subtitle": "Tu résistes mieux que je ne le pensais.\nCe qui t'attend...\nc'est plus qu'un purgatoire.\nC'est une réponse.",
+		"subtitle": "Tu résistes mieux que je ne le pensais.\nCe qui t'attend...\nc'est plus qu'un purgatoire.\nC'est une réponse.\nTiens bon, mon amour.",
 	},
 	3: {
 		"audio": "level3_to_win.ogg",
 		"json":  "level3_to_win.json",
-		"subtitle": "Tu l'as traversé.\nTout ça... pour elle.\nAvance.\nElle est là.",
+		"subtitle": "Tu l'as traversé.\nTout ça... pour moi.\nAvance.\nJe suis là.",
 	},
 }
 

@@ -349,10 +349,9 @@ func _die() -> void:
 	active   = false
 	visible  = false
 	velocity = Vector3.ZERO
-	# Coupure immédiate de tout son en cours (pas, activation…)
+	# Coupure immédiate et totale — aucun son ne persiste après la mort
 	if _audio:
 		_audio.stop()
-	_play_snd(snd_die, true)
 	# Désactiver le collider pour ne pas bloquer les tirs/déplacements
 	if _col_shape:
 		_col_shape.disabled = true
