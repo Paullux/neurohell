@@ -21,6 +21,16 @@ extends CharacterBody3D
 @export var anim_attack:      String = ""
 @export var anim_speed_scale: float  = 1.0   # multiplicateur de vitesse d'animation
 
+# ── Sons (assigner dans l'Inspector de chaque démon) ─────────
+@export_group("Sons")
+@export var snd_spawn:    AudioStream = null  # cri à l'activation
+@export var snd_move:     AudioStream = null  # bruit de déplacement (boucle à intervalle)
+@export var snd_attack:   AudioStream = null  # son d'attaque corps-à-corps
+@export var snd_hit:      AudioStream = null  # réaction aux dégâts
+@export var snd_die:      AudioStream = null  # mort
+## Secondes entre deux sons de déplacement (pas, claquements…)
+@export var snd_move_interval: float = 0.55
+
 # ── État ─────────────────────────────────────────────────────
 var hp: float
 var dead               := false
@@ -46,6 +56,10 @@ var _spawn_position: Vector3
 var _base_y: float = 0.0
 const GRAVITY := 30.0
 
+# ── Audio 3D ──────────────────────────────────────────────────
+var _audio:       AudioStreamPlayer3D = null
+var _move_timer:  float               = 0.0
+
 signal demon_died(demon)
 signal demon_hit_player(damage: float)
 
@@ -56,8 +70,9 @@ func _ready() -> void:
 	_base_y         = global_position.y
 	float_phase     = randf() * TAU
 	visible         = false
-
 	collision_layer = 2
+	_setup_audio()
+	_auto_load_sounds()
 	collision_mask = 1
 	add_to_group("demon")
 	
@@ -110,6 +125,39 @@ func _find_anim_player(node: Node) -> AnimationPlayer:
 			return found
 	return null
 
+# ── Auto-chargement des sons depuis assets/audio/demons/<nom>/ ────────────
+# Si les exports Sons restent null dans l'Inspector, charge automatiquement
+# les fichiers .ogg par convention de nommage : demon_name.to_lower()
+func _auto_load_sounds() -> void:
+	var key := demon_name.to_lower()
+	var base := "res://assets/audio/demons/%s/" % key
+	if snd_spawn  == null: snd_spawn  = _try_load(base + "%s_spawn.ogg"  % key)
+	if snd_move   == null: snd_move   = _try_load(base + "%s_move.ogg"   % key)
+	if snd_attack == null: snd_attack = _try_load(base + "%s_attack.ogg" % key)
+	if snd_hit    == null: snd_hit    = _try_load(base + "%s_hit.ogg"    % key)
+	if snd_die    == null: snd_die    = _try_load(base + "%s_die.ogg"    % key)
+
+func _try_load(path: String) -> AudioStream:
+	if ResourceLoader.exists(path):
+		return load(path) as AudioStream
+	return null
+
+func _setup_audio() -> void:
+	_audio = AudioStreamPlayer3D.new()
+	_audio.bus          = "SFX"
+	_audio.max_distance = 35.0   # audible jusqu'à ~35 m
+	_audio.unit_size    = 4.0    # atténuation progressive
+	_audio.panning_strength = 1.0
+	add_child(_audio)
+
+func _play_snd(stream: AudioStream, force: bool = false) -> void:
+	if stream == null or _audio == null:
+		return
+	if _audio.playing and not force:
+		return
+	_audio.stream = stream
+	_audio.play()
+
 func set_player(p: CharacterBody3D) -> void:
 	_player = p
 
@@ -130,6 +178,7 @@ func _physics_process(delta: float) -> void:
 		active  = true
 		visible = true
 		scale   = Vector3.ONE * 0.01
+		_play_snd(snd_spawn, true)   # cri à l'activation
 
 	if not active: return
 
@@ -198,11 +247,21 @@ func _physics_process(delta: float) -> void:
 	_check_stuck(delta)
 	_update_animation(is_moving)
 
+	# ── Son de déplacement (pas, claquements…) ───────────────
+	if is_moving:
+		_move_timer -= delta
+		if _move_timer <= 0.0:
+			_play_snd(snd_move)
+			_move_timer = snd_move_interval
+	else:
+		_move_timer = 0.0   # réinitialise pour que le premier pas soit immédiat
+
 	# ── Corps-à-corps ────────────────────────────────────────
 	_melee_cooldown -= delta
 	if dist <= melee_range and _melee_cooldown <= 0.0:
 		demon_hit_player.emit(melee_damage)
 		_melee_cooldown = 1.0
+		_play_snd(snd_attack, true)
 		if anim_attack != "":
 			_play_anim(anim_attack)
 			_attacking = true
@@ -278,6 +337,7 @@ func _on_anim_finished(anim_name: String) -> void:
 # ── Dégâts ────────────────────────────────────────────────────
 func take_damage(amount: float) -> void:
 	if dead: return
+	_play_snd(snd_hit, true)
 	hp -= amount
 	hp  = maxf(hp, 0.0)
 	if hp <= 0.0:
@@ -288,6 +348,7 @@ func _die() -> void:
 	active   = false
 	visible  = false
 	velocity = Vector3.ZERO
+	_play_snd(snd_die, true)
 	# Désactiver le collider pour ne pas bloquer les tirs/déplacements
 	if _col_shape:
 		_col_shape.disabled = true

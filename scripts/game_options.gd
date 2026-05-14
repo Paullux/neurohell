@@ -158,19 +158,28 @@ func load_options() -> void:
 
 # ── Résolutions disponibles ───────────────────────────────────
 func get_available_resolutions() -> Array[Vector2i]:
-	var raw    := DisplayServer.get_screen_resolutions()
-	var result : Array[Vector2i] = []
-	var seen   := {}
-	for r: Vector2i in raw:
-		if r.x < 1280 or r.y < 720:
-			continue
-		var key := "%dx%d" % [r.x, r.y]
-		if key in seen:
-			continue
-		seen[key] = true
-		result.append(r)
-	result.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
-		return a.x * a.y > b.x * b.y)
+	# Godot 4 n'expose pas la liste des modes vidéo — on filtre une liste
+	# standard en ne gardant que les résolutions <= taille réelle de l'écran.
+	var screen := DisplayServer.screen_get_size()
+	const COMMON: Array = [
+		Vector2i(7680, 2160),   # 32:9  8K
+		Vector2i(5120, 1440),   # 32:9
+		Vector2i(3840, 1080),   # 32:9
+		Vector2i(3440, 1440),   # 21:9 UW-QHD
+		Vector2i(2560, 1080),   # 21:9 UW-FHD
+		Vector2i(3840, 2160),   # 16:9 4K
+		Vector2i(2560, 1440),   # 16:9 2K
+		Vector2i(1920, 1080),   # 16:9 FHD
+		Vector2i(1600,  900),   # 16:9
+		Vector2i(1366,  768),   # 16:9
+		Vector2i(1280,  720),   # 16:9 HD
+	]
+	var result: Array[Vector2i] = []
+	for r: Vector2i in COMMON:
+		if r.x <= screen.x and r.y <= screen.y:
+			result.append(r)
+	if result.is_empty():
+		result.append(screen)   # fallback : résolution native
 	return result
 
 
