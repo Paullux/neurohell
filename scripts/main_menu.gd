@@ -244,62 +244,56 @@ func _build_screenshot_grid() -> void:
 
 func _show_download() -> void:
 	_hide_screenshot_grid()
-	var current   := GameVersion.VERSION
+	var current    := GameVersion.VERSION
 	var build_date := GameVersion.BUILD_DATE
-	var os_name   := OS.get_name()
+	var os_name    := OS.get_name()
 
 	if not content_label.meta_clicked.is_connected(_on_link_clicked):
 		content_label.meta_clicked.connect(_on_link_clicked)
 
-	# ── Version de développement ─────────────────────────────
-	if current == "dev":
-		var update_notice := ""
-		if _latest_version != "":
-			update_notice = "\n[color=#ffcc00]⬆  Version [b]%s[/b] disponible sur [url=https://neurohell.com]neurohell.com[/url][/color]" % _latest_version
-		content_label.text = """
-[font_size=24][b]Télécharger[/b][/font_size]
-
-[color=#aaaaaa]Vous utilisez une version de développement.[/color]%s
-
-[b]🪟 Windows[/b]
-[url=https://github.com/Paullux/neurohell/releases/latest]Voir les releases sur GitHub[/url]
-
-[b]🐧 Linux[/b]
-[url=https://github.com/Paullux/neurohell/releases/latest]Voir les releases sur GitHub[/url]
-
-[color=#aaaaaa]GPU requis : Vulkan 1.0 ou OpenGL 3.3+[/color]
-""" % update_notice
-		return
-
-	# ── Version officielle ────────────────────────────────────
-	# Bannière mise à jour disponible
+	# Bannière mise à jour
 	var update_banner := ""
-	if _latest_version != "" and _latest_version != current:
-		update_banner = "\n[color=#ffcc00]⬆  Mise à jour disponible : [b]%s[/b]  →  [url=https://neurohell.com]neurohell.com[/url][/color]\n" % _latest_version
+	if _latest_version != "" and _latest_version != current and current != "dev":
+		update_banner = "\n[color=#ffcc00]⬆  Mise à jour disponible : [b]%s[/b]  →  [url=https://neurohell.com/download]neurohell.com/download[/url][/color]\n" % _latest_version
 	elif _latest_version == current:
 		update_banner = "\n[color=#00e5ff]✔  Vous avez la dernière version.[/color]\n"
 
+	# Version affichée (dev → dernière connue ou "–")
+	var displayed_version := current if current != "dev" else \
+		("dev  [color=#aaaaaa](dernière : %s)[/color]" % _latest_version if _latest_version != "" else "dev")
+
 	# Mise en évidence plateforme actuelle
-	var win_label := "[b]🪟 Windows[/b]"
-	var lin_label := "[b]🐧 Linux[/b]"
+	var win_label := "[b]🪟 WINDOWS[/b]"
+	var lin_label := "[b]🐧 LINUX[/b]"
 	if os_name == "Windows":
-		win_label = "[color=#00e5ff][b]🪟 Windows  ◄ votre plateforme[/b][/color]"
+		win_label = "[color=#00e5ff][b]🪟 WINDOWS  ◄ votre plateforme[/b][/color]"
 	elif os_name == "Linux":
-		lin_label = "[color=#00e5ff][b]🐧 Linux  ◄ votre plateforme[/b][/color]"
+		lin_label = "[color=#00e5ff][b]🐧 LINUX  ◄ votre plateforme[/b][/color]"
 
-	content_label.text = """
-[font_size=24][b]Télécharger[/b][/font_size]
-
-[color=#00e5ff]Version installée : [b]%s[/b][/color]   ·   [color=#aaaaaa]build du %s[/color]   ·   [color=#aaaaaa]%s[/color]
+	content_label.text = """[font_size=22][b]TÉLÉCHARGER[/b][/font_size]
 %s
-%s
-[url=https://github.com/Paullux/neurohell/releases/download/%s/NeuroHell-Windows.zip]NeuroHell-Windows.zip[/url]
+[font_size=15][b]VERSION DESKTOP[/b][/font_size]
+
+[color=#aaaaaa]La version bureau offre des modèles high poly, des particules GPU complexes et un éclairage dynamique Vulkan. Développée sous Godot 4.[/color]
+
+Dernière version : [b]%s[/b]   ·   [color=#aaaaaa]build du %s[/color]
 
 %s
-[url=https://github.com/Paullux/neurohell/releases/download/%s/NeuroHell-Linux.zip]NeuroHell-Linux.zip[/url]
+[color=#aaaaaa]Windows 10 / 11 — 64 bit[/color]
+[url=https://neurohell.com/download]⬇  Télécharger pour Windows[/url]
 
-[color=#aaaaaa]GPU requis : Vulkan 1.0 ou OpenGL 3.3+[/color]
-""" % [current, build_date, os_name, update_banner, win_label, current, lin_label, current]
+%s
+[color=#aaaaaa]x86_64 — Ubuntu, Debian, Arch...[/color]
+[url=https://neurohell.com/download]⬇  Télécharger pour Linux[/url]
+
+[font_size=15][b]CONFIGURATION MINIMALE[/b][/font_size]
+
+[color=#aaaaaa]GPU : Vulkan 1.0 ou OpenGL 3.3   ·   RAM : 4 Go   ·   Windows 10 64-bit / Linux glibc ≥ 2.31[/color]
+
+[font_size=15][b]VERSION WEB (PROTOTYPE)[/b][/font_size]
+
+[color=#aaaaaa]La démo navigateur reste accessible via[/color] [url=https://neurohell.com]neurohell.com[/url] [color=#aaaaaa]→ Lancer le jeu. Pas d'installation requise.[/color]
+""" % [update_banner, displayed_version, build_date, win_label, lin_label]
 
 
 # ── Actions ──────────────────────────────────────────────────
@@ -310,6 +304,9 @@ func _on_play_pressed() -> void:
 
 func _go_to_level_1() -> void:
 	intro_overlay.visible = false
+	# Reset du compteur de morts ici (nouvelle partie) et non dans level_1._ready()
+	# pour qu'il survive aux reload_current_scene() lors des morts en jeu
+	GameData.deaths = 0
 	var err := get_tree().change_scene_to_file(LEVEL_1_SCENE)
 	if err != OK:
 		push_error("Impossible de charger le niveau 1 : " + LEVEL_1_SCENE)

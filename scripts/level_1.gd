@@ -46,9 +46,9 @@ func _ready() -> void:
 		wm.scope_toggled.connect(hud.set_scope)
 
 	# Stats de session — reset au début du niveau
+	# (deaths N'est PAS réinitialisé ici : il doit survivre aux reload_current_scene)
 	GameData.soul_points  = 0
 	GameData.kills        = 0
-	GameData.deaths       = 0
 	GameData.damage_dealt = 0.0
 	GameData.level_start_time = Time.get_ticks_msec() / 1000.0
 
