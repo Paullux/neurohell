@@ -167,9 +167,7 @@ func _build_display_page() -> Control:
 	_populate_resolutions()
 	page.add_child(_res_option)
 	_res_option.item_selected.connect(func(idx: int) -> void:
-		var res: Vector2i = _res_option.get_item_metadata(idx)
-		GameOptions.resolution = res
-		GameOptions._apply_display()
+		GameOptions.resolution = _res_option.get_item_metadata(idx)
 	)
 
 	_section(page, "RAPPORT D'AFFICHAGE")
@@ -181,16 +179,12 @@ func _build_display_page() -> Control:
 	page.add_child(_ratio_option)
 	_ratio_option.item_selected.connect(func(idx: int) -> void:
 		GameOptions.aspect_ratio = _ratio_option.get_item_metadata(idx)
-		GameOptions._apply_display()
 	)
 	page.add_child(_note("[color=#888888]En 21:9 / 32:9, les cinématiques affichent des bandes noires (format 16:9 préservé).[/color]"))
 
 	_section(page, "PLEIN ÉCRAN")
 	_fs_check = _make_checkbox("Activer le plein écran")
-	_fs_check.toggled.connect(func(on: bool) -> void:
-		GameOptions.fullscreen = on
-		GameOptions._apply_display()
-	)
+	_fs_check.toggled.connect(func(on: bool) -> void: GameOptions.fullscreen = on)
 	page.add_child(_fs_check)
 
 	_section(page, "")
@@ -202,45 +196,88 @@ func _build_display_page() -> Control:
 # ── Page Son ────────────────────────────────────────────────
 func _build_sound_page() -> Control:
 	var page := VBoxContainer.new()
-	page.add_theme_constant_override("separation", 12)
+	page.add_theme_constant_override("separation", 10)
 	var m := _page_margin(page)
 
-	_section(page, "MUSIQUE")
-	_music_check = _make_checkbox("Activer la musique")
+	# Musique
+	_music_check = _make_checkbox("Activer")
 	_music_check.toggled.connect(func(on: bool) -> void: GameOptions.music_on = on; GameOptions._apply_audio())
-	page.add_child(_music_check)
-	page.add_child(_make_slider("Volume musique", func(v: float) -> void:
-		GameOptions.music_vol = v / 100.0; GameOptions._apply_audio()
+	page.add_child(_audio_group("🎵  MUSIQUE", _music_check,
+		_make_slider("Volume", func(v: float) -> void:
+			GameOptions.music_vol = v / 100.0; GameOptions._apply_audio()
+		, "music")
 	))
 
-	_section(page, "BRUITAGE")
-	_sfx_check = _make_checkbox("Activer les bruitages")
+	# Bruitage armes / UI
+	_sfx_check = _make_checkbox("Activer")
 	_sfx_check.toggled.connect(func(on: bool) -> void: GameOptions.sfx_on = on; GameOptions._apply_audio())
-	page.add_child(_sfx_check)
-	page.add_child(_make_slider("Volume bruitage", func(v: float) -> void:
-		GameOptions.sfx_vol = v / 100.0; GameOptions._apply_audio()
+	page.add_child(_audio_group("🔫  BRUITAGE", _sfx_check,
+		_make_slider("Volume", func(v: float) -> void:
+			GameOptions.sfx_vol = v / 100.0; GameOptions._apply_audio()
+		, "sfx")
 	))
 
-	_section(page, "VOIX")
-	_voice_check = _make_checkbox("Activer les voix (Sonya…)")
+	# Voix
+	_voice_check = _make_checkbox("Activer")
 	_voice_check.toggled.connect(func(on: bool) -> void: GameOptions.voice_on = on; GameOptions._apply_audio())
-	page.add_child(_voice_check)
-	page.add_child(_make_slider("Volume voix", func(v: float) -> void:
-		GameOptions.voice_vol = v / 100.0; GameOptions._apply_audio()
+	page.add_child(_audio_group("🎙  VOIX  (Sonya…)", _voice_check,
+		_make_slider("Volume", func(v: float) -> void:
+			GameOptions.voice_vol = v / 100.0; GameOptions._apply_audio()
+		, "voice")
 	))
 
-	_section(page, "BRUITS DE DÉMONS")
-	_demons_check = _make_checkbox("Activer les bruits de démons")
+	# Bruits de démons
+	_demons_check = _make_checkbox("Activer")
 	_demons_check.toggled.connect(func(on: bool) -> void: GameOptions.demons_on = on; GameOptions._apply_audio())
-	page.add_child(_demons_check)
-	page.add_child(_make_slider("Volume bruits démons", func(v: float) -> void:
-		GameOptions.demons_vol = v / 100.0; GameOptions._apply_audio()
+	page.add_child(_audio_group("👹  BRUITS DE DÉMONS", _demons_check,
+		_make_slider("Volume", func(v: float) -> void:
+			GameOptions.demons_vol = v / 100.0; GameOptions._apply_audio()
+		, "demons")
 	))
 
-	_section(page, "")
 	page.add_child(_apply_btn())
 
 	return m
+
+
+# ── Cadre visuel pour un groupe Son ──────────────────────────
+# Retourne un PanelContainer avec titre + checkbox + slider
+func _audio_group(title: String, cb: CheckBox, slider_row: HBoxContainer) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color     = Color(0.08, 0.04, 0.08, 0.6)
+	style.border_color = Color(0.5, 0.0, 0.0, 0.5)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(6)
+	style.set_content_margin_all(10)
+	panel.add_theme_stylebox_override("panel", style)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	panel.add_child(vbox)
+
+	# Titre + checkbox sur la même ligne
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 10)
+	var lbl := Label.new()
+	lbl.text = title
+	lbl.add_theme_font_size_override("font_size", 13)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.5, 0.5, 0.95))
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(lbl)
+	header.add_child(cb)
+	vbox.add_child(header)
+
+	# Séparateur fin
+	var sep := HSeparator.new()
+	sep.add_theme_color_override("color", Color(0.4, 0.0, 0.0, 0.3))
+	vbox.add_child(sep)
+
+	# Slider volume
+	vbox.add_child(slider_row)
+
+	return panel
 
 
 # ── Page Contrôles ───────────────────────────────────────────
@@ -525,11 +562,11 @@ func _make_checkbox(lbl: String) -> CheckBox:
 	return cb
 
 
-func _make_slider(label_text: String, on_change: Callable) -> HBoxContainer:
+func _make_slider(label_text: String, on_change: Callable, key: String = "") -> HBoxContainer:
 	var row := HBoxContainer.new()
 	var lbl := Label.new()
 	lbl.text = label_text
-	lbl.custom_minimum_size = Vector2(180, 0)
+	lbl.custom_minimum_size = Vector2(60, 0)
 	lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
 	lbl.add_theme_font_size_override("font_size", 13)
 	row.add_child(lbl)
@@ -540,12 +577,12 @@ func _make_slider(label_text: String, on_change: Callable) -> HBoxContainer:
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slider.value_changed.connect(on_change)
 	row.add_child(slider)
-	# Stocker dans la variable membre selon le label
-	match label_text:
-		"Volume musique":        _music_slider  = slider
-		"Volume bruitage":       _sfx_slider    = slider
-		"Volume voix":           _voice_slider  = slider
-		"Volume bruits démons":  _demons_slider = slider
+	# Stocker dans la variable membre selon la clé
+	match key:
+		"music":  _music_slider  = slider
+		"sfx":    _sfx_slider    = slider
+		"voice":  _voice_slider  = slider
+		"demons": _demons_slider = slider
 	return row
 
 
