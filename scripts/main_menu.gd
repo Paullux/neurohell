@@ -10,11 +10,14 @@ extends Control
 @onready var intro_video:        VideoStreamPlayer = $IntroOverlay/IntroVideo
 
 const LEVEL_1_SCENE   := "res://scenes/level_1.tscn"
-const GITHUB_API      := "https://api.github.com/repos/Paullux/neurohell/releases/latest"
+# /releases (toutes) plutôt que /latest → une seule requête pour version + compteurs
+const GITHUB_API      := "https://api.github.com/repos/Paullux/neurohell/releases"
 
 var _active_btn:      Button = null
 var _btn_base_texts:  Dictionary = {}  # texte original de chaque bouton
 var _latest_version:  String = ""      # rempli par le fetch GitHub
+var _dl_windows:      int    = -1      # -1 = pas encore chargé
+var _dl_linux:        int    = -1
 var _http:            HTTPRequest = null
 
 # ── Grille captures ──────────────────────────────────────────
@@ -93,24 +96,48 @@ func _setup_skull_hover(btn: Button) -> void:
 	)
 
 
-# ── Fetch version GitHub ─────────────────────────────────────
+# ── Fetch releases GitHub (version + compteurs de téléchargement) ──
 func _fetch_latest_version() -> void:
 	_http = HTTPRequest.new()
 	add_child(_http)
-	_http.request_completed.connect(_on_version_fetched)
+	_http.request_completed.connect(_on_releases_fetched)
 	_http.request(GITHUB_API, ["User-Agent: NeuroHell-Menu", "Accept: application/vnd.github+json"])
 
-func _on_version_fetched(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+func _on_releases_fetched(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	_http.queue_free()
 	_http = null
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
 		return
-	var json: Variant = JSON.parse_string(body.get_string_from_utf8())
-	if json and json.has("tag_name"):
-		_latest_version = json.get("tag_name", "")
-		# Rafraîchir la section téléchargement si elle est visible
-		if _active_btn == button_download:
-			_show_download()
+	var releases: Variant = JSON.parse_string(body.get_string_from_utf8())
+	if not releases is Array or releases.is_empty():
+		return
+
+	# Première release = la plus récente
+	var latest: Dictionary = releases[0]
+	_latest_version = latest.get("tag_name", "")
+
+	# Sommer les download_count par plateforme sur TOUTES les releases
+	_dl_windows = 0
+	_dl_linux   = 0
+	for release: Variant in releases:
+		if not release is Dictionary:
+			continue
+		var assets: Variant = release.get("assets", [])
+		if not assets is Array:
+			continue
+		for asset: Variant in assets:
+			if not asset is Dictionary:
+				continue
+			var name: String = asset.get("name", "").to_lower()
+			var count: int   = asset.get("download_count", 0)
+			if "windows" in name:
+				_dl_windows += count
+			elif "linux" in name:
+				_dl_linux += count
+
+	# Rafraîchir la section téléchargement si elle est visible
+	if _active_btn == button_download:
+		_show_download()
 
 
 # ── Contenus ─────────────────────────────────────────────────
@@ -270,6 +297,14 @@ func _show_download() -> void:
 	elif os_name == "Linux":
 		lin_label = "[color=#00e5ff][b]🐧 LINUX  ◄ votre plateforme[/b][/color]"
 
+	# Compteurs de téléchargement (-1 = fetch en cours)
+	var win_dl := "[color=#555555]↓ chargement…[/color]" if _dl_windows < 0 \
+		else "[color=#aaaaaa]↓ %d téléchargement%s (toutes versions)[/color]" \
+			% [_dl_windows, "s" if _dl_windows > 1 else ""]
+	var lin_dl := "[color=#555555]↓ chargement…[/color]" if _dl_linux < 0 \
+		else "[color=#aaaaaa]↓ %d téléchargement%s (toutes versions)[/color]" \
+			% [_dl_linux, "s" if _dl_linux > 1 else ""]
+
 	content_label.text = """[font_size=22][b]TÉLÉCHARGER[/b][/font_size]
 %s
 [font_size=15][b]VERSION DESKTOP[/b][/font_size]
@@ -281,10 +316,12 @@ Dernière version : [b]%s[/b]   ·   [color=#aaaaaa]build du %s[/color]
 %s
 [color=#aaaaaa]Windows 10 / 11 — 64 bit[/color]
 [url=https://neurohell.com/download]⬇  Télécharger pour Windows[/url]
+%s
 
 %s
 [color=#aaaaaa]x86_64 — Ubuntu, Debian, Arch...[/color]
 [url=https://neurohell.com/download]⬇  Télécharger pour Linux[/url]
+%s
 
 [font_size=15][b]CONFIGURATION MINIMALE[/b][/font_size]
 
@@ -293,7 +330,7 @@ Dernière version : [b]%s[/b]   ·   [color=#aaaaaa]build du %s[/color]
 [font_size=15][b]VERSION WEB (PROTOTYPE)[/b][/font_size]
 
 [color=#aaaaaa]La démo navigateur reste accessible via[/color] [url=https://neurohell.com]neurohell.com[/url] [color=#aaaaaa]→ Lancer le jeu. Pas d'installation requise.[/color]
-""" % [update_banner, displayed_version, build_date, win_label, lin_label]
+""" % [update_banner, displayed_version, build_date, win_label, win_dl, lin_label, lin_dl]
 
 
 # ── Actions ──────────────────────────────────────────────────
