@@ -19,6 +19,7 @@ config/icon="uid://ddd3pa4dabt7c"
 [autoload]
 
 GameOptions="*res://scripts/game_options.gd"
+SaveManager="*res://scripts/save_manager.gd"
 
 [display]
 

@@ -82,11 +82,7 @@ func _input(event: InputEvent) -> void:
 		_pitch = clamp(_pitch - event.relative.y * mouse_sensitivity, -PITCH_MAX, PITCH_MAX)
 		head.rotation.x = _pitch
 
-	if event is InputEventKey and event.is_action_pressed("pause"):
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Échap (pause) est géré par pause_menu.gd via _unhandled_input
 
 
 # ── physique ───────────────────────────────────────────────

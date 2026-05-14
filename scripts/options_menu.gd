@@ -12,6 +12,8 @@ const TAB_DISPLAY  := 0
 const TAB_SOUND    := 1
 const TAB_CONTROLS := 2
 
+var _paused_by_me: bool = false
+
 # ── Refs UI ──────────────────────────────────────────────────
 var _root:         Control        = null
 var _tab_btns:     Array[Button]  = []
@@ -52,12 +54,15 @@ func _ready() -> void:
 func open(pause_game: bool = false) -> void:
 	_refresh_all()
 	visible = true
+	_paused_by_me = pause_game
 	if pause_game:
 		get_tree().paused = true
 
 
 func _close() -> void:
-	get_tree().paused = false
+	if _paused_by_me:
+		get_tree().paused = false
+	_paused_by_me = false
 	visible = false
 	closed.emit()
 

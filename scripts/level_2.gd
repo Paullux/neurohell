@@ -10,7 +10,10 @@ extends Node3D
 @onready var demons_root:   Node3D          = $Demons
 @onready var nav_region:    NavigationRegion3D = $NavigationRegion3D
 
-var _demons: Array = []
+var _demons: Array    = []
+var _pause_menu: Node = null
+
+const SCENE_PATH := "res://scenes/level_2.tscn"
 
 # ── Narration ─────────────────────────────────────────────────
 const _NARRATION_LINES := [
@@ -110,6 +113,12 @@ func _ready() -> void:
 
 	hud.show_start_overlay("NIVEAU 2\n[WASD] Déplacer  [ESPACE] Sauter  [1-5] Armes  [CLIC] Tirer  [F] Torche")
 
+	# ── Menu Pause ───────────────────────────────────────────
+	_pause_menu = load("res://scripts/pause_menu.gd").new()
+	_pause_menu.player      = player
+	_pause_menu.level_scene = SCENE_PATH
+	get_tree().root.add_child(_pause_menu)
+
 	print("Colliders générés : ", _collider_count)
 
 # ── Génération colliders GLB ──────────────────────────────
@@ -176,3 +185,5 @@ func _on_player_died() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		hud.hide_start_overlay()
+		return
+	# Échap intercepté par pause_menu via _unhandled_input — ne pas traiter ici
