@@ -57,6 +57,22 @@ jobs:
         run: |
           wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
+
+          # Vérifier que MinIO est joignable avant de continuer
+          echo "→ Vérification de la connexion MinIO…"
+          for i in 1 2 3; do
+            if curl -sf --max-time 10 "$MINIO_URL/minio/health/live" > /dev/null 2>&1; then
+              echo "✅ MinIO joignable (tentative $i)"
+              break
+            fi
+            echo "⚠️  Tentative $i/3 échouée, attente 15s…"
+            sleep 15
+            if [ $i -eq 3 ]; then
+              echo "❌ MinIO inaccessible après 3 tentatives — vérifier le serveur assets.neurohell.com"
+              exit 1
+            fi
+          done
+
           ./mc alias set neurohell "$MINIO_URL" "$MC_USER" "$MC_PASS"
 
           echo "→ Téléchargement des assets…"
