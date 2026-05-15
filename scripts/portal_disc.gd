@@ -37,6 +37,114 @@ func _ready() -> void:
 	# Le centre du portail = le nœud visuel s'il existe, sinon self
 	_portal_center = _spin_target if _spin_target != null else self
 
+	# Cacher les meshes marqueurs du portail (blanc dans le GLB)
+	_hide_portal_markers()
+
+	# Vidéo sur le disque — optionnel : si les nœuds sont absents on ignore
+	_setup_portal_video()
+
+
+func _hide_portal_markers() -> void:
+	var root := get_tree().current_scene
+	if root == null:
+		return
+	_hide_markers_recursive(root)
+
+
+func _hide_markers_recursive(node: Node) -> void:
+	if node is MeshInstance3D:
+		var n := node.name
+		if n == "NH_MarkerPortal":
+			# Disque blanc semi-transparent avec légère émission
+			var mat := StandardMaterial3D.new()
+			mat.albedo_color              = Color(1.0, 1.0, 1.0, 0.18)
+			mat.transparency              = BaseMaterial3D.TRANSPARENCY_ALPHA
+			mat.emission_enabled          = true
+			mat.emission                  = Color(1.0, 1.0, 1.0, 1.0)
+			mat.emission_energy_multiplier = 0.4
+			mat.cull_mode                 = BaseMaterial3D.CULL_DISABLED
+			(node as MeshInstance3D).material_override = mat
+		elif n.begins_with("NH_Marker") or n.begins_with("MARKER_"):
+			# Tous les autres marqueurs → invisibles
+			(node as MeshInstance3D).visible = false
+	for child in node.get_children():
+		_hide_markers_recursive(child)
+
+
+const _VIDEO_PATH := "res://assets/videos/Sonya_Portals.ogv"
+
+func _setup_portal_video() -> void:
+	if not ResourceLoader.exists(_VIDEO_PATH):
+		push_warning("PortalDisc : vidéo introuvable → " + _VIDEO_PATH)
+		return
+
+	# ── SubViewport → VideoStreamPlayer → texture fiable ─────
+	var sv: SubViewport = get_node_or_null("VideoViewport")
+	if sv == null:
+		sv                          = SubViewport.new()
+		sv.name                     = "VideoViewport"
+		sv.size                      = Vector2i(512, 512)
+		sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		sv.transparent_bg            = true
+		sv.use_hdr_2d                = false
+		add_child(sv)
+
+	var vp: VideoStreamPlayer = sv.get_node_or_null("VideoPlayer")
+	if vp == null:
+		vp             = VideoStreamPlayer.new()
+		vp.name        = "VideoPlayer"
+		vp.stream      = load(_VIDEO_PATH)
+		vp.expand      = true
+		vp.anchor_left = 0.0; vp.anchor_top    = 0.0
+		vp.anchor_right = 1.0; vp.anchor_bottom = 1.0
+		sv.add_child(vp)
+
+	vp.play()
+	vp.finished.connect(func() -> void: vp.play())
+
+	# Laisser le SubViewport rendre au moins 3 frames
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	var shader := load("res://shaders/portal_chroma.gdshader")
+	var tex     := sv.get_texture()
+
+	# ── Face avant (+5 cm sur Z) ──────────────────────────────
+	var front: MeshInstance3D = get_node_or_null("DiscMesh")
+	if front == null:
+		front            = MeshInstance3D.new()
+		front.name       = "DiscMesh"
+		var q            := QuadMesh.new()
+		q.size           = Vector2(1.6, 1.6)
+		front.mesh       = q
+		front.position.z = 0.05
+		add_child(front)
+
+	var mat_front := ShaderMaterial.new()
+	mat_front.shader = shader
+	mat_front.set_shader_parameter("video_tex", tex)
+	mat_front.set_shader_parameter("flip_u", false)
+	front.material_override = mat_front
+
+	# ── Face arrière (-5 cm sur Z, retournée 180°) ─────────────
+	var back: MeshInstance3D = get_node_or_null("DiscMeshBack")
+	if back == null:
+		back             = MeshInstance3D.new()
+		back.name        = "DiscMeshBack"
+		var q2           := QuadMesh.new()
+		q2.size          = Vector2(1.6, 1.6)
+		back.mesh        = q2
+		back.position.z  = -0.05
+		back.rotation.y  = deg_to_rad(180.0)
+		add_child(back)
+
+	var mat_back := ShaderMaterial.new()
+	mat_back.shader = shader
+	mat_back.set_shader_parameter("video_tex", tex)
+	mat_back.set_shader_parameter("flip_u", true)
+	back.material_override = mat_back
+
 func _process(delta: float) -> void:
 	if _activated:
 		return
@@ -113,8 +221,10 @@ func _get_sonya_id() -> int:
 		return 1
 	if next_scene.ends_with("level_3.tscn"):
 		return 2
-	if next_scene.ends_with("game_win.tscn"):
+	if next_scene.ends_with("level_4.tscn"):
 		return 3
+	if next_scene.ends_with("game_win.tscn"):
+		return 4
 	return 0
 
 func _on_white_done() -> void:

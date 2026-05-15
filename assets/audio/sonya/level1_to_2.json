@@ -1,11 +1,11 @@
 {
   "metadata": {
-    "soundFile": "level1_to_2.wav",
+    "soundFile": "level1_to_2.ogg",
     "duration": 12.227
   },
   "mouthCues": [
     {
-      "start": 0.0,
+      "start": 0,
       "end": 0.1,
       "value": "X"
     },

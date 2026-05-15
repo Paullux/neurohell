@@ -331,6 +331,7 @@ func _show_restore() -> void:
 		if "level_1" in scene:   level_label = "Niveau 1"
 		elif "level_2" in scene: level_label = "Niveau 2"
 		elif "level_3" in scene: level_label = "Niveau 3"
+		elif "level_4" in scene: level_label = "Niveau 4"
 
 		# Date lisible : "20250514_153022" → "14/05/2025 15:30"
 		var date_str := ts

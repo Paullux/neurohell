@@ -10,7 +10,7 @@ extends Node
 #    var cin = SonyaCinematic.new()
 #    add_child(cin)
 #    cin.cinematic_finished.connect(_after_cinematic)
-#    cin.play(1)   # 1 = transition level1→2, 2 = level2→3, 3 = level3→win
+#    cin.play(1)   # 1 = level1→2, 2 = level2→3, 3 = level3→4, 4 = level4→win
 # ============================================================
 
 signal cinematic_finished
@@ -51,8 +51,13 @@ const LEVEL_DATA := {
 		"subtitle": "Tu résistes mieux que je ne le pensais.\nCe qui t'attend...\nc'est plus qu'un purgatoire.\nC'est une réponse.\nTiens bon, mon amour.",
 	},
 	3: {
-		"audio": "level3_to_win.ogg",
-		"json":  "level3_to_win.json",
+		"audio": "level3_to_4.ogg",
+		"json":  "level3_to_4.json",
+		"subtitle": "Tu es presque là.\nJe le sens... tu te rapproches.\nUn dernier obstacle.\nUn dernier effort.\nPour moi.",
+	},
+	4: {
+		"audio": "level4_to_win.ogg",
+		"json":  "level4_to_win.json",
 		"subtitle": "Tu l'as traversé.\nTout ça... pour moi.\nAvance.\nJe suis là.",
 	},
 }

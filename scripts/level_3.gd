@@ -1,7 +1,7 @@
 extends Node3D
 
 # ============================================================
-#  NeuroHell — Level 3 Controller (niveau final)
+#  NeuroHell — Level 3 Controller
 # ============================================================
 
 @onready var player:        CharacterBody3D = $Player
@@ -84,6 +84,14 @@ func _ready() -> void:
 	player._spawn_position = spawn_pos
 	_spawn_pos = spawn_pos
 
+	# ── Repositionner le PortalDisc sur le marqueur GLB ─────
+	if world:
+		var portal_marker := world.find_child("MARKER_Portal_Final", true, false) as Node3D
+		if portal_marker:
+			$PortalDisc.global_position = portal_marker.global_position
+		else:
+			push_warning("Level3 : MARKER_Portal_Final introuvable dans le GLB")
+
 	# Restaurer vie & armure du niveau précédent
 	if GameData.has_saved:
 		player.health = GameData.health
@@ -113,7 +121,7 @@ func _ready() -> void:
 	if SaveManager.pending_filename != "":
 		SaveManager.apply_pending_restore(player)
 
-	hud.show_start_overlay("NIVEAU 3 — NIVEAU FINAL\n[WASD] Déplacer  [ESPACE] Sauter  [1-5] Armes  [CLIC] Tirer  [F] Torche")
+	hud.show_start_overlay("NIVEAU 3\n[WASD] Déplacer  [ESPACE] Sauter  [1-5] Armes  [CLIC] Tirer  [F] Torche")
 
 	# ── Menu Pause ───────────────────────────────────────────
 	_pause_menu = load("res://scripts/pause_menu.gd").new()
@@ -140,12 +148,21 @@ func _generate_colliders(node: Node) -> void:
 			_create_simple_collider(mesh_inst)
 			return
 
+		# 🟠 RAMP = convex hull (évite le tunneling à grande vitesse)
+		if n.contains("RAMP"):
+			mesh_inst.create_convex_collision()
+			_collider_count += 1
+			return
+
 		# 🟢 STRUCTURE = collider précis
 		if n.contains("WALL") \
 		or n.contains("FLOOR") \
 		or n.contains("CEIL") \
 		or n.contains("CORRIDOR") \
-		or n.contains("ROOM"):
+		or n.contains("ROOM") \
+		or n.contains("STAIR") \
+		or n.contains("STEP") \
+		or n.contains("LANDING"):
 
 			mesh_inst.create_trimesh_collision()
 			_collider_count += 1

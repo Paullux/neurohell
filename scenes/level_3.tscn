@@ -221,7 +221,7 @@ transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0)
 [node name="PortalDisc" type="Area3D" parent="." unique_id=300000015]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 187.01776, 1.5, -89.91873)
 script = ExtResource("7")
-next_scene = "res://scenes/game_win.tscn"
+next_scene = "res://scenes/level_4.tscn"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PortalDisc" unique_id=300000016]
 shape = SubResource("PortalSphere_lv3")

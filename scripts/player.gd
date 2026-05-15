@@ -69,6 +69,7 @@ func _ready() -> void:
 	collision_layer = 4
 	collision_mask = 1
 	add_to_group("player")
+	floor_max_angle = deg_to_rad(55.0)   # tolère les rampes jusqu'à 55° (défaut Godot = 45°)
 	# Appliquer la sensibilité depuis les options + écouter les changements
 	mouse_sensitivity = GameOptions.mouse_sensitivity
 	GameOptions.options_applied.connect(func() -> void:

@@ -222,6 +222,7 @@ func _on_options() -> void:
 func _on_quit() -> void:
 	get_tree().paused = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	queue_free()
 	get_tree().change_scene_to_file("res://scenes/MainMenu.tscn")
 
 

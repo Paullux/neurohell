@@ -1,0 +1,240 @@
+[gd_scene format=3 uid="uid://dp4oar2m7xtlc"]
+
+[ext_resource type="Script" uid="uid://dwoicjb2o2chl" path="res://scripts/level_4.gd" id="1"]
+[ext_resource type="Script" uid="uid://cyifxv4rhkya5" path="res://scripts/game_manager.gd" id="2"]
+[ext_resource type="PackedScene" uid="uid://c1ryss6auwxt5" path="res://scenes/hud.tscn" id="3"]
+[ext_resource type="PackedScene" uid="uid://cgj7e27s8os72" path="res://scenes/player.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://c1p3w10hj0817" path="res://assets/levels/neurohell_level_4.glb" id="5"]
+[ext_resource type="Script" uid="uid://cxxnjhjttfyw" path="res://scripts/portal_disc.gd" id="7"]
+[ext_resource type="Script" uid="uid://y7i3gnt7s2gr" path="res://scripts/window_glass.gd" id="9_wglass"]
+[ext_resource type="Script" uid="uid://b7q27sccyltim" path="res://scripts/demon_base.gd" id="10_dbase"]
+[ext_resource type="PackedScene" uid="uid://b6jlafppk2did" path="res://assets/demons/demon_mawgrub.glb" id="11_maw"]
+[ext_resource type="PackedScene" uid="uid://ngstwjhbpcsu" path="res://assets/demons/demon_pyrarachnid.glb" id="12_pyra"]
+[ext_resource type="PackedScene" uid="uid://gwi6s1b2mbwt" path="res://assets/demons/demon_ravager.glb" id="13_rav"]
+[ext_resource type="PackedScene" uid="uid://2eedpjvux4sm" path="res://assets/demons/demon_spectre.glb" id="14_spec"]
+[ext_resource type="PackedScene" uid="uid://ced58dc3o8sl8" path="res://assets/demons/demon_taurex.glb" id="15_tau"]
+[ext_resource type="PackedScene" uid="uid://de2lxiu1tk4aw" path="res://assets/demons/demon_voidborn.glb" id="16_void"]
+[ext_resource type="Texture2D" uid="uid://bdj7pm0yc0300" path="res://assets/images/hdri/hdri_inferno/hdr.exr" id="17_hdri"]
+
+[sub_resource type="CapsuleShape3D" id="Cap_Mawgrub_lv4"]
+radius = 0.65
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="Cap_Pyrarachnid_lv4"]
+radius = 0.45
+height = 0.9
+
+[sub_resource type="CapsuleShape3D" id="Cap_Ravager_lv4"]
+radius = 0.55
+
+[sub_resource type="CapsuleShape3D" id="Cap_Spectre_lv4"]
+
+[sub_resource type="CapsuleShape3D" id="Cap_Taurex_lv4"]
+radius = 0.75
+height = 2.2
+
+[sub_resource type="CapsuleShape3D" id="Cap_Voidborn_lv4"]
+radius = 0.6
+height = 1.5
+
+[sub_resource type="SphereShape3D" id="PortalSphere_lv4"]
+radius = 1.5
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMat_lv4"]
+panorama = ExtResource("17_hdri")
+
+[sub_resource type="Sky" id="Sky_lv4"]
+sky_material = SubResource("PanoramaSkyMat_lv4")
+
+[sub_resource type="Environment" id="Environment_lv4"]
+background_mode = 2
+sky = SubResource("Sky_lv4")
+ambient_light_source = 2
+ambient_light_color = Color(0.05, 0.05, 0.08, 1)
+ambient_light_energy = 0.05
+
+[node name="Level4" type="Node3D" unique_id=400000001]
+script = ExtResource("1")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=400000002]
+
+[node name="World" parent="NavigationRegion3D" unique_id=400000003 instance=ExtResource("5")]
+
+[node name="Player" parent="." unique_id=400000004 instance=ExtResource("4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+
+[node name="Lights" type="Node3D" parent="." unique_id=400000005]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Lights" unique_id=400000006]
+transform = Transform3D(0.707, -0.5, 0.5, 0, 0.707, 0.707, -0.707, -0.5, 0.5, 20, 40, 30)
+light_color = Color(1, 0.88, 0.8, 1)
+light_energy = 1.5
+shadow_enabled = true
+shadow_bias = 0.05
+
+[node name="AmbientFill" type="OmniLight3D" parent="Lights" unique_id=400000007]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, -25)
+light_color = Color(0.1, 0.15, 0.3, 1)
+light_energy = 0.8
+omni_range = 60.0
+
+[node name="Demons" type="Node3D" parent="." unique_id=400000008]
+
+[node name="Mawgrub" type="CharacterBody3D" parent="Demons" unique_id=410000001 groups=["demon"]]
+transform = Transform3D(-0.99908364, 0, 0.042799897, 0, 1, 0, -0.042799897, 0, -0.99908364, 71.49603, 7.8983917, -2.2386475)
+script = ExtResource("10_dbase")
+demon_name = "Mawgrub"
+melee_range = 1.0
+anim_idle = "Mouth_Open_Close"
+anim_attack = "Mouth_Open_Close"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Demons/Mawgrub" unique_id=410000002]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("Cap_Mawgrub_lv4")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="Demons/Mawgrub" unique_id=410000003]
+
+[node name="ModelHolder" type="Node3D" parent="Demons/Mawgrub" unique_id=410000004]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="Model" parent="Demons/Mawgrub/ModelHolder" unique_id=410000005 instance=ExtResource("11_maw")]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Mawgrub" unique_id=410000006]
+
+[node name="Pyrarachnid" type="CharacterBody3D" parent="Demons" unique_id=410000011 groups=["demon"]]
+transform = Transform3D(0.006946345, 0, -0.99997586, 0, 1, 0, 0.99997586, 0, 0.006946345, 23.396957, 1, -2.4954834)
+script = ExtResource("10_dbase")
+demon_name = "Pyrarachnid"
+hp_max = 60.0
+chase_speed = 4.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Demons/Pyrarachnid" unique_id=410000012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("Cap_Pyrarachnid_lv4")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="Demons/Pyrarachnid" unique_id=410000013]
+
+[node name="ModelHolder" type="Node3D" parent="Demons/Pyrarachnid" unique_id=410000014]
+transform = Transform3D(-2.5, 0, 0, 0, 2.5, 0, 0, 0, -2.5, 0, 0.45, 0)
+
+[node name="Model" parent="Demons/Pyrarachnid/ModelHolder" unique_id=410000015 instance=ExtResource("12_pyra")]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Pyrarachnid" unique_id=410000016]
+
+[node name="Ravager" type="CharacterBody3D" parent="Demons" unique_id=410000021 groups=["demon"]]
+transform = Transform3D(-0.97072905, 0, 0.24017718, 0, 1, 0, -0.24017718, 0, -0.97072905, 125.97397, 16.318665, -41.760254)
+script = ExtResource("10_dbase")
+demon_name = "Ravager"
+hp_max = 120.0
+chase_speed = 3.8
+melee_range = 1.0
+melee_damage = 20.0
+anim_idle = "Walk"
+anim_attack = "Fight"
+anim_speed_scale = 3.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Demons/Ravager" unique_id=410000022]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("Cap_Ravager_lv4")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="Demons/Ravager" unique_id=410000023]
+
+[node name="ModelHolder" type="Node3D" parent="Demons/Ravager" unique_id=410000024]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="Model" parent="Demons/Ravager/ModelHolder" unique_id=410000025 instance=ExtResource("13_rav")]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Ravager" unique_id=410000026]
+
+[node name="Spectre" type="CharacterBody3D" parent="Demons" unique_id=410000031 groups=["demon"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 175.80194, 18.103577, -28.371948)
+script = ExtResource("10_dbase")
+demon_name = "Spectre"
+hp_max = 45.0
+chase_speed = 5.0
+melee_range = 1.0
+melee_damage = 12.0
+anim_attack = "Fight"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Demons/Spectre" unique_id=410000032]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("Cap_Spectre_lv4")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="Demons/Spectre" unique_id=410000033]
+
+[node name="ModelHolder" type="Node3D" parent="Demons/Spectre" unique_id=410000034]
+transform = Transform3D(-0.01, 0, -8.7422775e-10, 0, 0.01, 0, 8.7422775e-10, 0, -0.01, 0, 0, 0)
+
+[node name="Model" parent="Demons/Spectre/ModelHolder" unique_id=410000035 instance=ExtResource("14_spec")]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Spectre" unique_id=410000036]
+
+[node name="Taurex" type="CharacterBody3D" parent="Demons" unique_id=410000041 groups=["demon"]]
+transform = Transform3D(-0.6604474, 0, 0.75087225, 0, 1, 0, -0.75087225, 0, -0.6604474, 213.90404, 19.450966, -28.736572)
+script = ExtResource("10_dbase")
+demon_name = "Taurex"
+hp_max = 150.0
+chase_speed = 3.2
+melee_range = 1.0
+melee_damage = 25.0
+anim_attack = "Fight"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Demons/Taurex" unique_id=410000042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("Cap_Taurex_lv4")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="Demons/Taurex" unique_id=410000043]
+
+[node name="ModelHolder" type="Node3D" parent="Demons/Taurex" unique_id=410000044]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="Model" parent="Demons/Taurex/ModelHolder" unique_id=410000045 instance=ExtResource("15_tau")]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Taurex" unique_id=410000046]
+
+[node name="Voidborn" type="CharacterBody3D" parent="Demons" unique_id=410000051 groups=["demon"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 121.58818, 15.080322, -50.454834)
+script = ExtResource("10_dbase")
+demon_name = "Voidborn"
+hp_max = 70.0
+chase_speed = 2.8
+melee_range = 1.0
+float_amplitude = 0.1
+float_freq = 0.65
+anim_idle = "Fly"
+anim_walk = "Fly"
+anim_attack = "Catch"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Demons/Voidborn" unique_id=410000052]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("Cap_Voidborn_lv4")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="Demons/Voidborn" unique_id=410000053]
+
+[node name="ModelHolder" type="Node3D" parent="Demons/Voidborn" unique_id=410000054]
+transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0)
+
+[node name="Model" parent="Demons/Voidborn/ModelHolder" unique_id=410000055 instance=ExtResource("16_void")]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Voidborn" unique_id=410000056]
+
+[node name="PortalDisc" type="Area3D" parent="." unique_id=400000015]
+transform = Transform3D(0.9981506, -0.05293445, 0.029888105, 0.053240333, 0.9985362, -0.009532334, -0.02933976, 0.011105973, 0.9995078, 244.99304, 20.255493, -26.124641)
+script = ExtResource("7")
+next_scene = "res://scenes/game_win.tscn"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PortalDisc" unique_id=400000016]
+shape = SubResource("PortalSphere_lv4")
+
+[node name="GameManager" type="Node" parent="." unique_id=400000009]
+script = ExtResource("2")
+
+[node name="BGMPlayer" type="AudioStreamPlayer" parent="GameManager" unique_id=400000010]
+
+[node name="HUD" parent="." unique_id=400000011 instance=ExtResource("3")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=400000012]
+environment = SubResource("Environment_lv4")
+
+[node name="WindowGlass" type="Node" parent="." unique_id=400000013]
+script = ExtResource("9_wglass")
