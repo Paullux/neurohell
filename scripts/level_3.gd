@@ -104,6 +104,8 @@ func _ready() -> void:
 
 	if world:
 		_generate_colliders(world)
+		load("res://scripts/corridor_decor.gd").attach_to_scene(self)
+		load("res://scripts/torch_flame.gd").attach_to_scene(self)
 
 	# Créer le NavigationMesh s'il n'existe pas, puis cuire
 	if nav_region.navigation_mesh == null:

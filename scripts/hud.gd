@@ -506,7 +506,7 @@ func _build_narration_label() -> Label:
 	return lbl
 
 # ── Écran fin de niveau ───────────────────────────────────────
-func show_end_stats(kills: int, souls: int, time_secs: float, deaths: int = 0) -> void:
+func show_end_stats(kills: int, souls: int, time_secs: float, deaths: int = 0, is_final: bool = false) -> void:
 	var mins := int(time_secs) / 60
 	var secs := int(time_secs) % 60
 
@@ -556,7 +556,8 @@ func show_end_stats(kills: int, souls: int, time_secs: float, deaths: int = 0) -
 
 	# Hint "continuer"
 	var hint := Label.new()
-	hint.text = "[ CLIC ou TOUCHE pour continuer ]"
+	hint.text = "[ CLIC ou TOUCHE pour voir la cinématique de fin ]" if is_final \
+			  else "[ CLIC ou TOUCHE pour continuer ]"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_override("font", _FONT_EXO2)
 	hint.add_theme_font_size_override("font_size", 11)

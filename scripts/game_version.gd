@@ -2,5 +2,5 @@
 # Ce fichier est mis à jour automatiquement par le workflow GitHub Actions
 # avant chaque export. En développement local, la version est "dev".
 class_name GameVersion
-const VERSION    := "v0.8.0"
+const VERSION    := "v0.8.1"
 const BUILD_DATE := "2026-05-15"

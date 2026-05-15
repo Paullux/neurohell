@@ -239,14 +239,16 @@ func _on_white_done() -> void:
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
 	var hud := get_tree().current_scene.find_child("HUD", true, false)
 	if hud and hud.has_method("show_end_stats"):
-		hud.show_end_stats(GameData.kills, GameData.soul_points, elapsed, GameData.deaths)
+		var is_final := next_scene.ends_with("game_win.tscn")
+		hud.show_end_stats(GameData.kills, GameData.soul_points, elapsed, GameData.deaths, is_final)
 	_waiting_input = true
 
 func _on_cinematic_done() -> void:
 	var elapsed := (Time.get_ticks_msec() / 1000.0) - GameData.level_start_time
 	var hud := get_tree().current_scene.find_child("HUD", true, false)
 	if hud and hud.has_method("show_end_stats"):
-		hud.show_end_stats(GameData.kills, GameData.soul_points, elapsed, GameData.deaths)
+		var is_final := next_scene.ends_with("game_win.tscn")
+		hud.show_end_stats(GameData.kills, GameData.soul_points, elapsed, GameData.deaths, is_final)
 	_waiting_input = true
 
 func _input(event: InputEvent) -> void:

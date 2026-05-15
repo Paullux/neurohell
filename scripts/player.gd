@@ -116,10 +116,10 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_check_stuck(delta)
 
-	# Filet de sécurité : retéléporte si le joueur passe sous le sol
+	# Chute mortelle : sous -5 m → mort comptabilisée
 	if global_position.y < -5.0:
-		global_position = _spawn_position
-		velocity = Vector3.ZERO
+		if not dead:
+			_die()
 
 	# Bob caméra
 	_bob_t += delta

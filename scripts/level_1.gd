@@ -71,6 +71,8 @@ func _ready() -> void:
 	# (inutile si le GLB est déjà configuré "Static Collider" dans l'onglet Import)
 	if world != null:
 		_generate_colliders(world)
+		load("res://scripts/corridor_decor.gd").attach_to_scene(self)
+		load("res://scripts/torch_flame.gd").attach_to_scene(self)
 		print("DecorColliders générés : ", _collider_count)
 
 	# Spawn point : cherche dans le GLB, sinon position par défaut

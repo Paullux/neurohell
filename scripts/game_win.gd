@@ -61,7 +61,7 @@ func _ready() -> void:
 		"CONTAMINATION NEUROHELL : ÉRADIQUÉE",
 		FONT_EXO, 13, _COL_DIM, 0.71)
 
-	_lbl_press  = _mk("[ APPUYEZ SUR UNE TOUCHE POUR RECOMMENCER ]",
+	_lbl_press  = _mk("[ APPUYEZ SUR UNE TOUCHE POUR VOIR LA FIN ]",
 		FONT_REG, 15, _COL_CYAN, 0.91)
 
 	_btn_video = _mk_btn("▶   LANCER LA CINÉMATIQUE FINALE", 0.81)
