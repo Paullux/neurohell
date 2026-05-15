@@ -9,10 +9,10 @@ class_name CorridorDecor
 # ============================================================
 
 const ARCH_GLB   := "res://assets/decor/decor_arch_gothic/decor_arch_gothic.glb"
-const SPACING     := 4.0    # distance (m) entre deux arches
+const SPACING     := 8.0    # distance (m) entre deux arches
 const MIN_LEN     := 7.0    # longueur minimale du couloir pour spawner
 const Y_OFFSET    := 0.0    # ajustement vertical si l'origine du GLB n'est pas au sol
-const WALL_OFFSET := 0.01   # pousse l'arche légèrement hors du mur (anti z-fighting)
+const WALL_OFFSET := 0.6    # pousse l'arche vers l'intérieur du couloir (origine au centre du mesh)
 
 var _count := 0
 
@@ -65,20 +65,20 @@ func _place_on_corridor(mesh: MeshInstance3D, arch_res: Resource) -> void:
 			var walk_x := gaabb.position.x + length * t
 			var wall_z_min := gaabb.position.z          # mur Z-
 			var wall_z_max := gaabb.end.z               # mur Z+
-			# Arche sur mur Z- : face vers Z+ (intérieur) → rotation Y = 180
-			pairs.append([Vector3(walk_x, floor_y, wall_z_min + WALL_OFFSET), Vector3(0, 180, 0)])
-			# Arche sur mur Z+ : face vers Z- (intérieur) → rotation Y = 0
-			pairs.append([Vector3(walk_x, floor_y, wall_z_max - WALL_OFFSET), Vector3(0, 0, 0)])
+			# Arche sur mur Z- : face vers Z+ (intérieur) → rotation Y = 0
+			pairs.append([Vector3(walk_x, floor_y, wall_z_min + WALL_OFFSET), Vector3(0, 0, 0)])
+			# Arche sur mur Z+ : face vers Z- (intérieur) → rotation Y = 180
+			pairs.append([Vector3(walk_x, floor_y, wall_z_max - WALL_OFFSET), Vector3(0, 180, 0)])
 		else:
 			# Couloir le long de Z → murs latéraux à X- et X+
 			# L'axe de marche est Z ; les murs sont à gaabb.position.x et gaabb.end.x
 			var walk_z := gaabb.position.z + length * t
 			var wall_x_min := gaabb.position.x          # mur X-
 			var wall_x_max := gaabb.end.x               # mur X+
-			# Arche sur mur X- : face vers X+ (intérieur) → rotation Y = -90
-			pairs.append([Vector3(wall_x_min + WALL_OFFSET, floor_y, walk_z), Vector3(0, -90, 0)])
-			# Arche sur mur X+ : face vers X- (intérieur) → rotation Y = 90
-			pairs.append([Vector3(wall_x_max - WALL_OFFSET, floor_y, walk_z), Vector3(0, 90, 0)])
+			# Arche sur mur X- : face vers X+ (intérieur) → rotation Y = 90
+			pairs.append([Vector3(wall_x_min + WALL_OFFSET, floor_y, walk_z), Vector3(0, 90, 0)])
+			# Arche sur mur X+ : face vers X- (intérieur) → rotation Y = -90
+			pairs.append([Vector3(wall_x_max - WALL_OFFSET, floor_y, walk_z), Vector3(0, -90, 0)])
 
 		for pair in pairs:
 			var arch := (arch_res as PackedScene).instantiate() as Node3D

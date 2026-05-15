@@ -153,6 +153,15 @@ func _process(delta: float) -> void:
 	if _spin_target:
 		_spin_target.rotate_y(deg_to_rad(spin_speed) * delta)
 
+	# ── Billboard : le portail vidéo fait toujours face au joueur ──
+	for node in get_tree().get_nodes_in_group("player"):
+		if node is Node3D:
+			var p   := (node as Node3D).global_position
+			var dir := Vector3(p.x - global_position.x, 0.0, p.z - global_position.z)
+			if dir.length_squared() > 0.001:
+				rotation.y = atan2(dir.x, dir.z)
+		break
+
 	# ── Détection joueur (XZ uniquement) ──────────────────────
 	var center_xz := Vector2(_portal_center.global_position.x,
 							  _portal_center.global_position.z)
