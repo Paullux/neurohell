@@ -188,7 +188,11 @@ func _build_scene() -> void:
 		_viewport.add_child(_approach_pivot)
 		_approach_pivot.add_child(_sonya_inst)
 
+		# Attacher sonya_hair + hair_cards à l'os de la tête via BoneAttachment3D
+		_attach_hair_to_head_bone(_sonya_inst)
+
 		# Trouver le MeshInstance3D et construire la map morph
+		# On prend le mesh ayant le plus de blend shapes (visemes) — sonya_hair n'en a pas
 		_mesh_inst = _find_mesh(_sonya_inst)
 		if _mesh_inst:
 			_build_morph_map()
@@ -235,13 +239,62 @@ func _build_scene() -> void:
 
 
 func _find_mesh(node: Node) -> MeshInstance3D:
+	# Retourne le MeshInstance3D avec le plus grand nombre de blend shapes (visemes)
+	var candidates: Array[MeshInstance3D] = []
+	_collect_meshes(node, candidates)
+	var best: MeshInstance3D = null
+	var best_count := -1
+	for mi in candidates:
+		if mi.mesh:
+			var mesh: Mesh = mi.mesh
+			var count: int = mesh.get_blend_shape_count()
+
+			if count > best_count:
+				best_count = count
+				best = mi
+	return best
+
+
+func _collect_meshes(node: Node, result: Array[MeshInstance3D]) -> void:
 	if node is MeshInstance3D:
-		return node as MeshInstance3D
+		result.append(node as MeshInstance3D)
 	for child in node.get_children():
-		var found := _find_mesh(child)
+		_collect_meshes(child, result)
+
+
+func _find_skeleton(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node as Skeleton3D
+	for child in node.get_children():
+		var found := _find_skeleton(child)
 		if found:
 			return found
 	return null
+
+
+func _attach_hair_to_head_bone(root: Node3D) -> void:
+	var skeleton := _find_skeleton(root)
+	if skeleton == null:
+		push_error("SonyaCinematic: Skeleton3D introuvable")
+		return
+
+	var bone_idx := skeleton.find_bone("mixamorig:Head")
+	if bone_idx == -1:
+		push_error("SonyaCinematic: os 'mixamorig:Head' introuvable dans le squelette")
+		return
+
+	var hair := root.find_child("sonya_hair", true, false)
+	if hair == null:
+		push_error("SonyaCinematic: nœud sonya_hair introuvable")
+		return
+
+	var attachment := BoneAttachment3D.new()
+	attachment.bone_name = "mixamorig:Head"
+	skeleton.add_child(attachment)
+
+	# Reparent sonya_hair (et ses enfants hair_card_*) sous l'attachment
+	# keep_global_transform=true preserve la position mondiale → offset correct vis-à-vis de l'os
+	hair.reparent(attachment, true)
 
 
 func _build_morph_map() -> void:
