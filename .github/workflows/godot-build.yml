@@ -158,10 +158,11 @@ jobs:
           # ── Dépendances ───────────────────────────────────────
           sudo apt-get install -y -q nsis
 
-          # ── Icône ICO déjà présente dans les assets ───────────
-          cp assets/images/icon/icon.ico installer/icon.ico
+          # ── Vérification icône (installer/icon.ico est en git) ─
+          ls -lh installer/icon.ico
 
           # ── Compiler l'installeur ─────────────────────────────
+          # makensis résout les chemins relatifs depuis le répertoire du .nsi
           makensis -DAPP_VERSION="${VERSION}" installer/neurohell.nsi
 
           mv NeuroHell-Setup.exe "NeuroHell-${VERSION}-Setup.exe"

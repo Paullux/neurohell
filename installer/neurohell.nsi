@@ -23,15 +23,16 @@ RequestExecutionLevel admin
 SetCompressor   /SOLID lzma
 
 ; ── Icône ─────────────────────────────────────────────────
-Icon            "installer/icon.ico"
-UninstallIcon   "installer/icon.ico"
+; Chemin relatif au répertoire du script (installer/)
+Icon            "icon.ico"
+UninstallIcon   "icon.ico"
 
 ; ── Interface MUI2 ────────────────────────────────────────
 !include "MUI2.nsh"
 
 !define MUI_ABORTWARNING
-!define MUI_ICON    "installer/icon.ico"
-!define MUI_UNICON  "installer/icon.ico"
+!define MUI_ICON    "icon.ico"
+!define MUI_UNICON  "icon.ico"
 
 ; Pages installation
 !insertmacro MUI_PAGE_WELCOME
