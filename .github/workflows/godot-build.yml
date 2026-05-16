@@ -161,9 +161,17 @@ jobs:
           # ── Vérification icône (installer/icon.ico est en git) ─
           ls -lh installer/icon.ico
 
+          # ── Vérification du build Windows ─────────────────────
+          echo "→ Contenu build/NeuroHell-Windows/ :"
+          ls -lh build/NeuroHell-Windows/ || echo "❌ Répertoire introuvable"
+
           # ── Compiler l'installeur ─────────────────────────────
-          # makensis résout les chemins relatifs depuis le répertoire du .nsi
-          makensis -DAPP_VERSION="${VERSION}" installer/neurohell.nsi
+          # makensis résout File/ relatif au CWD (workspace root)
+          # On passe le chemin absolu pour éviter toute ambiguïté
+          makensis \
+            -DAPP_VERSION="${VERSION}" \
+            -DBUILD_DIR="${GITHUB_WORKSPACE}/build/NeuroHell-Windows" \
+            installer/neurohell.nsi
 
           mv NeuroHell-Setup.exe "NeuroHell-${VERSION}-Setup.exe"
           echo "→ Installeur : $(ls -lh NeuroHell-*-Setup.exe)"
