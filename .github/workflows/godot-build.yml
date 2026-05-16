@@ -147,6 +147,36 @@ jobs:
           zip -r "../../${{ matrix.zip_name }}.zip" .
           echo "Archive : $(du -sh ../../${{ matrix.zip_name }}.zip)"
 
+      - name: "🪟 Créer installeur NSIS (Windows uniquement)"
+        if: matrix.name == 'Windows'
+        run: |
+          VERSION="${{ github.ref_name }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+          fi
+
+          # ── Dépendances ───────────────────────────────────────
+          sudo apt-get install -y -q nsis imagemagick
+
+          # ── Icône PNG → ICO multi-tailles ─────────────────────
+          convert assets/images/icon/icon.png \
+            -define icon:auto-resize=256,128,64,48,32,16 \
+            installer/icon.ico
+
+          # ── Compiler l'installeur ─────────────────────────────
+          makensis -DAPP_VERSION="${VERSION}" installer/neurohell.nsi
+
+          mv NeuroHell-Setup.exe "NeuroHell-${VERSION}-Setup.exe"
+          echo "→ Installeur : $(ls -lh NeuroHell-*-Setup.exe)"
+
+      - name: "⬆️  Upload artifact installeur (Windows uniquement)"
+        if: matrix.name == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeuroHell-Setup
+          path: NeuroHell-*-Setup.exe
+          retention-days: 14
+
       - name: "📦 Créer AppImage (Linux uniquement)"
         if: matrix.name == 'Linux'
         run: |
@@ -246,6 +276,7 @@ jobs:
           prerelease: false
           generate_release_notes: false
           files: |
+            NeuroHell-*-Setup.exe
             NeuroHell-Windows.zip
             NeuroHell-Linux.zip
             NeuroHell-*-Linux.AppImage
@@ -260,7 +291,8 @@ jobs:
 
             | Plateforme | Fichier | Instructions |
             |---|---|---|
-            | 🪟 **Windows** | [NeuroHell-Windows.zip](https://github.com/Paullux/neurohell/releases/download/${{ steps.ver.outputs.version }}/NeuroHell-Windows.zip) | Extraire le zip et lancer `NeuroHell.exe` |
+            | 🪟 **Windows (installeur)** | [NeuroHell-${{ steps.ver.outputs.version }}-Setup.exe](https://github.com/Paullux/neurohell/releases/download/${{ steps.ver.outputs.version }}/NeuroHell-${{ steps.ver.outputs.version }}-Setup.exe) | Double-clic et suivre l'assistant |
+            | 🪟 **Windows (zip)** | [NeuroHell-Windows.zip](https://github.com/Paullux/neurohell/releases/download/${{ steps.ver.outputs.version }}/NeuroHell-Windows.zip) | Extraire et lancer `NeuroHell.exe` |
             | 🐧 **Linux (AppImage)** | [NeuroHell-${{ steps.ver.outputs.version }}-Linux.AppImage](https://github.com/Paullux/neurohell/releases/download/${{ steps.ver.outputs.version }}/NeuroHell-${{ steps.ver.outputs.version }}-Linux.AppImage) | `chmod +x *.AppImage && ./NeuroHell-*.AppImage` |
             | 🐧 **Linux (zip)** | [NeuroHell-Linux.zip](https://github.com/Paullux/neurohell/releases/download/${{ steps.ver.outputs.version }}/NeuroHell-Linux.zip) | `chmod +x NeuroHell.x86_64 && ./NeuroHell.x86_64` |
 
