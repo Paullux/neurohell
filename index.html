@@ -799,12 +799,17 @@
               <a class="dl-button unavailable" id="dl-win" href="#" aria-disabled="true">
                 <span class="dl-icon">&#x1F5A5;</span>
                 <div class="dl-info">
-                  <span class="dl-name">Windows</span>
+                  <span class="dl-name">Windows <span style="font-size:0.75em;opacity:0.7;">Installeur</span></span>
                   <span class="dl-meta">Windows 10 / 11 — 64 bit</span>
                   <span class="dl-count" id="dl-win-count"></span>
                 </div>
                 <span class="dl-badge soon" id="dl-win-badge">Bientôt</span>
               </a>
+              <div id="dl-win-zip-wrap" style="display:none;text-align:center;margin-top:-8px;">
+                <a id="dl-win-zip" href="#" style="font-size:0.78rem;color:var(--muted);text-decoration:underline;text-underline-offset:3px;">
+                  Aussi disponible en .zip
+                </a>
+              </div>
               <a class="dl-button unavailable" id="dl-linux" href="#" aria-disabled="true">
                 <span class="dl-icon">&#x1F427;</span>
                 <div class="dl-info">
@@ -1061,7 +1066,10 @@
           (dateStr ? `&nbsp;&nbsp;·&nbsp;&nbsp;publiée le ${dateStr}` : '');
 
         // Chercher les assets Windows et Linux
-        const winAsset      = assets.find(a => a.name.toLowerCase().includes('windows'));
+        // Installeur en priorité, zip en fallback
+        const winSetup      = assets.find(a => a.name.toLowerCase().endsWith('-setup.exe'));
+        const winZip        = assets.find(a => a.name.toLowerCase().includes('windows') && a.name.toLowerCase().endsWith('.zip'));
+        const winAsset      = winSetup ?? winZip;
         // AppImage en priorité, zip en fallback
         const linuxAppImage = assets.find(a => a.name.toLowerCase().endsWith('.appimage'));
         const linuxZip      = assets.find(a => a.name.toLowerCase().includes('linux') && a.name.toLowerCase().endsWith('.zip'));
@@ -1077,6 +1085,16 @@
           winBtn.querySelector('.dl-meta').textContent = `Windows 10 / 11 — 64 bit — ${mb} Mo`;
           document.getElementById('dl-win-count').textContent =
             totalWin > 0 ? `↓ ${totalWin.toLocaleString('fr-FR')} téléchargement${totalWin > 1 ? 's' : ''} (toutes versions)` : '';
+
+          // Lien secondaire zip si installeur dispo
+          if (winSetup && winZip) {
+            const zipWrap = document.getElementById('dl-win-zip-wrap');
+            const zipLink = document.getElementById('dl-win-zip');
+            const mbZip   = (winZip.size / 1048576).toFixed(1);
+            zipLink.href  = winZip.browser_download_url;
+            zipLink.textContent = `Aussi disponible en .zip (${mbZip} Mo)`;
+            zipWrap.style.display = '';
+          }
         } else {
           infoEl.textContent += ' · Build Windows en cours…';
         }
