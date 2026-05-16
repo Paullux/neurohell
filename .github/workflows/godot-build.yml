@@ -180,15 +180,8 @@ jobs:
           Comment=Roguelite FPS cyberpunk / horror
           DESKTOP
 
-          # Icône (SVG → PNG 256×256 via Inkscape ou rsvg-convert)
-          if command -v rsvg-convert &> /dev/null; then
-            rsvg-convert -w 256 -h 256 icon.svg -o AppDir/NeuroHell.png
-          elif command -v inkscape &> /dev/null; then
-            inkscape --export-filename=AppDir/NeuroHell.png -w 256 -h 256 icon.svg
-          else
-            sudo apt-get install -y -q librsvg2-bin
-            rsvg-convert -w 256 -h 256 icon.svg -o AppDir/NeuroHell.png
-          fi
+          # Icône PNG depuis les assets
+          cp assets/images/icon/icon.png AppDir/NeuroHell.png
 
           # ── appimagetool ──────────────────────────────────────
           wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" \
