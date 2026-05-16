@@ -171,6 +171,7 @@ jobs:
           makensis \
             -DAPP_VERSION="${VERSION}" \
             -DBUILD_DIR="${GITHUB_WORKSPACE}/build/NeuroHell-Windows" \
+            -DOUT_FILE="${GITHUB_WORKSPACE}/NeuroHell-Setup.exe" \
             installer/neurohell.nsi
 
           mv NeuroHell-Setup.exe "NeuroHell-${VERSION}-Setup.exe"

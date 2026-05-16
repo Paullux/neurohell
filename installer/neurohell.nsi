@@ -15,8 +15,13 @@
 !define REG_KEY      "Software\Microsoft\Windows\CurrentVersion\Uninstall\NeuroHell"
 
 ; ── Métadonnées installeur ────────────────────────────────
+; OUT_FILE est passé en absolu par le CI : -DOUT_FILE=<workspace>/NeuroHell-Setup.exe
+!ifndef OUT_FILE
+  !define OUT_FILE "NeuroHell-Setup.exe"
+!endif
+
 Name            "${APP_NAME} ${APP_VERSION}"
-OutFile         "NeuroHell-Setup.exe"
+OutFile         "${OUT_FILE}"
 InstallDir      "${INSTALL_DIR}"
 InstallDirRegKey HKLM "Software\${APP_NAME}" "Install_Dir"
 RequestExecutionLevel admin
