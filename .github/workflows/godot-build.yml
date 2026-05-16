@@ -158,7 +158,7 @@ jobs:
           # ── Structure AppDir ──────────────────────────────────
           mkdir -p AppDir/usr/bin
 
-          cp "build/NeuroHell-Linux/NeuroHell.x86_64" AppDir/usr/bin/
+          cp build/NeuroHell-Linux/* AppDir/usr/bin/
           chmod +x AppDir/usr/bin/NeuroHell.x86_64
 
           # AppRun
