@@ -89,6 +89,8 @@ func _place_on_corridor(mesh: MeshInstance3D, arch_res: Resource) -> void:
 
 # ── Utilitaire : AABB en espace monde ────────────────────────
 func _global_aabb(mesh: MeshInstance3D) -> AABB:
+	if not mesh.is_inside_tree():
+		return mesh.get_aabb()   # fallback local si pas encore dans le SceneTree
 	var la := mesh.get_aabb()
 	var gt := mesh.global_transform
 	var corners := [
