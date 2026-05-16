@@ -57,7 +57,8 @@ Section "NeuroHell (requis)" SecMain
   SetOutPath "$INSTDIR"
 
   ; Copier tous les fichiers du build Windows
-  File /r "build\NeuroHell-Windows\*.*"
+  ; Slashes forward requis car makensis tourne sur Ubuntu (CI Linux)
+  File /r "build/NeuroHell-Windows/*.*"
 
   ; Raccourci Menu Démarrer
   CreateDirectory "$SMPROGRAMS\${APP_NAME}"
