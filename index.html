@@ -808,12 +808,17 @@
               <a class="dl-button unavailable" id="dl-linux" href="#" aria-disabled="true">
                 <span class="dl-icon">&#x1F427;</span>
                 <div class="dl-info">
-                  <span class="dl-name">Linux</span>
+                  <span class="dl-name">Linux <span style="font-size:0.75em;opacity:0.7;">AppImage</span></span>
                   <span class="dl-meta">x86_64 — Ubuntu, Debian, Arch…</span>
                   <span class="dl-count" id="dl-linux-count"></span>
                 </div>
                 <span class="dl-badge soon" id="dl-linux-badge">Bientôt</span>
               </a>
+              <div id="dl-linux-zip-wrap" style="display:none;text-align:center;margin-top:-8px;">
+                <a id="dl-linux-zip" href="#" style="font-size:0.78rem;color:var(--muted);text-decoration:underline;text-underline-offset:3px;">
+                  Aussi disponible en .zip
+                </a>
+              </div>
             </div>
             <div class="hero-card" id="dl-requirements" style="display:none;">
               <h3>Configuration minimale</h3>
@@ -1056,8 +1061,11 @@
           (dateStr ? `&nbsp;&nbsp;·&nbsp;&nbsp;publiée le ${dateStr}` : '');
 
         // Chercher les assets Windows et Linux
-        const winAsset   = assets.find(a => a.name.toLowerCase().includes('windows'));
-        const linuxAsset = assets.find(a => a.name.toLowerCase().includes('linux'));
+        const winAsset      = assets.find(a => a.name.toLowerCase().includes('windows'));
+        // AppImage en priorité, zip en fallback
+        const linuxAppImage = assets.find(a => a.name.toLowerCase().endsWith('.appimage'));
+        const linuxZip      = assets.find(a => a.name.toLowerCase().includes('linux') && a.name.toLowerCase().endsWith('.zip'));
+        const linuxAsset    = linuxAppImage ?? linuxZip;
 
         if (winAsset) {
           winBtn.href = winAsset.browser_download_url;
@@ -1080,9 +1088,20 @@
           linuxBadge.textContent = version;
           linuxBadge.classList.remove('soon');
           const mb = (linuxAsset.size / 1048576).toFixed(1);
+          const fmt = linuxAppImage ? 'AppImage' : 'zip';
           linuxBtn.querySelector('.dl-meta').textContent = `x86_64 — Ubuntu, Debian, Arch… — ${mb} Mo`;
           document.getElementById('dl-linux-count').textContent =
             totalLinux > 0 ? `↓ ${totalLinux.toLocaleString('fr-FR')} téléchargement${totalLinux > 1 ? 's' : ''} (toutes versions)` : '';
+
+          // Lien secondaire zip si AppImage dispo
+          if (linuxAppImage && linuxZip) {
+            const zipWrap = document.getElementById('dl-linux-zip-wrap');
+            const zipLink = document.getElementById('dl-linux-zip');
+            const mbZip   = (linuxZip.size / 1048576).toFixed(1);
+            zipLink.href  = linuxZip.browser_download_url;
+            zipLink.textContent = `Aussi disponible en .zip (${mbZip} Mo)`;
+            zipWrap.style.display = '';
+          }
         }
 
         // Afficher la config minimale si au moins un lien dispo
