@@ -147,11 +147,72 @@ jobs:
           zip -r "../../${{ matrix.zip_name }}.zip" .
           echo "Archive : $(du -sh ../../${{ matrix.zip_name }}.zip)"
 
+      - name: "📦 Créer AppImage (Linux uniquement)"
+        if: matrix.name == 'Linux'
+        run: |
+          VERSION="${{ github.ref_name }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+          fi
+
+          # ── Structure AppDir ──────────────────────────────────
+          mkdir -p AppDir/usr/bin
+
+          cp "build/NeuroHell-Linux/NeuroHell.x86_64" AppDir/usr/bin/
+          chmod +x AppDir/usr/bin/NeuroHell.x86_64
+
+          # AppRun
+          cat > AppDir/AppRun << 'APPRUN'
+          #!/bin/bash
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          exec "${HERE}/usr/bin/NeuroHell.x86_64" "$@"
+          APPRUN
+          chmod +x AppDir/AppRun
+
+          # Desktop entry
+          cat > AppDir/NeuroHell.desktop << 'DESKTOP'
+          [Desktop Entry]
+          Name=NeuroHell
+          Exec=NeuroHell.x86_64
+          Icon=NeuroHell
+          Type=Application
+          Categories=Game;ActionGame;
+          Comment=Roguelite FPS cyberpunk / horror
+          DESKTOP
+
+          # Icône (SVG → PNG 256×256 via Inkscape ou rsvg-convert)
+          if command -v rsvg-convert &> /dev/null; then
+            rsvg-convert -w 256 -h 256 icon.svg -o AppDir/NeuroHell.png
+          elif command -v inkscape &> /dev/null; then
+            inkscape --export-filename=AppDir/NeuroHell.png -w 256 -h 256 icon.svg
+          else
+            sudo apt-get install -y -q librsvg2-bin
+            rsvg-convert -w 256 -h 256 icon.svg -o AppDir/NeuroHell.png
+          fi
+
+          # ── appimagetool ──────────────────────────────────────
+          wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" \
+               -O appimagetool
+          chmod +x appimagetool
+
+          ARCH=x86_64 ./appimagetool --appimage-extract-and-run \
+            AppDir "NeuroHell-${VERSION}-Linux.AppImage"
+
+          echo "→ AppImage : $(ls -lh NeuroHell-*.AppImage)"
+
       - name: "⬆️  Upload artifact"
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.zip_name }}
           path: ${{ matrix.zip_name }}.zip
+          retention-days: 14
+
+      - name: "⬆️  Upload AppImage artifact (Linux uniquement)"
+        if: matrix.name == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeuroHell-AppImage
+          path: NeuroHell-*-Linux.AppImage
           retention-days: 14
 
   # ──────────────────────────────────────────────────────────
@@ -169,6 +230,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           merge-multiple: true
+          pattern: "NeuroHell-*"
 
       - name: "🔢 Déterminer la version"
         id: ver
@@ -193,6 +255,7 @@ jobs:
           files: |
             NeuroHell-Windows.zip
             NeuroHell-Linux.zip
+            NeuroHell-*-Linux.AppImage
           body: |
             ## 🎮 NeuroHell — ${{ steps.ver.outputs.version }}
 
@@ -205,7 +268,8 @@ jobs:
             | Plateforme | Fichier | Instructions |
             |---|---|---|
             | 🪟 **Windows** | [NeuroHell-Windows.zip](https://github.com/Paullux/neurohell/releases/download/${{ steps.ver.outputs.version }}/NeuroHell-Windows.zip) | Extraire le zip et lancer `NeuroHell.exe` |
-            | 🐧 **Linux** | [NeuroHell-Linux.zip](https://github.com/Paullux/neurohell/releases/download/${{ steps.ver.outputs.version }}/NeuroHell-Linux.zip) | `chmod +x NeuroHell.x86_64 && ./NeuroHell.x86_64` |
+            | 🐧 **Linux (AppImage)** | [NeuroHell-${{ steps.ver.outputs.version }}-Linux.AppImage](https://github.com/Paullux/neurohell/releases/download/${{ steps.ver.outputs.version }}/NeuroHell-${{ steps.ver.outputs.version }}-Linux.AppImage) | `chmod +x *.AppImage && ./NeuroHell-*.AppImage` |
+            | 🐧 **Linux (zip)** | [NeuroHell-Linux.zip](https://github.com/Paullux/neurohell/releases/download/${{ steps.ver.outputs.version }}/NeuroHell-Linux.zip) | `chmod +x NeuroHell.x86_64 && ./NeuroHell.x86_64` |
 
             ---
 
