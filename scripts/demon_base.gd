@@ -13,7 +13,15 @@ extends CharacterBody3D
 
 @export var float_amplitude: float = 0.0   # > 0 → vole directement (Voidborn)
 @export var float_freq: float      = 1.0
+@export var float_hover: float     = 0.0   # hauteur de survol au-dessus des pieds du joueur (ex: 1.6 = caméra)
 @export var soul_value: int        = 10    # points d'âme accordés à la mort
+
+# ── Débris à la mort ──────────────────────────────────────────
+@export_group("Débris")
+@export var debris_count:      int         = 6
+@export var debris_color:      Color       = Color(0.28, 0.04, 0.04)
+@export var debris_fire_color: Color       = Color(1.0, 0.95, 0.3)   # jaune par défaut — violet pour Spectre, cyan pour Voidborn
+@export var debris_meshes:     Array[Mesh] = []   # laisser vide = placeholder, remplir avec assets Rodin
 
 # ── Noms d'animations (visibles dans l'Inspector) ────────────
 @export var anim_idle:        String = "Idle"
@@ -45,6 +53,10 @@ var _attacking: bool       = false
 var _stuck_timer: float = 0.0
 var _prev_xz: Vector2   = Vector2.ZERO
 
+# ── Voidborn : évitement d'obstacle vertical ──────────────────
+var _hover_adjust: float = 0.0   # décalage Y dynamique (négatif = descend pour passer)
+var _corpse: Node3D = null        # cadavre spawné à la mort, supprimé au respawn
+
 # ── Nodes ─────────────────────────────────────────────────────
 @onready var nav_agent:    NavigationAgent3D = $NavigationAgent3D
 @onready var model_holder: Node3D            = $ModelHolder
@@ -54,6 +66,7 @@ var anim_player: AnimationPlayer = null
 var _player: CharacterBody3D = null
 var _spawn_position: Vector3
 var _base_y: float = 0.0
+@export var gravity_scale: float = 1.0   # multiplicateur de gravité (>1 = plus lourd → colle mieux aux pentes)
 const GRAVITY := 30.0
 
 # ── Audio 3D ──────────────────────────────────────────────────
@@ -65,10 +78,10 @@ signal demon_hit_player(damage: float)
 
 # ── Init ──────────────────────────────────────────────────────
 func _ready() -> void:
-	hp              = hp_max
-	_spawn_position = global_position
-	_base_y         = global_position.y
-	float_phase     = randf() * TAU
+	hp          = hp_max
+	float_phase = randf() * TAU
+	# Capturer la position de spawn au frame suivant (après que tous les _ready parents soient finis)
+	call_deferred("_capture_spawn_position")
 	visible         = false
 	collision_layer = 2
 	_setup_audio()
@@ -77,6 +90,12 @@ func _ready() -> void:
 	add_to_group("demon")
 	
 	_add_hitbox()
+
+	# Démons volants (float_amplitude > 0) : pas de snap au sol
+	# Démons terrestres : snap agressif pour coller aux rampes
+	floor_snap_length = 0.0 if float_amplitude > 0.0 else 1.0
+	floor_max_angle   = deg_to_rad(70.0)
+	floor_stop_on_slope = false   # permet de monter/descendre les pentes sans être stoppé
 
 	nav_agent.path_desired_distance   = 0.5
 	nav_agent.target_desired_distance = 1.0
@@ -93,6 +112,43 @@ func _ready() -> void:
 			anim_player.animation_finished.connect(_on_anim_finished)
 	else:
 		push_warning("[%s] AnimationPlayer introuvable" % demon_name)
+
+	_autoload_debris_meshes()
+
+func _autoload_debris_meshes() -> void:
+	# Charge automatiquement les 3 GLB de débris selon demon_name (ex: "Mawgrub" → waste_mawgrub_1.glb)
+	# Si debris_meshes est déjà rempli manuellement dans l'Inspector, on ne touche à rien.
+	if debris_meshes.size() > 0:
+		return
+	var base := demon_name.to_lower()
+	for i in range(1, 4):
+		var path := "res://assets/demons/waste/%s/waste_%s_%d.glb" % [demon_name, base, i]
+		if not ResourceLoader.exists(path):
+			continue
+		var packed := load(path) as PackedScene
+		if packed == null:
+			continue
+		var inst := packed.instantiate()
+		var mi   := _find_mesh_instance(inst)
+		if mi and mi.mesh:
+			debris_meshes.append(mi.mesh)
+		inst.free()
+	if debris_meshes.size() > 0:
+		print("[%s] %d mesh débris chargés automatiquement" % [demon_name, debris_meshes.size()])
+
+func _find_mesh_instance(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node as MeshInstance3D
+	for child in node.get_children():
+		var result := _find_mesh_instance(child)
+		if result:
+			return result
+	return null
+
+func _capture_spawn_position() -> void:
+	_spawn_position = global_position
+	_base_y         = global_position.y
+	print("[%s] spawn_position capturée : %s" % [demon_name, _spawn_position])
 
 func _add_hitbox() -> void:
 	if has_node("Hitbox"):
@@ -191,11 +247,14 @@ func _physics_process(delta: float) -> void:
 
 	# ── Gravité / flottement ─────────────────────────────────
 	if float_amplitude > 0.0:
+		# Vol : cible = pieds joueur + float_hover (hauteur caméra) + oscillation + ajustement obstacle
+		_base_y     = lerp(_base_y, _player.global_position.y + float_hover, delta * 2.0)
 		float_phase += delta * float_freq
-		position.y   = _base_y + sin(float_phase) * float_amplitude
+		var target_y := _base_y + sin(float_phase) * float_amplitude + _hover_adjust
+		velocity.y   = (target_y - global_position.y) * 8.0
 	else:
 		if not is_on_floor():
-			velocity.y -= GRAVITY * delta
+			velocity.y -= GRAVITY * gravity_scale * delta
 
 	# ── Déplacement ──────────────────────────────────────────
 	var is_moving := false
@@ -218,7 +277,6 @@ func _physics_process(delta: float) -> void:
 			if not nav_agent.is_navigation_finished():
 				var next_pos := nav_agent.get_next_path_position()
 				var dir := (next_pos - global_position)
-				dir.y = 0.0
 				# Seuil 0.05 : si le prochain waypoint est trop proche, le NavMesh
 				# ne donne pas de direction utile (mesh absent ou en cours de cuisson)
 				if dir.length_squared() > 0.05:
@@ -245,6 +303,22 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0.0, chase_speed)
 
 	move_and_slide()
+
+	# ── Voidborn : évitement vertical d'obstacles (encadrement de porte, etc.) ──
+	if float_amplitude > 0.0:
+		var wall_hit := false
+		for i in get_slide_collision_count():
+			var n := get_slide_collision(i).get_normal()
+			if absf(n.y) < 0.4:   # normale horizontale = mur / encadrement
+				wall_hit = true
+				break
+		if wall_hit:
+			# Descend pour passer sous l'obstacle
+			_hover_adjust = move_toward(_hover_adjust, -2.5, delta * 5.0)
+		else:
+			# Remonte progressivement à la hauteur normale
+			_hover_adjust = move_toward(_hover_adjust, 0.0, delta * 1.5)
+
 	_check_stuck(delta)
 	_update_animation(is_moving)
 
@@ -358,7 +432,36 @@ func _die() -> void:
 	respawn_timer = 10.0
 	demon_died.emit(self)
 
+	# ── Cadavre statique ─────────────────────────────────────
+	var _dm := get_node_or_null("/root/DebrisManager")
+	if _dm:
+		# Calculer la position sol ici (CharacterBody3D a accès direct au monde physique)
+		var corpse_pos := global_position
+		if float_amplitude > 0.0:
+			# Démon volant : raycast vers le bas pour trouver le vrai sol
+			var space  := get_world_3d().direct_space_state
+			var params := PhysicsRayQueryParameters3D.create(
+				global_position,
+				global_position + Vector3(0.0, -30.0, 0.0)
+			)
+			params.exclude = [get_rid()]
+			var hit := space.intersect_ray(params)
+			if hit:
+				corpse_pos.y = hit["position"].y
+		_corpse = _dm.spawn_corpse(
+			get_tree().current_scene,
+			corpse_pos,
+			debris_color,
+			debris_fire_color,
+			debris_meshes
+		)
+
 func _respawn() -> void:
+	# Supprimer le cadavre de la mort précédente
+	if is_instance_valid(_corpse):
+		_corpse.queue_free()
+	_corpse = null
+
 	hp              = hp_max
 	dead            = false
 	active          = false
