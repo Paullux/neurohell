@@ -138,9 +138,21 @@ func _make_corpse(color: Color, fire_color: Color, meshes: Array) -> StaticBody3
 
 	body.add_child(fire)
 
-	# Éteindre le feu après FIRE_DURATION secondes
-	get_tree().create_timer(FIRE_DURATION).timeout.connect(
-		func(): if is_instance_valid(fire): fire.emitting = false
+	# ── Son de feu (AudioStreamPlayer3D) ────────────────────────────────────
+	var fire_snd := AudioStreamPlayer3D.new()
+	var stream   := load("res://assets/audio/sound_fx/fire_sound.ogg") as AudioStream
+	if stream:
+		fire_snd.stream            = stream
+		fire_snd.autoplay          = true
+		fire_snd.max_distance      = 8.0
+		fire_snd.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_SQUARE_DISTANCE
+		fire_snd.volume_db         = -6.0
+		body.add_child(fire_snd)
+
+	# Éteindre le feu ET le son après FIRE_DURATION secondes
+	get_tree().create_timer(FIRE_DURATION).timeout.connect(func():
+		if is_instance_valid(fire):     fire.emitting = false
+		if is_instance_valid(fire_snd): fire_snd.stop()
 	)
 
 	return body
