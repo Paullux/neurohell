@@ -108,17 +108,18 @@ func _ready() -> void:
 		load("res://scripts/corridor_decor.gd").attach_to_scene(self)
 		load("res://scripts/torch_flame.gd").attach_to_scene(self)
 
-	# Créer le NavigationMesh s'il n'existe pas, puis cuire
+	# Le navmesh est pré-calculé dans l'éditeur (bouton "Précalculer le NavigationMesh").
+	# On ne recalcule à runtime que s'il est absent (sécurité).
 	if nav_region.navigation_mesh == null:
 		var nav_mesh := NavigationMesh.new()
-		nav_mesh.agent_radius        = 0.4
-		nav_mesh.agent_height        = 1.8
-		nav_mesh.agent_max_climb     = 0.4
-		nav_mesh.agent_max_slope     = 45.0
-		nav_mesh.cell_size           = 0.25
-		nav_mesh.cell_height         = 0.25
-		nav_region.navigation_mesh   = nav_mesh
-	nav_region.bake_navigation_mesh.call_deferred()
+		nav_mesh.agent_radius    = 0.4
+		nav_mesh.agent_height    = 1.8
+		nav_mesh.agent_max_climb = 0.5
+		nav_mesh.agent_max_slope = 70.0
+		nav_mesh.cell_size       = 0.25
+		nav_mesh.cell_height     = 0.1
+		nav_region.navigation_mesh = nav_mesh
+		nav_region.bake_navigation_mesh.call_deferred()
 
 	# ── Restauration sauvegarde (depuis le menu principal) ───
 	if SaveManager.pending_filename != "":
@@ -152,7 +153,7 @@ func _generate_colliders(node: Node) -> void:
 			_create_simple_collider(mesh_inst)
 			return
 
-		# 🟠 RAMP = convex hull (évite le tunneling à grande vitesse)
+		# 🟠 RAMP = convex hull (requis pour CharacterBody3D)
 		if n.contains("RAMP"):
 			mesh_inst.create_convex_collision()
 			_collider_count += 1

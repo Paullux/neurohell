@@ -201,6 +201,7 @@ chase_speed = 2.8
 melee_range = 1.0
 float_amplitude = 0.1
 float_freq = 0.65
+float_hover = 1.6
 anim_idle = "Fly"
 anim_walk = "Fly"
 anim_attack = "Catch"
@@ -212,7 +213,7 @@ shape = SubResource("Cap_Voidborn_lv3")
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="Demons/Voidborn" unique_id=310000053]
 
 [node name="ModelHolder" type="Node3D" parent="Demons/Voidborn" unique_id=310000054]
-transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0)
+transform = Transform3D(-0.01, 0, -8.7422775e-10, 0, 0.01, 0, 8.7422775e-10, 0, -0.01, 0, 0, 0)
 
 [node name="Model" parent="Demons/Voidborn/ModelHolder" unique_id=310000055 instance=ExtResource("16_void")]
 

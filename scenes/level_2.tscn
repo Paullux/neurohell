@@ -21,7 +21,7 @@ radius = 0.65
 height = 1.8
 
 [sub_resource type="CapsuleShape3D" id="Cap_Pyrarachnid_lv2"]
-radius = 0.5
+radius = 0.45
 height = 0.9
 
 [sub_resource type="CapsuleShape3D" id="Cap_Ravager_lv2"]
@@ -42,7 +42,6 @@ radius = 1.5
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMat_lv2"]
 panorama = ExtResource("17_hdri")
-energy_multiplier = 1.0
 
 [sub_resource type="Sky" id="Sky_lv2"]
 sky_material = SubResource("PanoramaSkyMat_lv2")
@@ -202,6 +201,7 @@ chase_speed = 2.8
 melee_range = 1.0
 float_amplitude = 0.1
 float_freq = 0.65
+float_hover = 1.6
 anim_idle = "Fly"
 anim_walk = "Fly"
 anim_attack = "Catch"
@@ -213,7 +213,7 @@ shape = SubResource("Cap_Voidborn_lv2")
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="Demons/Voidborn" unique_id=210000053]
 
 [node name="ModelHolder" type="Node3D" parent="Demons/Voidborn" unique_id=210000054]
-transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0)
+transform = Transform3D(-0.01, 0, -8.7422775e-10, 0, 0.01, 0, 8.7422775e-10, 0, -0.01, 0, 0, 0)
 
 [node name="Model" parent="Demons/Voidborn/ModelHolder" unique_id=210000055 instance=ExtResource("16_void")]
 
