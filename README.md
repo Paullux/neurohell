@@ -13,7 +13,7 @@ NeuroHell est un roguelite FPS cyberpunk/horror dans lequel tu incarnes un solda
 - **Moteur** : Godot 4.6
 - **Genre** : FPS roguelite, dark sci-fi horror
 - **Plateformes** : Windows, Linux
-- **État** : prototype en développement actif
+- **État** : prototype en développement actif — v0.8.6
 
 ---
 
@@ -39,19 +39,50 @@ Les builds compilés sont disponibles sur [neurohell.com](https://neurohell.com)
 
 ---
 
+## Démons
+
+6 types de démons, chacun avec comportement, sons et cadavre unique :
+
+| Démon | Particularité | Feu cadavre |
+|---|---|---|
+| Mawgrub | Lourd, suit les pentes | 🟡 Jaune/orange |
+| Ravager | Rapide, agressif | 🟡 Jaune/orange |
+| Pyrarachnid | Araignée de feu | 🟡 Jaune/orange |
+| Taurex | Tank, haute santé | 🟡 Jaune/orange |
+| Spectre | Vol lent, attaque à distance | 🟣 Violet |
+| Voidborn | Vol rapide, hauteur caméra | 🔵 Cyan |
+
+### Système de cadavres (v0.8.6)
+
+À chaque mort un cadavre physique est spawné sur le sol avec des flammes 3D spatialisées :
+- Mesh GLB unique aléatoire parmi 3 variantes par démon (`assets/demons/waste/`)
+- Particules flammèches avec texture réelle (`flam.png`) — couleur selon le type de démon
+- Son de feu 3D (`fire_sound.ogg`) synchronisé avec les particules (6 secondes)
+- Cadavre supprimé automatiquement au respawn du démon
+- Pool limité à 50 cadavres simultanés dans la scène
+
+---
+
 ## Structure du projet
 
 ```
-├── scenes/       — scènes Godot (niveaux, HUD, menus, démons)
-├── scripts/      — GDScript (joueur, armes, IA, HUD, portails)
+├── scenes/          — scènes Godot (niveaux, HUD, menus, démons)
+├── scripts/         — GDScript (joueur, armes, IA, HUD, portails)
+│   ├── demon_base.gd       — IA démons, physique, cadavres
+│   ├── debris_manager.gd   — autoload pool cadavres + feu
+│   └── …
 ├── assets/
-│   ├── demons/   — modèles GLB des démons
-│   ├── levels/   — GLB des niveaux
-│   ├── decor/    — GLB des décors procéduraux
-│   ├── audio/    — musiques et effets sonores
-│   ├── videos/   — cinématiques
-│   ├── images/   — textures, HDRI, icônes
-│   └── font/     — polices (Orbitron, Exo 2)
+│   ├── demons/
+│   │   └── waste/   — GLB cadavres (6 démons × 3 variantes)
+│   ├── levels/      — GLB des niveaux
+│   ├── decor/       — GLB des décors procéduraux
+│   ├── audio/
+│   │   ├── music/       — musiques contextuelles
+│   │   └── sound_fx/    — effets sonores (feu, impacts…)
+│   ├── videos/      — cinématiques
+│   ├── images/
+│   │   └── particules/  — textures VFX (flam.png…)
+│   └── font/        — polices (Orbitron, Exo 2)
 └── .github/
     └── workflows/
         └── godot-build.yml  — CI : build Windows + Linux → GitHub Release
