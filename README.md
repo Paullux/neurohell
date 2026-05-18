@@ -95,9 +95,9 @@ Les builds compilés sont disponibles sur [neurohell.com](https://neurohell.com)
 ## CI/CD
 
 Un push de tag `v*.*.*` déclenche automatiquement :
-1. Export Windows (`NeuroHell.exe`)
-2. Export Linux (`NeuroHell.x86_64`)
-3. Création d'une GitHub Release avec les deux archives
+1. Export Windows → `NeuroHell-vX.X.X-Setup.exe` + `NeuroHell-Windows.zip`
+2. Export Linux → `NeuroHell-vX.X.X-Linux.AppImage` + `NeuroHell-Linux.zip`
+3. Création d'une GitHub Release avec les quatre fichiers
 4. Mise à jour automatique des liens sur [neurohell.com](https://neurohell.com)
 
 ---
