@@ -21,10 +21,12 @@ NeuroHell est un roguelite FPS cyberpunk/horror dans lequel tu incarnes un solda
 
 Les builds compilés sont disponibles sur [neurohell.com](https://neurohell.com) ou directement via les [GitHub Releases](https://github.com/Paullux/neurohell/releases).
 
-| Plateforme | Instructions |
-|---|---|
-| 🪟 Windows | Extraire le zip et lancer `NeuroHell.exe` |
-| 🐧 Linux | `chmod +x NeuroHell.x86_64 && ./NeuroHell.x86_64` |
+| Plateforme | Fichier | Instructions |
+|---|---|---|
+| 🪟 **Windows (recommandé)** | `NeuroHell-vX.X.X-Setup.exe` | Double-clic et suivre l'assistant |
+| 🪟 Windows (portable) | `NeuroHell-Windows.zip` | Extraire et lancer `NeuroHell.exe` |
+| 🐧 **Linux (recommandé)** | `NeuroHell-vX.X.X-Linux.AppImage` | `chmod +x *.AppImage && ./NeuroHell-*.AppImage` |
+| 🐧 Linux (portable) | `NeuroHell-Linux.zip` | `chmod +x NeuroHell.x86_64 && ./NeuroHell.x86_64` |
 
 ---
 
