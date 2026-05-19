@@ -54,8 +54,9 @@ var _stuck_timer: float = 0.0
 var _prev_xz: Vector2   = Vector2.ZERO
 
 # ── Voidborn : évitement d'obstacle vertical ──────────────────
-var _hover_adjust: float = 0.0   # décalage Y dynamique (négatif = descend pour passer)
-var _corpse: Node3D = null        # cadavre spawné à la mort, supprimé au respawn
+var _hover_adjust: float  = 0.0   # décalage Y dynamique (négatif = descend pour passer)
+var _corpse: Node3D       = null  # cadavre spawné à la mort, supprimé au respawn
+var _model_offset: Vector3        # offset initial du ModelHolder (Y souvent négatif sur certains démons)
 
 # ── Nodes ─────────────────────────────────────────────────────
 @onready var nav_agent:    NavigationAgent3D = $NavigationAgent3D
@@ -148,7 +149,16 @@ func _find_mesh_instance(node: Node) -> MeshInstance3D:
 func _capture_spawn_position() -> void:
 	_spawn_position = global_position
 	_base_y         = global_position.y
-	print("[%s] spawn_position capturée : %s" % [demon_name, _spawn_position])
+
+	# Mémoriser l'offset initial du ModelHolder (Y souvent −0.3 sur certains démons)
+	_model_offset = model_holder.position
+
+	# Désactiver le root motion de l'AnimationPlayer :
+	# les animations Mixamo ont le déplacement baked dans le root bone,
+	# ce qui fait dériver le mesh visuellement devant le CharacterBody3D.
+	# On vide root_motion_track pour que Godot ignore cette piste.
+	if anim_player:
+		anim_player.root_motion_track = NodePath("")
 
 func _add_hitbox() -> void:
 	if has_node("Hitbox"):
@@ -321,6 +331,14 @@ func _physics_process(delta: float) -> void:
 
 	_check_stuck(delta)
 	_update_animation(is_moving)
+
+	# ── Neutraliser la dérive root motion résiduelle ─────────
+	# Même avec root_motion_track vide, certaines animations Mixamo
+	# déplacent encore le ModelHolder en X/Z via les keyframes du root bone.
+	# On recentre sur l'offset initial chaque frame.
+	if _model_offset != Vector3.ZERO or model_holder.position != _model_offset:
+		model_holder.position.x = _model_offset.x
+		model_holder.position.z = _model_offset.z
 
 	# ── Son de déplacement (pas, claquements…) ───────────────
 	if is_moving:
