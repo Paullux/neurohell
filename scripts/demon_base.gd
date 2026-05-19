@@ -26,6 +26,7 @@ extends CharacterBody3D
 # ── Noms d'animations (visibles dans l'Inspector) ────────────
 @export var anim_idle:        String = "Idle"
 @export var anim_walk:        String = "Walk"
+@export var anim_fly:         String = ""    # si renseigné, utilisé en continu pour les démons volants
 @export var anim_attack:      String = ""
 @export var anim_speed_scale: float  = 1.0   # multiplicateur de vitesse d'animation
 
@@ -195,15 +196,10 @@ func _add_hitbox() -> void:
 	add_child(hitbox)
 
 func _process(_delta: float) -> void:
-	# Neutraliser la dérive X/Z du root bone après que l'AnimationPlayer l'a mis à jour.
-	# AnimationPlayer tourne en _process → on corrige ici, après lui.
+	# Neutraliser la dérive X/Z du ModelHolder après que l'AnimationPlayer l'a mis à jour.
+	# On ne touche PAS au bone pose pour ne pas écraser le Y de l'animation (position des hanches).
+	# La solution définitive est le script Blender zero_root_motion.py appliqué aux GLB.
 	if not active or dead: return
-	if _skeleton and _root_bone >= 0:
-		var pose := _skeleton.get_bone_pose(_root_bone)
-		pose.origin.x = 0.0
-		pose.origin.z = 0.0
-		_skeleton.set_bone_pose(_root_bone, pose)
-	# Recaler aussi le ModelHolder (sécurité supplémentaire)
 	model_holder.position.x = _model_offset.x
 	model_holder.position.z = _model_offset.z
 
@@ -343,8 +339,11 @@ func _physics_process(delta: float) -> void:
 									_player.global_position.z), Vector3.UP)
 					is_moving = true
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, chase_speed)
-		velocity.z = move_toward(velocity.z, 0.0, chase_speed)
+		# Arrêt immédiat — évite le glissement sur les pentes
+		velocity.x = 0.0
+		velocity.z = 0.0
+		if is_on_floor():
+			velocity.y = 0.0
 
 	move_and_slide()
 
@@ -439,7 +438,11 @@ func _is_decor(node: Node) -> bool:
 # ── Animations ────────────────────────────────────────────────
 func _update_animation(moving: bool) -> void:
 	if _attacking: return
-	_play_anim(anim_walk if moving else anim_idle)
+	# Démon volant avec animation dédiée → Fly en continu (Voidborn)
+	if float_amplitude > 0.0 and anim_fly != "":
+		_play_anim(anim_fly)
+	else:
+		_play_anim(anim_walk if moving else anim_idle)
 
 func _play_anim(anim: String) -> void:
 	if anim_player == null or anim == "": return
@@ -480,19 +483,18 @@ func _die() -> void:
 	# ── Cadavre statique ─────────────────────────────────────
 	var _dm := get_node_or_null("/root/DebrisManager")
 	if _dm:
-		# Calculer la position sol ici (CharacterBody3D a accès direct au monde physique)
+		# Calculer la position sol — raycast systématique pour tous les démons.
+		# global_position = centre de la capsule, pas les pieds → on cherche le sol réel.
 		var corpse_pos := global_position
-		if float_amplitude > 0.0:
-			# Démon volant : raycast vers le bas pour trouver le vrai sol
-			var space  := get_world_3d().direct_space_state
-			var params := PhysicsRayQueryParameters3D.create(
-				global_position,
-				global_position + Vector3(0.0, -30.0, 0.0)
-			)
-			params.exclude = [get_rid()]
-			var hit := space.intersect_ray(params)
-			if hit:
-				corpse_pos.y = hit["position"].y
+		var space  := get_world_3d().direct_space_state
+		var params := PhysicsRayQueryParameters3D.create(
+			global_position,
+			global_position + Vector3(0.0, -30.0, 0.0)
+		)
+		params.exclude = [get_rid()]
+		var hit := space.intersect_ray(params)
+		if hit:
+			corpse_pos.y = hit["position"].y
 		_corpse = _dm.spawn_corpse(
 			get_tree().current_scene,
 			corpse_pos,

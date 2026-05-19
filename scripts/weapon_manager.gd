@@ -100,6 +100,9 @@ func _ready() -> void:
 		_ammo_copy.append(float(w["ammo"]))
 	switch_weapon(0)
 
+func _is_cinematic_active() -> bool:
+	return get_tree().get_first_node_in_group("cinematic_active") != null
+
 func _input(event: InputEvent) -> void:
 	# Touches 1-5
 	for i in range(5):
@@ -113,7 +116,9 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed("weapon_prev"):
 		switch_weapon((current_index - 1 + WEAPONS.size()) % WEAPONS.size())
 
-	# Tir
+	# Tir — bloqué pendant les cinématiques Sonya
+	if _is_cinematic_active(): return
+
 	if event.is_action_pressed("fire"):
 		_on_fire_pressed()
 	if event.is_action_released("fire"):
@@ -130,7 +135,9 @@ func _input(event: InputEvent) -> void:
 			_toggle_scope()
 
 func _process(delta: float) -> void:
-	# Tir continu
+	# Tir continu — bloqué pendant les cinématiques Sonya
+	if _is_cinematic_active():
+		_fire_held = false
 	var cfg: Dictionary = WEAPONS[current_index]
 	if _fire_held and cfg["continuous"]:
 		_try_fire()

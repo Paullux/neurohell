@@ -135,7 +135,7 @@ shape = SubResource("Cap_Mawgrub")
 [node name="ModelHolder" type="Node3D" parent="Demons/Mawgrub" unique_id=870296187]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
-[node name="Model" parent="Demons/Mawgrub/ModelHolder" unique_id=-2093967295 instance=ExtResource("8")]
+[node name="Model" parent="Demons/Mawgrub/ModelHolder" unique_id=538303983 instance=ExtResource("8")]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Mawgrub" unique_id=771060493]
 
@@ -155,7 +155,7 @@ shape = SubResource("Cap_Pyrarachnid")
 [node name="ModelHolder" type="Node3D" parent="Demons/Pyrarachnid" unique_id=1414955911]
 transform = Transform3D(-2.5, 0, 0, 0, 2.5, 0, 0, 0, -2.5, 0, 0.45, 0)
 
-[node name="Model" parent="Demons/Pyrarachnid/ModelHolder" unique_id=-2093967294 instance=ExtResource("9")]
+[node name="Model" parent="Demons/Pyrarachnid/ModelHolder" unique_id=1116552919 instance=ExtResource("9")]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Pyrarachnid" unique_id=388575240]
 
@@ -180,7 +180,7 @@ shape = SubResource("Cap_Ravager")
 [node name="ModelHolder" type="Node3D" parent="Demons/Ravager" unique_id=629765340]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
 
-[node name="Model" parent="Demons/Ravager/ModelHolder" unique_id=-2093967293 instance=ExtResource("10")]
+[node name="Model" parent="Demons/Ravager/ModelHolder" unique_id=354030117 instance=ExtResource("10")]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Ravager" unique_id=448175269]
 
@@ -203,7 +203,7 @@ shape = SubResource("Cap_Spectre")
 [node name="ModelHolder" type="Node3D" parent="Demons/Spectre" unique_id=377286660]
 transform = Transform3D(-0.01, 0, -8.7422775e-10, 0, 0.01, 0, 8.7422775e-10, 0, -0.01, 0, 0, 0)
 
-[node name="Model" parent="Demons/Spectre/ModelHolder" unique_id=-2093967292 instance=ExtResource("11")]
+[node name="Model" parent="Demons/Spectre/ModelHolder" unique_id=1703209992 instance=ExtResource("11")]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Spectre" unique_id=2026635898]
 
@@ -226,7 +226,7 @@ shape = SubResource("Cap_Taurex")
 [node name="ModelHolder" type="Node3D" parent="Demons/Taurex" unique_id=1161049631]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
 
-[node name="Model" parent="Demons/Taurex/ModelHolder" unique_id=-2093967291 instance=ExtResource("12")]
+[node name="Model" parent="Demons/Taurex/ModelHolder" unique_id=2094297995 instance=ExtResource("12")]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Taurex" unique_id=1331593206]
 
@@ -242,6 +242,7 @@ float_freq = 0.65
 float_hover = 1.6
 anim_idle = "Fly"
 anim_walk = "Fly"
+anim_fly = "Fly"
 anim_attack = "Catch"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Demons/Voidborn" unique_id=1169954464]
@@ -253,7 +254,7 @@ shape = SubResource("Cap_Voidborn")
 [node name="ModelHolder" type="Node3D" parent="Demons/Voidborn" unique_id=2047045186]
 transform = Transform3D(-0.01, 0, -8.7422775e-10, 0, 0.01, 0, 8.7422775e-10, 0, -0.01, 0, 0, 0)
 
-[node name="Model" parent="Demons/Voidborn/ModelHolder" unique_id=-2093967290 instance=ExtResource("13")]
+[node name="Model" parent="Demons/Voidborn/ModelHolder" unique_id=2050811433 instance=ExtResource("13")]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Demons/Voidborn" unique_id=1527305623]
 

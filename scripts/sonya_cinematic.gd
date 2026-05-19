@@ -92,6 +92,7 @@ func play(level_id: int) -> void:
 		cinematic_finished.emit()
 		return
 
+	add_to_group("cinematic_active")   # bloque le tir pendant toute la cinématique
 	_build_scene()
 	_load_audio(AUDIO_BASE + data["audio"])
 	_load_lipsync(JSON_BASE + data["json"])
@@ -394,6 +395,8 @@ func _begin_fade_out() -> void:
 
 func _cleanup() -> void:
 	_reset_morphs()
+	if is_in_group("cinematic_active"):
+		remove_from_group("cinematic_active")   # réautorise le tir
 	if _canvas_layer:
 		_canvas_layer.queue_free()
 	cinematic_finished.emit()
