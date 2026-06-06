@@ -19,7 +19,7 @@ boot_splash/image="res://assets/images/splashscreen/le_soldat_et_le_portail_myst
 boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/fullsize=true
 boot_splash/use_filter=true
-boot_splash/minimum_display_time=0
+boot_splash/minimum_display_time=4000
 
 [autoload]
 
