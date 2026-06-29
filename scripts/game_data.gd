@@ -7,6 +7,9 @@ static var health:    float = 100.0
 static var armor:     float = 100.0
 static var has_saved: bool  = false
 
+# ── Arme active persistante entre les niveaux ─────────────────
+static var current_weapon: int = 0
+
 # ── Stats de session ─────────────────────────────────────────
 static var soul_points:   int   = 0
 static var kills:         int   = 0

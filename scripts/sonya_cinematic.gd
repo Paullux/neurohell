@@ -92,6 +92,7 @@ func play(level_id: int) -> void:
 		cinematic_finished.emit()
 		return
 
+	AmbientManager.stop()
 	add_to_group("cinematic_active")   # bloque le tir pendant toute la cinématique
 	_build_scene()
 	_load_audio(AUDIO_BASE + data["audio"])

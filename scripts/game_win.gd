@@ -38,6 +38,7 @@ var _lbl_press:   Label = null
 var _btn_video:   Button = null
 
 func _ready() -> void:
+	AmbientManager.stop(false)
 	# Supprimer les overlays de transition hérités du niveau précédent
 	# (blanc layer 99, stats layer 100 créés par portal_disc / hud)
 	for child in get_tree().root.get_children():

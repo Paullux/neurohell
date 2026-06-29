@@ -34,6 +34,7 @@ func _process(_delta: float) -> void:
 			hud.show_narration(_NARRATION_LINES[i]["text"])
 
 func _ready() -> void:
+	AmbientManager.play()
 	# Joueur → HUD
 	player.health_changed.connect(hud.set_health)
 	player.armor_changed.connect(hud.set_armor)

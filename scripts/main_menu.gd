@@ -1,5 +1,6 @@
 extends Control
 
+@onready var background:         TextureRect   = $Background
 @onready var button_play:        Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonPlay
 @onready var button_story:       Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonStory
 @onready var button_screenshots: Button        = $RootMargin/Center/VBox/MainContent/MenuPanel/MenuVBox/ButtonScreenshots
@@ -15,12 +16,15 @@ const LEVEL_1_SCENE   := "res://scenes/level_1.tscn"
 # /releases (toutes) plutôt que /latest → une seule requête pour version + compteurs
 const GITHUB_API      := "https://api.github.com/repos/Paullux/neurohell/releases"
 
+const SPLASH_VIDEO_PATH := "res://assets/images/splashscreen/intro.ogv"
+
 var _active_btn:      Button = null
 var _btn_base_texts:  Dictionary = {}  # texte original de chaque bouton
 var _latest_version:  String = ""      # rempli par le fetch GitHub
 var _dl_windows:      int    = -1      # -1 = pas encore chargé
 var _dl_linux:        int    = -1
 var _http:            HTTPRequest = null
+
 
 # ── Grille captures ──────────────────────────────────────────
 var _screenshot_scroll: ScrollContainer = null
@@ -33,11 +37,16 @@ var _restore_scroll: ScrollContainer = null
 var _style_active: StyleBoxFlat = null
 var _style_normal: StyleBoxFlat = null
 
+var _splash_cover: TextureRect = null   # affiche intro.ogv en cover (sans bandes noires)
+
 func _ready() -> void:
 	intro_overlay.visible = false
+	call_deferred("_fit_background")
+	get_viewport().size_changed.connect(_fit_background)
 
 	# Styles
 	_style_active = StyleBoxFlat.new()
+
 	_style_active.bg_color     = Color(0.47, 0.0, 0.0, 0.9)
 	_style_active.border_color = Color(1.0, 0.44, 0.44, 0.8)
 	_style_active.set_border_width_all(1)
@@ -71,6 +80,9 @@ func _ready() -> void:
 	# Sélection initiale
 	_select(button_play)
 	_show_home()
+
+	# Splash d'intro au lancement (intro.ogv) — joue avant que le menu soit accessible
+	_play_launch_splash()
 
 
 # ── Sélection active ─────────────────────────────────────────
@@ -398,7 +410,11 @@ func _restore_save(filename: String, scene: String) -> void:
 	if filename == "" or scene == "":
 		return
 	SaveManager.pending_filename = filename
-	GameData.deaths = 0   # pas de réinitialisation — les morts de la session précédente subsistent
+	GameData.deaths = 0
+	# Pré-setter l'arme avant le changement de scène :
+	# WeaponManager._ready() lit GameData.current_weapon avant qu'apply_pending_restore soit appelé.
+	var save_data := SaveManager.get_save_data(filename)
+	GameData.current_weapon = int(save_data.get("current_weapon", 0))
 	var err := get_tree().change_scene_to_file(scene)
 	if err != OK:
 		push_error("MainMenu: impossible de charger la scène de sauvegarde : " + scene)
@@ -475,11 +491,60 @@ func _on_play_pressed() -> void:
 	intro_overlay.visible = true
 	intro_video.play()
 
+func _play_launch_splash() -> void:
+	var splash_stream := load(SPLASH_VIDEO_PATH) as VideoStream
+	if splash_stream == null:
+		return  # fichier absent → on affiche juste le menu
+
+	# TextureRect cover : remplit toute la fenêtre en rognant si le ratio diffère
+	_splash_cover = TextureRect.new()
+	_splash_cover.expand_mode  = TextureRect.EXPAND_IGNORE_SIZE
+	_splash_cover.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_splash_cover.layout_mode  = 1
+	intro_overlay.add_child(_splash_cover)
+	_splash_cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	intro_overlay.move_child(intro_overlay.get_node("SkipLabel"), intro_overlay.get_child_count() - 1)
+
+	# intro_video joue en invisible (audio + décodage), on recopie sa texture chaque frame
+	intro_video.visible = false
+	var saved_stream    := intro_video.stream
+	intro_video.finished.disconnect(_go_to_level_1)
+	intro_video.finished.connect(func() -> void:
+		if is_instance_valid(_splash_cover):
+			_splash_cover.queue_free()
+			_splash_cover = null
+		AmbientManager.stop()
+		intro_video.visible = true
+		intro_video.stream  = saved_stream
+		intro_video.finished.connect(_go_to_level_1)
+		intro_overlay.visible = false
+	, CONNECT_ONE_SHOT)
+	intro_video.stream = splash_stream
+	intro_overlay.visible = true
+	intro_video.play()
+	AmbientManager.play()
+
+func _fit_background() -> void:
+	if background == null or background.texture == null:
+		return
+	var vp      := get_viewport_rect().size
+	var tex     := background.texture.get_size()
+	var scale   := maxf(vp.x / tex.x, vp.y / tex.y)
+	var new_sz  := tex * scale
+	background.size     = new_sz
+	background.position = (vp - new_sz) * 0.5
+
+func _process(_delta: float) -> void:
+	if _splash_cover != null and intro_video.is_playing():
+		_splash_cover.texture = intro_video.get_video_texture()
+
 func _go_to_level_1() -> void:
 	intro_overlay.visible = false
-	# Reset du compteur de morts ici (nouvelle partie) et non dans level_1._ready()
-	# pour qu'il survive aux reload_current_scene() lors des morts en jeu
-	GameData.deaths = 0
+	# Reset au début d'une nouvelle partie (morts + arme)
+	# Les morts ne se reset PAS sur reload_current_scene() (mort en jeu),
+	# seulement ici depuis le menu principal.
+	GameData.deaths         = 0
+	GameData.current_weapon = 0
 	var err := get_tree().change_scene_to_file(LEVEL_1_SCENE)
 	if err != OK:
 		push_error("Impossible de charger le niveau 1 : " + LEVEL_1_SCENE)

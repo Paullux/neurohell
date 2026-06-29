@@ -33,6 +33,7 @@ func _process(_delta: float) -> void:
 			hud.show_narration(_NARRATION_LINES[i]["text"])
 
 func _ready() -> void:
+	AmbientManager.play()
 	# Supprimer l'overlay de transition du niveau précédent
 	for child in get_tree().root.get_children():
 		if child is CanvasLayer and child.layer >= 98:

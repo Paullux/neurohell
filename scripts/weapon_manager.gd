@@ -95,10 +95,12 @@ var _ammo_copy: Array[float] = []   # copie mutable des munitions
 var _anim_players: Array[AnimationPlayer] = []  # AnimationPlayers du Gazlet (gauche + droite)
 
 func _ready() -> void:
-	# Copier les ammo pour mutation en jeu
 	for w: Dictionary in WEAPONS:
 		_ammo_copy.append(float(w["ammo"]))
-	switch_weapon(0)
+	switch_weapon(GameData.current_weapon)
+
+func _exit_tree() -> void:
+	GameData.current_weapon = current_index
 
 func _is_cinematic_active() -> bool:
 	return get_tree().get_first_node_in_group("cinematic_active") != null

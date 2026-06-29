@@ -43,6 +43,7 @@ func save_game(player: CharacterBody3D, level_scene: String, slot_name: String =
 		"player_rotation_y": player.rotation.y,
 		"health":           player.health,
 		"armor":            player.armor,
+		"current_weapon":   GameData.current_weapon,
 		"soul_points":      GameData.soul_points,
 		"kills":            GameData.kills,
 		"deaths":           GameData.deaths,
@@ -138,6 +139,12 @@ func apply_save(filename: String, player: CharacterBody3D) -> bool:
 	if data.has("deaths"):       GameData.deaths       = int(data["deaths"])
 	if data.has("damage_dealt"): GameData.damage_dealt = float(data["damage_dealt"])
 
+	# Arme active
+	GameData.current_weapon = int(data.get("current_weapon", 0))
+	var wm := player.get_node_or_null("Head/Camera3D/WeaponHolder/WeaponManager")
+	if wm and wm.has_method("switch_weapon"):
+		wm.switch_weapon(GameData.current_weapon)
+
 	return true
 
 
@@ -161,6 +168,19 @@ func apply_pending_restore(player: CharacterBody3D) -> bool:
 	var result := apply_save(pending_filename, player)
 	pending_filename = ""
 	return result
+
+
+# ── Données brutes d'une sauvegarde ──────────────────────────
+func get_save_data(filename: String) -> Dictionary:
+	var path := SAVE_DIR + filename
+	if not FileAccess.file_exists(path):
+		return {}
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return {}
+	var data: Variant = JSON.parse_string(f.get_as_text())
+	f.close()
+	return data if data is Dictionary else {}
 
 
 # ── Scène associée à une sauvegarde ──────────────────────────
